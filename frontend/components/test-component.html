@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .test-component {
+            background: linear-gradient(135deg, #06b6d4, #3b82f6);
+            color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+            margin: 1rem 0;
+        }
+        
+        .test-component h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        .test-component p {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        
+        .test-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .stat {
+            text-align: center;
+            min-width: 80px;
+        }
+        
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            display: block;
+            margin-top: 0.25rem;
+        }
+        
+        .test-success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .test-success strong {
+            color: #22c55e;
+        }
+        
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(10px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .test-stats {
+                gap: 1rem;
+            }
+            
+            .stat {
+                min-width: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="test-component">
+        <h2>✅ 懒加载测试组件</h2>
+        <p>这个组件通过懒加载系统成功加载！证明系统工作正常。</p>
+        <p><strong>加载时间</strong>: <span id="load-time">计算中...</span></p>
+        <p><strong>组件ID</strong>: <code>test-component</code></p>
+        
+        <div class="test-stats">
+            <div class="stat">
+                <span class="stat-value">172K</span>
+                <span class="stat-label">AI Agents</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value">99.9%</span>
+                <span class="stat-label">置信度</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value">3.8%</span>
+                <span class="stat-label">人口样本</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value">5.7M</span>
+                <span class="stat-label">新加坡人口</span>
+            </div>
+        </div>
+        
+        <div class="test-success">
+            <strong>✅ 测试通过！</strong> 懒加载系统工作正常，组件按需加载成功。
+        </div>
+    </div>
+    
+    <script>
+        // 计算加载时间
+        if (typeof window.lazyLoadStartTime !== 'undefined') {
+            const loadTime = performance.now() - window.lazyLoadStartTime;
+            const loadTimeElement = document.getElementById('load-time');
+            if (loadTimeElement) {
+                loadTimeElement.textContent = loadTime.toFixed(2) + 'ms';
+                
+                // 根据加载时间显示状态
+                if (loadTime < 100) {
+                    loadTimeElement.style.color = '#22c55e';
+                } else if (loadTime < 500) {
+                    loadTimeElement.style.color = '#eab308';
+                } else {
+                    loadTimeElement.style.color = '#ef4444';
+                }
+            }
+        }
+        
+        // 记录加载完成
+        console.log('🎉 懒加载测试组件加载完成');
+        
+        // 触发组件加载完成事件
+        const event = new CustomEvent('test:component:loaded', {
+            detail: {
+                componentId: 'test-component',
+                loadTime: typeof window.lazyLoadStartTime !== 'undefined' 
+                    ? performance.now() - window.lazyLoadStartTime 
+                    : 0,
+                timestamp: Date.now()
+            }
+        });
+        
+        document.dispatchEvent(event);
+    </script>
+</body>
+</html>

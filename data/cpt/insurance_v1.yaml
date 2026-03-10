@@ -1,0 +1,536 @@
+# ============================================================
+# Insurance Profile CPT v1.0
+# Conditional Probability Tables for 17 insurance fields
+# Source: insurance_profile_research_v1.md (v1.2)
+# ============================================================
+#
+# Provenance tags:
+#   [HARD]    = directly from source table
+#   [DERIVED] = calculated from hard data (division, dedup adjustment)
+#   [ESTIMATED] = inferred, constrained by marginals
+#
+# All marginal targets must be hit after generation.
+# CPT values are P(field | conditions).
+
+meta:
+  version: "v1.0"
+  research_doc: "insurance_profile_research_v1.md"
+  population: 172173
+  data_year: 2022  # LIA PGS reference year
+  created: "2026-03-11"
+
+# ============================================================
+# MARGINAL TARGETS — generation MUST reproduce these
+# ============================================================
+marginal_targets:
+  has_medishield_life: 1.000            # [HARD] CPF — universal
+  has_ip: 0.710                         # [HARD] MOH Nov 2025
+  has_rider_given_ip: 0.670             # [HARD] MOH Nov 2025
+  has_term_life: 0.170                  # [DERIVED] PGS T68/T58: 827,184/4,866,852
+  has_whole_life: 0.336                 # [DERIVED] PGS T68/T58: 1,635,081/4,866,852
+  has_ci: 0.306                         # [DERIVED] PGS p.59/T58: 1,491,042/4,866,852
+  ip_tier_given_ip:                     # [HARD] MOH official statement
+    private: 0.563                      #   40% of residents / 71% IP rate
+    A: 0.282                            #   20% / 71%
+    B1: 0.141                           #   10% / 71%
+    standard: 0.014                     #   <1% / 71%
+  insurance_attitude:                   # [DERIVED] PGS Section 16
+    proactive: 0.20
+    adequate: 0.25
+    passive: 0.25
+    resistant: 0.20
+    unaware: 0.10
+
+# ============================================================
+# FIELD 1: has_medishield_life
+# ============================================================
+has_medishield_life:
+  provenance: "[HARD] CPF — auto-enrolled for all SC+PR"
+  type: deterministic
+  value: true
+  # Only false for non-SC/PR (EP, SP, WP, FDW, DP, STP)
+  condition: "residency_status IN ('Citizen', 'PR')"
+  note: "Our 172K population is SC+PR only, so always true"
+
+# ============================================================
+# FIELD 2: has_ip — P(IP | age)
+# ============================================================
+has_ip:
+  provenance: "[HARD] overall 71% MOH; age distribution [ESTIMATED]"
+  type: conditional
+  marginal: 0.710
+  conditions:
+    # Age is the primary driver; income modulates within age band
+    # Young children have IP (parents buy); teens/young adults may lapse
+    # Working age high; elderly may drop due to premium
+    by_age:
+      "0-4":   0.55   # [ESTIMATED] parents buy for children, but not all
+      "5-9":   0.55
+      "10-14": 0.55
+      "15-19": 0.55   # some lapse as transition to own policy
+      "20-24": 0.60   # starting to buy own
+      "25-29": 0.72   # above average — entering workforce
+      "30-34": 0.80   # peak buying period
+      "35-39": 0.82
+      "40-44": 0.83
+      "45-49": 0.82
+      "50-54": 0.78
+      "55-59": 0.73
+      "60-64": 0.68
+      "65-69": 0.62
+      "70+":   0.50   # [ESTIMATED] premium burden, some drop out
+    # Income modifier (multiplied with age rate, then renormalized)
+    income_modifier:
+      low:    0.85    # <$2,000/month — less likely to afford IP
+      mid:    1.00    # $2,000-$6,000
+      high:   1.10    # >$6,000 — almost certain to have IP
+  note: >
+    Age distribution is [ESTIMATED] — no public data on IP by age.
+    Overall 71% is [HARD]. SAS paper says 3.99M lives covered (2023).
+    Income modifier keeps lower-income slightly below average.
+    Must calibrate to hit 71% marginal after generation.
+
+# ============================================================
+# FIELD 3: ip_tier — P(tier | has_ip, income, housing)
+# ============================================================
+ip_tier:
+  provenance: "[HARD] MOH: Private 40%, A 20%, B1 10%, Standard <1% of all residents"
+  type: conditional
+  marginal:
+    private: 0.563
+    A: 0.282
+    B1: 0.141
+    standard: 0.014
+  conditions:
+    # Income × Housing → tier preference
+    # High income + private housing → almost always Private tier
+    # Low income + HDB 1-2 → mostly B1 or A
+    by_income_housing:
+      high_private:   # income > $8,000 AND housing IN (Condo, Landed)
+        private: 0.90
+        A: 0.08
+        B1: 0.02
+        standard: 0.00
+      high_hdb:       # income > $8,000 AND housing = HDB
+        private: 0.75
+        A: 0.18
+        B1: 0.06
+        standard: 0.01
+      mid_high:       # income $5,000-$8,000
+        private: 0.65
+        A: 0.25
+        B1: 0.09
+        standard: 0.01
+      mid:            # income $3,000-$5,000
+        private: 0.50
+        A: 0.32
+        B1: 0.16
+        standard: 0.02
+      low_mid:        # income $1,500-$3,000
+        private: 0.30
+        A: 0.35
+        B1: 0.30
+        standard: 0.05
+      low:            # income < $1,500 or unemployed
+        private: 0.15
+        A: 0.30
+        B1: 0.40
+        standard: 0.15
+  note: >
+    Marginal is [HARD] from MOH. Conditional breakdown is [ESTIMATED]
+    but tightly constrained: must marginalize to 56.3/28.2/14.1/1.4.
+
+# ============================================================
+# FIELD 4: has_rider — P(rider | has_ip)
+# ============================================================
+has_rider:
+  provenance: "[HARD] overall 67% of IP holders; age [ESTIMATED]"
+  type: conditional
+  marginal_given_ip: 0.670
+  conditions:
+    by_age:
+      "0-19":  0.72   # parents buy comprehensive
+      "20-34": 0.73   # young, affordable premiums
+      "35-49": 0.70   # peak, but premiums rising
+      "50-59": 0.65   # cost pressure
+      "60-69": 0.58   # significant cost pressure
+      "70+":   0.48   # [ESTIMATED] many drop rider due to cost
+
+# ============================================================
+# FIELD 5: ip_insurer — P(insurer | has_ip)
+# ============================================================
+ip_insurer:
+  provenance: "[ESTIMATED] no public market share data"
+  type: categorical
+  distribution:
+    AIA: 0.22          # largest life insurer in SG
+    GE: 0.20           # Great Eastern — OCBC-linked, strong local
+    Prudential: 0.18
+    NTUC: 0.18         # NTUC Income — cooperative, popular with heartlanders
+    Singlife: 0.12     # newer, digital-first
+    Raffles: 0.10      # niche, Raffles Hospital-linked
+  note: "[ESTIMATED] — based on general life insurance market share proxies"
+
+# ============================================================
+# FIELD 6: has_term_life — P(term | age)
+# ============================================================
+has_term_life:
+  provenance: "[DERIVED] PGS Table 68 Term lives / Table 58 population"
+  type: conditional
+  marginal: 0.170
+  conditions:
+    by_age:
+      "0-4":   0.028
+      "5-9":   0.031
+      "10-14": 0.040
+      "15-19": 0.048
+      "20-24": 0.098
+      "25-29": 0.210
+      "30-34": 0.354
+      "35-39": 0.382
+      "40-44": 0.393
+      "45-49": 0.443
+      "50-54": 0.380
+      "55-59": 0.229
+      "60-64": 0.158
+      "65-69": 0.093
+      "70+":   0.019
+    # Marital modifier — married with dependents more likely
+    marital_modifier:
+      Married: 1.15
+      Single: 0.80
+      Divorced: 0.95
+      Widowed: 0.70
+  note: >
+    Age rates are [DERIVED] from hard data (T68/T58).
+    Marital modifier is [ESTIMATED] — logical (dependents drive term purchase).
+    Must renormalize after applying modifier to hit 17.0% marginal.
+
+# ============================================================
+# FIELD 7: term_life_coverage — S$ amount given has_term_life
+# ============================================================
+term_life_coverage:
+  provenance: "[HARD] PGS Table 66 Term column"
+  type: lognormal_by_age
+  # Mean coverage by age (from Table 66)
+  mean_by_age:
+    "0-4":   221327
+    "5-9":   212567
+    "10-14": 185508
+    "15-19": 205044
+    "20-24": 273837
+    "25-29": 406756
+    "30-34": 417242
+    "35-39": 450602
+    "40-44": 421793
+    "45-49": 295218
+    "50-54": 213810
+    "55-59": 150972
+    "60-64": 81416
+    "65-69": 46940
+    "70+":   45483
+  cv: 0.6  # coefficient of variation (assumed, typical for insurance)
+  income_elasticity: 0.4  # higher income → higher coverage, but sublinear
+  note: >
+    Mean values are [HARD] from PGS Table 66.
+    CV and income_elasticity are [ESTIMATED].
+    Generate: log(coverage) ~ Normal(log(mean_age) + 0.4*log(income/median_income), sigma)
+
+# ============================================================
+# FIELD 8: has_whole_life — P(WoL | age)
+# ============================================================
+has_whole_life:
+  provenance: "[DERIVED] PGS Table 68 WoL lives / Table 58 population"
+  type: conditional
+  marginal: 0.336
+  conditions:
+    by_age:
+      "0-4":   0.198
+      "5-9":   0.208
+      "10-14": 0.245
+      "15-19": 0.279
+      "20-24": 0.379
+      "25-29": 0.492
+      "30-34": 0.551
+      "35-39": 0.549
+      "40-44": 0.578
+      "45-49": 0.596
+      "50-54": 0.562
+      "55-59": 0.486
+      "60-64": 0.398
+      "65-69": 0.319
+      "70+":   0.147
+
+# ============================================================
+# FIELD 9: has_ci — P(CI | age)
+# ============================================================
+has_ci:
+  provenance: "[DERIVED] PGS Table 69 total / dedup 1.377 / Table 58 pop"
+  type: conditional
+  marginal: 0.306
+  dedup_factor: 1.377  # T69 total 2,053,192 / unique 1,491,042
+  conditions:
+    by_age:
+      "0-4":   0.168
+      "5-9":   0.175
+      "10-14": 0.203
+      "15-19": 0.235
+      "20-24": 0.353
+      "25-29": 0.539
+      "30-34": 0.645
+      "35-39": 0.653
+      "40-44": 0.639
+      "45-49": 0.589
+      "50-54": 0.472
+      "55-59": 0.348
+      "60-64": 0.236
+      "65-69": 0.140
+      "70+":   0.046
+  note: >
+    Uses uniform dedup factor assumption across ages.
+    Real dedup may vary (young overlap more). Acceptable for v1.0.
+
+# ============================================================
+# FIELD 10: ci_coverage — S$ amount given has_ci
+# ============================================================
+ci_coverage:
+  provenance: "[HARD] PGS Table 61"
+  type: lognormal_by_age_gender
+  # Mean by age × gender
+  mean_by_age_gender:
+    "20-24": {M: 139392, F: 154550}
+    "25-29": {M: 195292, F: 199624}
+    "30-34": {M: 232886, F: 226023}
+    "35-39": {M: 264092, F: 241052}
+    "40-44": {M: 260469, F: 225581}
+    "45-49": {M: 239677, F: 194321}
+    "50-54": {M: 209486, F: 160844}
+    "55-59": {M: 154471, F: 122934}
+    "60-64": {M: 116022, F: 96739}
+    "65-69": {M: 83580, F: 69604}
+    "70+":   {M: 64669, F: 47893}
+    # Children: use average
+    "0-4":   {M: 196701, F: 198303}
+    "5-9":   {M: 162775, F: 163138}
+    "10-14": {M: 140064, F: 143461}
+    "15-19": {M: 127341, F: 131102}
+  cv: 0.5
+  income_elasticity: 0.3
+
+# ============================================================
+# FIELD 11: monthly_insurance_spend — S$/month
+# ============================================================
+monthly_insurance_spend:
+  provenance: "[DERIVED] from product holdings × typical premiums"
+  type: derived
+  method: >
+    Sum of:
+    - IP premium: age-based from MOH comparison table (~$50-300/month)
+    - IP rider: +50% of IP premium if has_rider
+    - Term life: ~$30-80/month depending on coverage and age
+    - WoL: ~$100-300/month (saving component)
+    - CI: ~$30-100/month depending on coverage
+  typical_ranges:
+    no_insurance: 0             # MediShield Life is from MediSave, not cash
+    ip_only_young: 40           # 25yo, B1, no rider
+    ip_only_old: 250            # 60yo, Private, with rider
+    full_suite_young: 300       # 30yo, IP Private + Term + CI + WoL
+    full_suite_mid: 500         # 45yo, full suite
+    full_suite_old: 800         # 60yo, full suite (expensive)
+  constraints:
+    ip_gross_premium_per_life: 668  # [HARD] SAS Paper — S$668/year = ~$56/month average
+  note: >
+    [DERIVED] — computed from product holdings after generation.
+    Not sampled independently. Validate against HES insurance spending data.
+
+# ============================================================
+# FIELD 12: medisave_balance — S$
+# ============================================================
+medisave_balance:
+  provenance: "[DERIVED] PGS p.131 CPF AR 2021, MediSave ≈ 23% of total CPF"
+  type: derived_from_cpf
+  medisave_pct_of_cpf: 0.23  # [HARD] S$148.7bn / S$649.3bn (2025 Q3)
+  bhs_cap: 71500              # [HARD] CPF BHS 2025
+  # Avg total CPF by age (from PGS p.131)
+  avg_total_cpf_by_age:
+    "0-20":  4058
+    "20-25": 10788
+    "25-30": 50889
+    "30-35": 98337
+    "35-40": 138338
+    "40-45": 178050
+    "45-50": 212119
+    "50-55": 222609
+    "55-60": 194364
+    "60+":   115595
+  medisave_pct_by_age:
+    "0-20":  0.30   # [ESTIMATED] young, MA contribution rate higher relative to balance
+    "20-25": 0.28
+    "25-30": 0.25
+    "30-35": 0.22   # OA dominant (housing)
+    "35-40": 0.22
+    "40-45": 0.23
+    "45-50": 0.24
+    "50-55": 0.26   # MA contribution rate increases with age
+    "55-60": 0.28
+    "60+":   0.35   # OA depleted, SA→RA, MA relatively larger share
+  cv: 0.5
+
+# ============================================================
+# FIELD 13: insurance_attitude
+# ============================================================
+insurance_attitude:
+  provenance: "[DERIVED] PGS Section 16 survey data"
+  type: categorical_by_demographics
+  marginal:
+    proactive: 0.20
+    adequate: 0.25
+    passive: 0.25
+    resistant: 0.20
+    unaware: 0.10
+  conditions:
+    # Income is strongest driver (50% can't afford → resistant)
+    by_income:
+      high:     # >$8,000/month
+        proactive: 0.35
+        adequate: 0.35
+        passive: 0.20
+        resistant: 0.05
+        unaware: 0.05
+      mid:      # $3,000-$8,000
+        proactive: 0.22
+        adequate: 0.28
+        passive: 0.25
+        resistant: 0.18
+        unaware: 0.07
+      low:      # <$3,000
+        proactive: 0.08
+        adequate: 0.12
+        passive: 0.25
+        resistant: 0.40
+        unaware: 0.15
+    # Age modifier
+    age_modifier:
+      "0-19":  {unaware: 1.5, proactive: 0.3}   # children/teens — parents decide
+      "20-29": {passive: 1.2, unaware: 1.3}      # young, haven't thought about it
+      "30-44": {proactive: 1.3, adequate: 1.1}   # peak buying, family responsibility
+      "45-59": {adequate: 1.2, passive: 1.1}     # settled, may be complacent
+      "60+":   {resistant: 1.3, passive: 1.2}    # cost pressure, fixed income
+
+# ============================================================
+# FIELD 14: protection_gap_awareness
+# ============================================================
+protection_gap_awareness:
+  provenance: "[DERIVED] PGS: 26% aware mortality gap, 63% aware CI gap"
+  type: categorical
+  marginal:
+    aware_acting: 0.15      # knows gap AND buying more
+    aware_inactive: 0.35    # knows gap but not acting (63% CI aware, most not acting)
+    unaware: 0.35           # doesn't know gap (74% don't know mortality gap)
+    overconfident: 0.15     # thinks coverage sufficient but it's not (31% "sufficient")
+  conditions:
+    # Strongly correlated with insurance_attitude
+    by_attitude:
+      proactive:  {aware_acting: 0.70, aware_inactive: 0.20, unaware: 0.05, overconfident: 0.05}
+      adequate:   {aware_acting: 0.10, aware_inactive: 0.15, unaware: 0.20, overconfident: 0.55}
+      passive:    {aware_acting: 0.05, aware_inactive: 0.60, unaware: 0.25, overconfident: 0.10}
+      resistant:  {aware_acting: 0.02, aware_inactive: 0.40, unaware: 0.40, overconfident: 0.18}
+      unaware:    {aware_acting: 0.00, aware_inactive: 0.05, unaware: 0.85, overconfident: 0.10}
+
+# ============================================================
+# FIELD 15: preferred_channel
+# ============================================================
+preferred_channel:
+  provenance: "[ESTIMATED] no direct data"
+  type: categorical_by_age
+  marginal:
+    agent_tied: 0.45
+    ifa: 0.20
+    online: 0.15
+    bank: 0.12
+    employer: 0.08
+  conditions:
+    by_age:
+      "0-24":  {agent_tied: 0.30, ifa: 0.10, online: 0.35, bank: 0.15, employer: 0.10}
+      "25-34": {agent_tied: 0.38, ifa: 0.20, online: 0.22, bank: 0.12, employer: 0.08}
+      "35-49": {agent_tied: 0.48, ifa: 0.22, online: 0.12, bank: 0.12, employer: 0.06}
+      "50-64": {agent_tied: 0.55, ifa: 0.22, online: 0.05, bank: 0.12, employer: 0.06}
+      "65+":   {agent_tied: 0.55, ifa: 0.20, online: 0.03, bank: 0.15, employer: 0.07}
+
+# ============================================================
+# FIELD 16: last_life_event_trigger
+# ============================================================
+last_life_event_trigger:
+  provenance: "[DERIVED] PGS S16.2.4 purchase reasons → trigger mapping"
+  type: categorical_by_age_marital
+  marginal:
+    marriage: 0.15
+    new_child: 0.20
+    health_concern: 0.15
+    job_change: 0.10
+    home_purchase: 0.10
+    aging_parents: 0.08
+    none_recent: 0.22
+  conditions:
+    by_life_phase:
+      dependence:       {none_recent: 1.00}   # children
+      growth:           {none_recent: 1.00}
+      adolescence:      {none_recent: 1.00}
+      ns_service:       {none_recent: 0.80, job_change: 0.20}
+      establishment:    {job_change: 0.25, marriage: 0.30, home_purchase: 0.20, none_recent: 0.25}
+      bearing:          {new_child: 0.40, marriage: 0.15, home_purchase: 0.15, health_concern: 0.10, none_recent: 0.20}
+      release:          {health_concern: 0.25, aging_parents: 0.25, none_recent: 0.30, new_child: 0.10, job_change: 0.10}
+      retirement_early: {health_concern: 0.30, aging_parents: 0.15, none_recent: 0.40, home_purchase: 0.05, marriage: 0.10}
+      decline:          {health_concern: 0.45, none_recent: 0.45, aging_parents: 0.10}
+      end_of_life:      {health_concern: 0.40, none_recent: 0.60}
+
+# ============================================================
+# FIELD 17: annual_hospitalization_freq
+# ============================================================
+annual_hospitalization_freq:
+  provenance: "[ESTIMATED] MOH data exists but blocked; using 2009 baseline + aging pattern"
+  type: continuous_by_age
+  # Rate per person per year (not per 1000)
+  # 2009 baseline: 0-14 ~0.09, 15-64 ~0.07, 65+ ~0.31
+  # Adjusted upward ~10% for aging population 2009→2023
+  by_age:
+    "0-4":   0.12    # higher for infants
+    "5-14":  0.06
+    "15-24": 0.05
+    "25-34": 0.06    # includes maternity
+    "35-44": 0.06
+    "45-54": 0.08
+    "55-64": 0.12
+    "65-74": 0.25
+    "75+":   0.45
+  health_modifier:
+    Healthy: 0.7
+    Chronic_Mild: 1.5
+    Chronic_Severe: 3.0
+    Disabled: 2.5
+  note: >
+    [ESTIMATED] — MOH 2023 data exists (data.gov.sg) but was rate-limited.
+    Using 2009 pattern with ~10% uplift. Should be replaced with actual
+    2023 data when available. TODO: manually fetch from MOH website.
+
+# ============================================================
+# GENERATION ORDER (dependency graph)
+# ============================================================
+generation_order:
+  - has_medishield_life  # deterministic, no deps
+  - has_ip               # depends on age, income
+  - ip_tier              # depends on has_ip, income, housing
+  - has_rider            # depends on has_ip, age
+  - ip_insurer           # depends on has_ip
+  - has_whole_life       # depends on age
+  - has_term_life        # depends on age, marital
+  - has_ci               # depends on age
+  - term_life_coverage   # depends on has_term_life, age, income
+  - ci_coverage          # depends on has_ci, age, gender
+  - insurance_attitude   # depends on income, age
+  - protection_gap_awareness  # depends on insurance_attitude
+  - preferred_channel    # depends on age
+  - last_life_event_trigger   # depends on life_phase
+  - medisave_balance     # depends on age
+  - annual_hospitalization_freq  # depends on age, health_status
+  - monthly_insurance_spend      # LAST: derived from all product holdings

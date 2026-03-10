@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>懒加载系统简单测试</title>
+    
+    <!-- 懒加载系统CSS -->
+    <link rel="stylesheet" href="css/lazy-loading.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0e1a;
+            color: #e2e8f0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(59, 130, 246, 0.1));
+            border-radius: 1rem;
+            border: 1px solid #1e293b;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #3b82f6, #a855f7, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #111827;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+        }
+        
+        .test-section h2 {
+            color: #06b6d4;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .test-container {
+            min-height: 200px;
+            border: 2px dashed #334155;
+            border-radius: 8px;
+            margin: 15px 0;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 42, 0.5);
+        }
+        
+        .test-button {
+            background: #06b6d4;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.2s;
+        }
+        
+        .test-button:hover {
+            background: #0891b2;
+            transform: translateY(-1px);
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .status.success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+        }
+        
+        .status.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+        
+        .status.info {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #3b82f6;
+        }
+        
+        .instructions {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        
+        .instructions h3 {
+            color: #f59e0b;
+            margin-bottom: 10px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #1e293b;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+        
+        .log {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: 'SF Mono', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #06b6d4;
+            background: rgba(6, 182, 212, 0.05);
+        }
+        
+        .log-entry.success {
+            border-left-color: #22c55e;
+            background: rgba(34, 197, 94, 0.05);
+        }
+        
+        .log-entry.error {
+            border-left-color: #ef4444;
+            background: rgba(239, 68, 68, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 懒加载系统简单测试</h1>
+            <p>Digital Twin SG - 前端性能优化验证</p>
+            <p style="margin-top: 10px; font-size: 14px; color: #94a3b8;">
+                服务器: http://localhost:8889 | 状态: <span id="server-status">检查中...</span>
+            </p>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 测试说明</h3>
+            <p>这个页面验证懒加载系统是否正常工作。请滚动页面或点击测试按钮。</p>
+        </div>
+        
+        <!-- 测试1: 基本懒加载 -->
+        <div class="test-section">
+            <h2>测试1: 基本懒加载</h2>
+            <p>滚动到这个区域时，下面的组件会自动加载。</p>
+            <div class="test-container" id="lazy-test-1">
+                <p style="color: #94a3b8;">滚动到此处时组件会自动加载...</p>
+            </div>
+            <button class="test-button" onclick="forceLoadTest1()">手动触发加载</button>
+            <div class="status info" id="test1-status">
+                等待组件加载...
+            </div>
+        </div>
+        
+        <!-- 测试2: 缓存功能 -->
+        <div class="test-section">
+            <h2>测试2: 缓存功能</h2>
+            <p>测试组件缓存和重复加载性能。</p>
+            <div class="test-container" id="lazy-test-2">
+                <p style="color: #94a3b8;">缓存测试组件...</p>
+            </div>
+            <div>
+                <button class="test-button" onclick="loadTest2()">加载组件</button>
+                <button class="test-button" onclick="reloadTest2()">重新加载</button>
+                <button class="test-button" onclick="clearCacheTest2()">清除缓存</button>
+            </div>
+            <div class="status info" id="test2-status">
+                等待测试...
+            </div>
+        </div>
+        
+        <!-- 测试3: 错误处理 -->
+        <div class="test-section">
+            <h2>测试3: 错误处理</h2>
+            <p>测试组件加载失败时的错误恢复。</p>
+            <div class="test-container" id="lazy-test-3">
+                <p style="color: #94a3b8;">错误处理测试...</p>
+            </div>
+            <button class="test-button" onclick="testError()">触发错误测试</button>
+            <div class="status info" id="test3-status">
+                等待测试...
+            </div>
+        </div>
+        
+        <!-- 测试日志 -->
+        <div class="test-section">
+            <h2>测试日志</h2>
+            <div class="log" id="test-log">
+                <div class="log-entry">系统初始化开始...</div>
+            </div>
+            <button class="test-button" onclick="clearLog()">清空日志</button>
+            <button class="test-button" onclick="runAllTests()">运行所有测试</button>
+        </div>
+        
+        <!-- 系统状态 -->
+        <div class="test-section">
+            <h2>系统状态</h2>
+            <div id="system-status">
+                <p>加载中...</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Digital Twin SG - 懒加载系统测试</p>
+            <p>生成时间: 2026-03-08 | 版本: 1.0.0</p>
+        </div>
+    </div>
+    
+    <!-- 懒加载系统JS -->
+    <script src="js/lazy-loading.js"></script>
+    <script src="js/init-lazy-loading.js"></script>
+    
+    <script>
+        // 测试日志
+        const testLog = document.getElementById('test-log');
+        let logEntries = [];
+        
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = {
+                time: timestamp,
+                message: message,
+                type: type
+            };
+            
+            logEntries.push(entry);
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            
+            testLog.appendChild(logEntry);
+            testLog.scrollTop = testLog.scrollHeight;
+            
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        function clearLog() {
+            testLog.innerHTML = '';
+            logEntries = [];
+            addLog('日志已清空', 'info');
+        }
+        
+        // 系统状态
+        function updateSystemStatus() {
+            const statusDiv = document.getElementById('system-status');
+            
+            if (!window.lazyLoader) {
+                statusDiv.innerHTML = `
+                    <div class="status error">
+                        ❌ 懒加载系统未加载
+                    </div>
+                `;
+                return;
+            }
+            
+            const report = window.lazyLoader.getPerformanceReport();
+            const cacheHitRate = report.loadedComponents > 0 
+                ? (report.cachedHits / report.loadedComponents * 100).toFixed(1)
+                : 0;
+            
+            statusDiv.innerHTML = `
+                <div class="status success">
+                    ✅ 懒加载系统运行正常
+                </div>
+                <div style="margin-top: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                    <div>
+                        <div style="font-size: 12px; color: #94a3b8;">总组件数</div>
+                        <div style="font-size: 18px; font-weight: bold;">${report.totalComponents}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: #94a3b8;">已加载</div>
+                        <div style="font-size: 18px; font-weight: bold; color: #22c55e;">${report.loadedComponents}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: #94a3b8;">缓存命中率</div>
+                        <div style="font-size: 18px; font-weight: bold; color: ${cacheHitRate > 50 ? '#22c55e' : '#eab308'}">${cacheHitRate}%</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 12px; color: #94a3b8;">平均加载时间</div>
+                        <div style="font-size: 18px; font-weight: bold;">${report.avgLoadTime.toFixed(0)}ms</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 服务器状态检查
+        function checkServerStatus() {
+            const statusElement = document.getElementById('server-status');
+            
+            fetch(window.location.href)
+                .then(response => {
+                    if (response.ok) {
+                        statusElement.textContent = '在线 ✅';
+                        statusElement.style.color = '#22c55e';
+                    } else {
+                        statusElement.textContent = '错误 ❌';
+                        statusElement.style.color = '#ef4444';
+                    }
+                })
+                .catch(error => {
+                    statusElement.textContent = '离线 📴';
+                    statusElement.style.color = '#f59e0b';
+                });
+        }
+        
+        // 测试1: 基本懒加载
+        function initTest1() {
+            window.lazyLoader.registerComponent(
+                'lazy-test-1',
+                'components/test-component.html',
+                {
+                    offlineSupport: true,
+                    retryable: true,
+                    priority: 'high'
+                }
+            );
+            
+            addLog('测试1: 基本懒加载组件已注册', 'success');
+        }
+        
+        function forceLoadTest1() {
+            if (window.forceLoadComponent) {
+                window.forceLoadComponent('lazy-test-1');
+                addLog('测试1: 手动触发组件加载', 'info');
+                
+                const status = document.getElementById('test1-status');
+                status.className = 'status info';
+                status.textContent = '组件加载中...';
+            }
+        }
+        
+        // 测试2: 缓存功能
+        let test2Loaded = false;
+        
+        function initTest2() {
+            window.lazyLoader.registerComponent(
+                'lazy-test-2',
+                'components/test-component.html',
+                {
+                    offlineSupport: true,
+                    retryable: true,
+                    priority: 'medium'
+                }
+            );
+            
+            addLog('测试2: 缓存测试组件已注册', 'success');
+        }
+        
+        function loadTest2() {
+            if (window.forceLoadComponent) {
+                window.forceLoadComponent('lazy-test-2');
+                test2Loaded = true;
+                addLog('测试2: 首次加载组件', 'info');
+                
+                const status = document.getElementById('test2-status');
+                status.className = 'status info';
+                status.textContent = '组件首次加载中...';
+            }
+        }
+        
+        function reloadTest2() {
+            if (test2Loaded && window.forceLoadComponent) {
+                window.forceLoadComponent('lazy-test-2');
+                addLog('测试2: 重新加载组件 (应该从缓存加载)', 'info');
+                
+                const status = document.getElementById('test2-status');
+                status.className = 'status info';
+                status.textContent = '重新加载中 (应该使用缓存)...';
+            } else {
+                addLog('测试2: 请先加载组件', 'error');
+            }
+        }
+        
+        function clearCacheTest2() {
+            if (window.clearComponentCache) {
+                window.clearComponentCache();
+                addLog('测试2: 缓存已清除', 'success');
+                
+                const status = document.getElementById('test2-status');
+                status.className = 'status success';
+                status.textContent = '缓存已清除，下次加载将重新获取';
+            }
+        }
+        
+        // 测试3: 错误处理
+        function initTest3() {
+            window.lazyLoader.registerComponent(
+                'lazy-test-3',
+                'components/non-existent-component.html',
+                {
+                    offlineSupport: false,
+                    retryable: true,
+                    priority: 'high'
+                }
+            );
+            
+            addLog('测试3: 错误处理测试组件已注册 (使用不存在的URL)', 'info');
+        }
+        
+        function testError() {
+            if (window.forceLoadComponent) {
+                window.forceLoadComponent('lazy-test-3');
+                addLog('测试3: 触发错误测试 (应该显示错误状态)', 'info');
+                
+                const status = document.getElementById('test3-status');
+                status.className = 'status error';
+                status.textContent = '触发错误测试中...';
+            }
+        }
+        
+        // 运行所有测试
+        function runAllTests() {
+            addLog('开始运行所有测试...', 'info');
+            
+            // 测试1
+            setTimeout(() => {
+                forceLoadTest1();
+            }, 500);
+            
+            // 测试2
+            setTimeout(() => {
+                loadTest2();
+            }, 1500);
+            
+            // 测试3
+            setTimeout(() => {
+                testError();
+            }, 2500);
+            
+            // 更新状态
+            setTimeout(() => {
+                updateSystemStatus();
+                addLog('所有测试完成', 'success');
+            }, 3500);
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            addLog('系统初始化开始', 'info');
+            
+            // 检查服务器状态
+            checkServerStatus();
+            
+            // 等待懒加载系统初始化
+            setTimeout(() => {
+                if (window.lazyLoader) {
+                    addLog('懒加载系统初始化成功', 'success');
+                    
+                    // 初始化测试
+                    initTest1();
+                    initTest2();
+                    initTest3();
+                    
+                    // 更新系统状态
+                    updateSystemStatus();
+                    
+                    // 监听组件加载事件
+                    document.addEventListener('component:loaded', function(event) {
+                        const { componentId, loadTime } = event.detail;
+                        addLog(`组件加载完成: ${componentId} (${loadTime.toFixed(2)}ms)`, 'success');
+                        
+                        // 更新对应测试状态
+                        if (componentId === 'lazy-test-1') {
+                            const status = document.getElementById('test1-status');
+                            status.className = 'status success';
+                            status.textContent = `✅ 组件加载成功 (${loadTime.toFixed(2)}ms)`;
+                        } else if (componentId === 'lazy-test-2') {
+                            const status = document.getElementById('test2-status');
+                            status.class

@@ -1,0 +1,15 @@
+node_modules/
+.next/
+.vercel/
+__pycache__/
+*.pyc
+.env
+.env.local
+web/.env.local
+data/output/
+data/nvidia_personas_singapore.parquet
+data/knowledge_base/**/*.pdf
+versions/
+backups/
+dashboard/
+.DS_Store

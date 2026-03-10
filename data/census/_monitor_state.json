@@ -1,0 +1,146 @@
+{
+  "last_check": "2026-03-05T21:47:33.941601",
+  "datasets": {
+    "pop_age_sex_area": {
+      "dataset_id": "d_530099f2c0a37ed367bb94a66c9100af",
+      "name": "Resident Population by Planning Area/Subzone, Age Group and Sex (General Household Survey 2015)",
+      "last_modified": "2026-03-04T20:00:47+08:00",
+      "record_count": 0,
+      "download_path": "",
+      "checked_at": "2026-03-05T21:47:17.998076"
+    },
+    "pop_ethnicity": {
+      "dataset_id": "d_beb7c464d16acc897b0b160403e11e9b",
+      "name": "Resident University Graduates Aged 15 Years and Over by Field of Study, Ethnic Group and Sex (Census of Population 2020)",
+      "last_modified": "2026-03-05T20:00:46+08:00",
+      "record_count": 0,
+      "download_path": "",
+      "checked_at": "2026-03-05T21:47:18.054520"
+    },
+    "household_income_dwelling": {
+      "dataset_id": "d_8a7a0a53262d53dc825f0d5ec0f5d8e5",
+      "name": "Resident Households by Monthly Household Income and Type of Dwelling (Household Expenditure Survey 2007/08)",
+      "last_modified": "2024-10-27T23:30:41+08:00",
+      "record_count": 0,
+      "download_path": "",
+      "checked_at": "2026-03-05T21:47:18.171616"
+    },
+    "worker_income_occupation": {
+      "dataset_id": "d_eca3adc1abcc8038d0f991086de1d65b",
+      "name": "Resident Working Persons Aged 15 Years and Over by Monthly Income from Work, Occupation and Sex (General Household Survey 2005)",
+      "last_modified": "2026-02-20T20:00:47+08:00",
+      "record_count": 0,
+      "download_path": "",
+      "checked_at": "2026-03-05T21:47:18.251061"
+    },
+    "education_age_sex": {
+      "dataset_id": "d_891b67a70a44188c7dc15e55af6ac025",
+      "name": "Resident Population Aged 15 Years and Over by Age Group, Highest Qualification Attained, Sex and Ethnic Group (General Household Survey 2005)",
+      "last_modified": "2026-02-19T19:00:47+08:00",
+      "record_count": 0,
+      "download_path": "",
+      "checked_at": "2026-03-05T21:47:18.317675"
+    },
+    "household_arrangement": {
+      "dataset_id": "d_2c0cee49fae1ff6e3e8b30594ba52f0f",
+      "name": "Average Monthly Household Expenditure Among Resident Households by Household Living Arrangement and Income Group (Household Expenditure Survey 2012/13)",
+      "last_modified": "2024-10-27T23:22:30+08:00",
+      "record_count": 0,
+      "download_path": "",
+      "checked_at": "2026-03-05T21:47:18.370270"
+    },
+    "household_size_ethnicity": {
+      "dataset_id": "d_501642ce06899dfedaf4d5a9d2441343",
+      "name": "Resident Households by Type of Dwelling, Household Size and Ethnic Group of Head of Household (Census of Population 2000)",
+      "last_modified": "2026-02-22T23:00:44+08:00",
+      "record_count": 0,
+      "download_path": "",
+      "checked_at": "2026-03-05T21:47:18.452052"
+    },
+    "marital_status_area": {
+      "dataset_id": "d_e01919cab3a2fcfe9351af9f71bd49fd",
+      "name": "Resident Population Aged 15 Years and Over by Planning Area, Marital Status and Sex (General Household Survey 2015)",
+      "last_modified": "2026-03-04T19:00:49+08:00",
+      "record_count": 0,
+      "download_path": "",
+      "checked_at": "2026-03-05T21:47:18.509198"
+    },
+    "transport_mode": {
+      "dataset_id": "d_e0bb21cc93e01f2ff8ad567c8a0f9ade",
+      "name": "Employed Residents Aged 15 Years and Over by Usual Mode of Transport to Work, Age Group and Sex (Census of Population 2020)",
+      "last_modified": "2026-02-07T20:00:44+08:00",
+      "record_count": 0,
+      "download_path": "",
+      "checked_at": "2026-03-05T21:47:18.557677"
+    },
+    "fertility": {
+      "dataset_id": "d_f378329d4a46817543287388768477fe",
+      "name": "Citizen Ever-Married Females By Age Group And Number Of Children Born, Annual",
+      "last_modified": "2026-02-10T19:00:52+08:00",
+      "record_count": 0,
+      "download_path": "",
+      "checked_at": "2026-03-05T21:47:18.623038"
+    },
+    "mortality": {
+      "dataset_id": "d_83117ac6795d782fed5f752fff8dc8b8",
+      "name": "Live-Births by Ethnic group, Age group of Mother and Child Gender",
+      "last_modified": "2025-09-05T10:28:08+08:00",
+      "record_count": 0,
+      "download_path": "",
+      "checked_at": "2026-03-05T21:47:18.677794"
+    },
+    "hdb_resale": {
+      "dataset_id": "d_6f3c2c819680fb139b66869d7aa4bd6e",
+      "name": "Footnotes in Annual Report for Price Range of HDB Flats Offered",
+      "last_modified": "2024-06-06T14:41:38+08:00",
+      "record_count": 0,
+      "download_path": "",
+      "checked_at": "2026-03-05T21:47:18.729995"
+    },
+    "cpi": {
+      "dataset_id": "d_57b3aaf1a55e681a4a8066af1534f6af",
+      "name": "Import Price Index, By Commodity Section (1-Digit Level), Base Year 2023 = 100, Quarterly",
+      "last_modified": "2026-02-08T21:01:18+08:00",
+      "record_count": 0,
+      "download_path": "",
+      "checked_at": "2026-03-05T21:47:18.787658"
+    },
+    "unemployment": {
+      "dataset_id": "d_448562bd88b230f8bd7a7536ea990d81",
+      "name": "Unemployment Rate of Residents with Disabilities",
+      "last_modified": "2026-03-05T20:04:27+08:00",
+      "record_count": 0,
+      "download_path": "",
+      "checked_at": "2026-03-05T21:47:18.859155"
+    }
+  },
+  "check_history": [
+    {
+      "date": "2026-03-05T21:47:18.860535",
+      "datasets_checked": 14,
+      "updates_found": 14,
+      "updated_keys": [
+        "pop_age_sex_area",
+        "pop_ethnicity",
+        "household_income_dwelling",
+        "worker_income_occupation",
+        "education_age_sex",
+        "household_arrangement",
+        "household_size_ethnicity",
+        "marital_status_area",
+        "transport_mode",
+        "fertility",
+        "mortality",
+        "hdb_resale",
+        "cpi",
+        "unemployment"
+      ]
+    },
+    {
+      "date": "2026-03-05T21:47:33.941624",
+      "datasets_checked": 14,
+      "updates_found": 0,
+      "updated_keys": []
+    }
+  ]
+}

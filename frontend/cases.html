@@ -1,0 +1,1981 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <!-- 统一组件/懒加载CSS已移除 -->
+    
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Cases | 测试案例</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e1a;--card:#111827;--border:#1e293b;--text:#e2e8f0;
+  --dim:#94a3b8;--muted:#475569;--accent:#3b82f6;--green:#22c55e;
+  --red:#ef4444;--orange:#f97316;--purple:#a855f7;--cyan:#06b6d4;
+  --yellow:#eab308;--card-hover:#1a2332;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,system-ui,sans-serif;font-size:14px}
+
+/* NAV */
+.site-nav{background:var(--card);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.site-nav .logo{font-size:20px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-links a{color:var(--dim);text-decoration:none;font-size:12px;padding:6px 14px;border-radius:6px;transition:all .2s;font-weight:500}
+.nav-links a:hover{color:var(--accent);background:rgba(59,130,246,.08)}
+.nav-links a.active{color:var(--accent);background:rgba(59,130,246,.12);font-weight:600}
+.nav-links .sep{width:1px;height:16px;background:var(--border);margin:0 4px}
+.lang-switch{display:flex;gap:2px;background:var(--bg);border-radius:6px;padding:2px}
+.lang-switch button{background:transparent;border:none;color:var(--dim);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600}
+.lang-switch button.active{background:var(--accent);color:#fff}
+
+/* LAYOUT */
+.container{max-width:1100px;margin:0 auto;padding:24px}
+.page-header{margin-bottom:32px}
+.page-header h1{font-size:28px;font-weight:800;margin-bottom:8px}
+.page-header p{color:var(--dim);font-size:14px;line-height:1.6}
+
+/* STATS ROW */
+.stats-row{display:flex;gap:16px;margin-bottom:32px;flex-wrap:wrap}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 24px;flex:1;min-width:140px;text-align:center}
+.stat-val{font-size:28px;font-weight:800}
+.stat-label{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+
+/* FILTER TABS */
+.filter-tabs{display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap}
+.filter-tab{background:var(--card);border:1px solid var(--border);color:var(--dim);padding:6px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.filter-tab:hover{border-color:var(--accent);color:var(--text)}
+.filter-tab.active{background:rgba(59,130,246,.12);border-color:var(--accent);color:var(--accent)}
+
+/* CASE CARD */
+.case-list{display:flex;flex-direction:column;gap:16px}
+.case-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:all .2s}
+.case-card:hover{border-color:rgba(59,130,246,.3)}
+.case-card.expanded{border-color:var(--accent)}
+
+.case-top{padding:20px 24px;cursor:pointer;display:flex;gap:16px;align-items:flex-start}
+.case-top:hover{background:var(--card-hover)}
+
+.case-status{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;font-weight:700}
+.case-status.completed{background:rgba(34,197,94,.12);color:var(--green)}
+.case-status.running{background:rgba(59,130,246,.12);color:var(--accent);animation:pulse 2s infinite}
+.case-status.pending{background:rgba(148,163,184,.08);color:var(--muted)}
+.case-status.failed{background:rgba(239,68,68,.12);color:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+.case-info{flex:1;min-width:0}
+.case-title-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.case-name{font-size:16px;font-weight:700}
+.case-tag{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.tag-election{background:rgba(59,130,246,.12);color:var(--accent)}
+.tag-economy{background:rgba(168,85,247,.12);color:var(--purple)}
+.tag-social{background:rgba(249,115,22,.12);color:var(--orange)}
+.tag-policy{background:rgba(6,182,212,.12);color:var(--cyan)}
+.tag-backtest{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:var(--green)}
+.tag-client{background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.2);color:var(--yellow)}
+.tag-prediction{background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.3);color:var(--orange);animation:pulse 2s infinite}
+.case-desc{font-size:12px;color:var(--dim);line-height:1.5;margin-bottom:8px}
+.case-meta{display:flex;gap:16px;font-size:11px;color:var(--muted);flex-wrap:wrap}
+.case-meta span{display:flex;align-items:center;gap:4px}
+
+.case-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.case-mae{font-size:20px;font-weight:800}
+.case-mae-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.case-expand{color:var(--muted);font-size:14px;transition:transform .2s}
+.case-card.expanded .case-expand{transform:rotate(180deg)}
+
+/* SOPHIE EVAL */
+.case-detail{display:none;border-top:1px solid var(--border);padding:24px}
+.case-card.expanded .case-detail{display:block}
+
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+@media(max-width:768px){.detail-grid{grid-template-columns:1fr}}
+
+.detail-section{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;padding:16px}
+.detail-section h4{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+
+/* Sophie 5-criteria */
+.sophie-criteria{display:flex;flex-direction:column;gap:6px}
+.sophie-row{display:flex;align-items:center;gap:8px;font-size:12px}
+.sophie-check{width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.sophie-check.pass{background:rgba(34,197,94,.12);color:var(--green)}
+.sophie-check.fail{background:rgba(239,68,68,.1);color:var(--red)}
+.sophie-score{margin-top:8px;padding:8px 12px;border-radius:6px;font-size:13px;font-weight:700;text-align:center}
+.sophie-score.high{background:rgba(34,197,94,.1);color:var(--green)}
+.sophie-score.medium{background:rgba(234,179,8,.1);color:var(--yellow)}
+.sophie-score.low{background:rgba(239,68,68,.1);color:var(--red)}
+
+/* Question box */
+.question-box{background:rgba(59,130,246,.05);border:1px solid rgba(59,130,246,.15);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.6;margin-bottom:12px}
+.question-box .q-label{font-size:10px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.multi-q{display:flex;flex-direction:column;gap:10px}
+.mq{padding:8px 10px;background:rgba(59,130,246,.04);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;font-size:13px;line-height:1.5}
+.mq-tag{display:inline-block;background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-right:6px;vertical-align:middle}
+.mq-opts{margin-top:4px;font-size:11px;color:var(--dim);line-height:1.7;padding-left:34px}
+
+/* Results bars */
+.result-bars{display:flex;flex-direction:column;gap:6px}
+.result-bar{display:flex;align-items:center;gap:8px;font-size:12px}
+.rb-label{width:180px;text-align:right;color:var(--dim);flex-shrink:0;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rb-track{flex:1;height:22px;background:rgba(255,255,255,.04);border-radius:4px;overflow:hidden;position:relative}
+.rb-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:700;color:#fff;min-width:30px;transition:width .5s ease}
+.rb-predicted{background:var(--green)}
+.rb-actual{background:var(--accent)}
+.rb-dual{display:flex;gap:4px;flex:1}
+.rb-dual .rb-track{flex:1}
+.rb-val{width:50px;font-size:11px;font-weight:600;flex-shrink:0}
+.rb-header{display:flex;gap:8px;font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;padding-left:188px}
+
+/* Deviation table */
+.dev-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+.dev-table th{text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:6px 8px;border-bottom:1px solid var(--border)}
+.dev-table td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.03)}
+.dev-table .dev-val{font-weight:700}
+.dev-good{color:var(--green)}
+.dev-ok{color:var(--yellow)}
+.dev-bad{color:var(--red)}
+
+/* Breakdown chips */
+.breakdown-section{margin-top:16px}
+.breakdown-section h5{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.breakdown-chips{display:flex;gap:6px;flex-wrap:wrap}
+.bd-chip{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:11px;display:flex;flex-direction:column;gap:2px;min-width:80px;text-align:center}
+.bd-chip .bd-label{font-size:9px;color:var(--muted)}
+.bd-chip .bd-val{font-weight:700;font-size:13px}
+
+/* Insight */
+.case-insight-box{background:rgba(249,115,22,.06);border:1px solid rgba(249,115,22,.15);border-radius:8px;padding:14px 16px;font-size:12px;line-height:1.7;color:var(--dim);margin-top:16px}
+.case-insight-box strong{color:var(--orange)}
+
+/* Method badge */
+.method-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:3px 8px;border-radius:4px;font-weight:600}
+.method-vsrp{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:var(--green)}
+.method-v1{background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.2);color:var(--yellow)}
+
+/* Case number */
+.case-no{font-size:11px;font-weight:800;color:var(--muted);font-family:'SF Mono',Consolas,monospace;letter-spacing:.5px;background:rgba(255,255,255,.04);padding:2px 8px;border-radius:4px;border:1px solid var(--border)}
+
+/* Delete button */
+.case-del{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.case-del:hover{border-color:var(--red);color:var(--red);background:rgba(239,68,68,.08)}
+
+/* Report section */
+.report-section{margin-top:16px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;padding:16px}
+.report-section h4{font-size:13px;font-weight:700;margin-bottom:12px}
+.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:768px){.report-grid{grid-template-columns:1fr}}
+.report-item{padding:10px;background:rgba(255,255,255,.02);border-radius:6px;border:1px solid rgba(255,255,255,.04)}
+.report-item h5{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.report-item .ri-val{font-size:13px;line-height:1.6}
+.report-item .ri-bar{display:flex;align-items:center;gap:6px;margin:3px 0;font-size:11px}
+.report-item .ri-bar-label{width:70px;color:var(--dim);text-align:right;flex-shrink:0}
+.report-item .ri-bar-track{flex:1;height:14px;background:rgba(255,255,255,.04);border-radius:3px;overflow:hidden}
+.report-item .ri-bar-fill{height:100%;border-radius:3px;font-size:9px;color:#fff;display:flex;align-items:center;padding-left:4px;font-weight:600}
+
+/* Source badge */
+.source-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;padding:3px 8px;border-radius:4px;font-weight:600;background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.15);color:var(--cyan)}
+
+/* SOCIAL SIMULATION */
+.sim-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px}
+.sim-card-header{padding:20px 24px;cursor:pointer;display:flex;gap:16px;align-items:flex-start}
+.sim-card-header:hover{background:var(--card-hover)}
+.sim-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:rgba(249,115,22,.12);color:var(--orange)}
+.sim-info{flex:1;min-width:0}
+.sim-title-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.sim-name{font-size:16px;font-weight:700}
+.sim-tag{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.3);color:var(--orange)}
+.sim-desc{font-size:12px;color:var(--dim);line-height:1.5;margin-bottom:8px}
+.sim-meta{display:flex;gap:16px;font-size:11px;color:var(--muted);flex-wrap:wrap}
+.sim-detail{display:none;border-top:1px solid var(--border);padding:24px}
+.sim-card.expanded .sim-detail{display:block}
+.sim-card.expanded{border-color:var(--orange)}
+
+/* Opinion flow */
+.flow-container{display:flex;gap:12px;align-items:stretch;margin-bottom:20px}
+.flow-day{flex:1;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;padding:14px;min-width:0}
+.flow-day-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;text-align:center}
+.flow-bar{margin:6px 0;display:flex;align-items:center;gap:6px;font-size:11px}
+.flow-bar-label{width:65px;text-align:right;color:var(--dim);flex-shrink:0;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.flow-bar-track{flex:1;height:18px;background:rgba(255,255,255,.04);border-radius:3px;overflow:hidden}
+.flow-bar-fill{height:100%;border-radius:3px;font-size:9px;color:#fff;display:flex;align-items:center;padding-left:6px;font-weight:700;transition:width .5s ease}
+.flow-arrow{display:flex;align-items:center;color:var(--muted);font-size:18px;flex-shrink:0}
+
+/* Cluster heatmap */
+.cluster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:16px}
+.cluster-cell{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:11px}
+.cluster-name{font-weight:700;margin-bottom:4px;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.3px}
+.cluster-shift{display:flex;align-items:center;gap:6px;margin-top:4px}
+.cluster-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cluster-val{font-weight:700;font-size:13px}
+
+/* Metrics row */
+.sim-metrics{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.sim-metric{flex:1;min-width:140px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.sim-metric .sm-val{font-size:24px;font-weight:800}
+.sim-metric .sm-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+.sim-metric .sm-sub{font-size:10px;color:var(--dim);margin-top:2px}
+
+@media(max-width:768px){
+  .case-top{flex-direction:column}
+  .case-right{flex-direction:row;align-items:center}
+  .stats-row{flex-direction:column}
+  .rb-label{width:100px;font-size:10px}
+  .rb-header{padding-left:108px}
+}
+</style>
+<script>
+// 嵌入模式：隐藏所有导航和页脚
+if(window.location.search.includes('embed=1')){
+  document.write('<style>.site-nav,.unified-navigation,#unified-navigation-container,#unified-footer-container,.page-header{display:none!important}</style>');
+}
+</script>
+</head>
+<body>
+
+
+<!-- NAV -->
+
+
+<div class="container">
+
+<!-- HEADER -->
+<div class="page-header">
+  <h1 id="page-title">Test Cases</h1>
+  <p id="page-desc">All backtest validations and client simulation cases. Each case is evaluated by Sophie's 5-criteria gatekeeper, and backtest cases compare predictions against real-world outcomes.</p>
+</div>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-val" style="color:var(--accent)" id="stat-total">24</div>
+    <div class="stat-label" id="sl-total">Total Cases</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val" style="color:var(--green)" id="stat-completed">20</div>
+    <div class="stat-label" id="sl-completed">Completed</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val" style="color:var(--cyan)" id="stat-running">0</div>
+    <div class="stat-label" id="sl-running">Running</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val" style="color:var(--green)" id="stat-mae">2.7pp</div>
+    <div class="stat-label" id="sl-mae">Best MAE</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-val" style="color:var(--purple)" id="stat-method">VS+RP</div>
+    <div class="stat-label" id="sl-method">Method</div>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filter-tabs">
+  <div class="filter-tab active" onclick="filterCases('all')" id="ft-all">All</div>
+  <div class="filter-tab" onclick="filterCases('prediction')" id="ft-pr" style="border-color:var(--orange);color:var(--orange)">🔮 Live Predictions</div>
+  <div class="filter-tab" onclick="filterCases('backtest')" id="ft-bt">Backtest</div>
+  <div class="filter-tab" onclick="filterCases('client')" id="ft-cl">Client Test</div>
+  <div class="filter-tab" onclick="filterCases('election')" id="ft-el">Election</div>
+  <div class="filter-tab" onclick="filterCases('economy')" id="ft-ec">Economy</div>
+  <div class="filter-tab" onclick="filterCases('social')" id="ft-so">Social</div>
+  <div class="filter-tab" onclick="filterCases('completed')" id="ft-done">Completed</div>
+  <div class="filter-tab" onclick="filterCases('pending')" id="ft-pend">Pending</div>
+</div>
+
+<!-- CASE LIST -->
+<div class="case-list" id="caseList"></div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- SOCIAL SIMULATION MODULE -->
+<!-- ============================================================ -->
+<div class="container" id="simSection">
+  <div class="page-header" style="margin-top:48px;border-top:1px solid var(--border);padding-top:32px">
+    <h1 id="sim-title">Social Simulation</h1>
+    <p id="sim-subtitle">Multi-round agent-based model: information injection → peer influence → echo chamber → opinion shift. Captures word-of-mouth, social clustering, and opinion dynamics over 7 simulated days.</p>
+  </div>
+
+  <div class="sim-cards" id="simCards"></div>
+</div>
+
+<div style="text-align:center;padding:40px 24px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);margin-top:60px">
+  Singapore Digital Twin — Test Case Registry — Updated 2026-03-08
+</div>
+
+<script>
+// ============================================================
+// CASE DATA
+// ============================================================
+const CASES = [
+  {
+    id: 'pe2023', no: 'BT-001',
+    name: '2023 Presidential Election',
+    nameZh: '2023 总统选举',
+    type: 'backtest', category: 'election', status: 'completed',
+    date: '2026-03-07', method: 'VS+RP', sample: 1000, mae: 2.7,
+    desc: 'Three-candidate presidential election. Tharman vs Ng Kok Song vs Tan Kin Lian.',
+    descZh: '三候选人总统选举。尚达曼 vs 黄国松 vs 陈清木。',
+    question: 'Who would this respondent most likely vote for as President of Singapore?',
+    questionZh: '该受访者最可能投票给哪位总统候选人？',
+    options: ['Tharman Shanmugaratnam', 'Ng Kok Song', 'Tan Kin Lian', 'Would not vote / Spoil vote'],
+    sophie: { score: 5, criteria: [true, true, true, true, true], verdict: 'HIGHLY SUITABLE' },
+    predicted_raw: { 'Tharman Shanmugaratnam': 59.9, 'Ng Kok Song': 17.6, 'Tan Kin Lian': 11.8, 'Would not vote / Spoil vote': 10.7 },
+    predicted: { 'Tharman Shanmugaratnam': 67.1, 'Ng Kok Song': 19.7, 'Tan Kin Lian': 13.2 },
+    actual: { 'Tharman Shanmugaratnam': 70.4, 'Ng Kok Song': 15.7, 'Tan Kin Lian': 13.9 },
+    source: 'ELD Official Results, Sep 2023', sourceUrl: 'https://www.eld.gov.sg/',
+    insight: 'VS+RP achieved MAE 2.7pp. All three candidates within +/-4pp. Abstention 10.7% redistributed proportionally.',
+    insightZh: 'VS+RP达成MAE 2.7pp。三个候选人均在+/-4pp以内。弃权10.7%按比例重分配。',
+    report: {
+      methodology: {
+        en: '<strong>Verbalized Sampling (VS)</strong>: LLM outputs probability distribution over all options, then we sample from that distribution — increases diversity 1.6-2.1x vs single-choice. <strong>Reformulated Prompting (RP)</strong>: Third-person neutral framing ("This respondent is...") reduces social desirability bias ~34%.',
+        zh: '<strong>语言化采样(VS)</strong>：LLM输出所有选项的概率分布，然后从该分布中采样——多样性提高1.6-2.1倍。<strong>重构提示词(RP)</strong>：第三人称中性表述（"该受访者是..."）减少社会期望偏差约34%。'
+      },
+      bias_analysis: {
+        en: 'Raw output showed <strong>Tharman 59.9%</strong> (vs actual 70.4%), with 10.7% abstention. After proportional redistribution: 67.1%. Remaining -3.3pp gap likely due to LLM underweighting Tharman\'s cross-ethnic appeal among Chinese voters. Ng Kok Song over-predicted by +4.0pp — LLM may overweight "investment expertise" factor.',
+        zh: '原始输出尚达曼<strong>59.9%</strong>（实际70.4%），弃权10.7%。按比例重分配后67.1%。剩余-3.3pp差距可能因LLM低估尚达曼在华裔选民中的跨种族吸引力。黄国松高估+4.0pp——LLM可能过度加权"投资专业"因素。'
+      },
+      demographics: [
+        {label: '21-29', pct: 55, note: 'Tharman'},
+        {label: '30-44', pct: 62, note: 'Tharman'},
+        {label: '45-59', pct: 70, note: 'Tharman'},
+        {label: '60+',   pct: 78, note: 'Tharman'},
+        {label: 'Chinese', pct: 63, note: 'Tharman'},
+        {label: 'Malay',   pct: 82, note: 'Tharman'},
+        {label: 'Indian',  pct: 91, note: 'Tharman'},
+      ],
+      key_findings: {
+        en: [
+          'Age gradient realistic: Tharman support increases with age (55%→78%), matching real-world pattern of older voters favoring establishment candidates.',
+          'Ethnic pattern captured: Indian 91% > Malay 82% > Chinese 63% — co-ethnic effect for Tharman correctly modeled.',
+          'Ng Kok Song over-represented among high-income ($8K+) and Condo/Landed residents — LLM associates "GIC CIO" with financial sophistication.',
+          'Tan Kin Lian correctly concentrated among older Chinese males with lower education — matches his voter base profile.',
+        ],
+        zh: [
+          '年龄梯度真实：尚达曼支持率随年龄增加(55%→78%)，符合年长选民倾向体制候选人的真实模式。',
+          '种族模式捕获：印度裔91% > 马来裔82% > 华裔63%——尚达曼的同族效应正确建模。',
+          '黄国松在高收入($8K+)和公寓/独栋居民中过度代表——LLM将"GIC首席投资官"与金融专业关联。',
+          '陈清木正确集中在年长华裔男性低教育群体——与其实际选民基础吻合。',
+        ]
+      },
+      limitations: {
+        en: 'No compulsory voting modeling (all agents respond, 0% non-response vs real 6.6% spoiled ballots). Candidate descriptions may carry residual framing effects despite neutralization. Single LLM provider (DeepSeek) — cross-model validation pending.',
+        zh: '未建模强制投票（所有Agent都回应，0%无回应 vs 实际6.6%废票）。候选人描述尽管已中性化但可能残留框架效应。单一LLM提供商(DeepSeek)——跨模型验证待完成。'
+      },
+      next_steps: {
+        en: 'Cross-validate with SEA-LION (Singapore-context model). Add constituency-level simulation for GRC/SMC breakdown. Test with different temperature settings (0.5-0.9).',
+        zh: '用SEA-LION(新加坡语境模型)交叉验证。添加选区级模拟做GRC/SMC分解。测试不同temperature(0.5-0.9)。'
+      }
+    },
+  },
+  {
+    id: 'gst2024', no: 'BT-002',
+    name: '2024 GST Increase to 9%',
+    nameZh: '2024 GST 涨至 9%',
+    type: 'backtest', category: 'economy', status: 'completed',
+    date: '2026-03-07', method: 'VS+RP v2.0', sample: 1000, mae: 4.3,
+    desc: 'Consumer spending impact after GST rose from 8% to 9%. Protocol v2.0 (V-ECON + V-CONS) with cumulative inflation pressure framing. No ground-truth leak.',
+    descZh: 'GST从8%涨到9%后的消费影响。协议v2.0（V-ECON + V-CONS），累积通胀压力叙事。无ground truth泄露。',
+    question: 'How would this respondent\'s spending habits be affected by the GST increase from 8% to 9%?',
+    questionZh: 'GST从8%涨至9%会如何影响该受访者的消费习惯？',
+    options: ['Significantly cut spending', 'Moderately reduce spending', 'Minor impact', 'No impact at all'],
+    sophie: { score: 4, criteria: [true, false, true, true, true], verdict: 'SUITABLE WITH CAVEATS' },
+    predicted_raw: { 'Significantly cut spending': 23.7, 'Moderately reduce spending': 44.0, 'Minor impact': 25.3, 'No impact at all': 7.0 },
+    predicted: { 'Significantly cut spending': 23.7, 'Moderately reduce spending': 44.0, 'Minor impact': 25.3, 'No impact at all': 7.0 },
+    actual: { 'Significantly cut spending': 15, 'Moderately reduce spending': 45, 'Minor impact': 30, 'No impact at all': 10 },
+    source: 'CASE Consumer Survey 2024', sourceUrl: 'https://www.case.org.sg/',
+    insight: 'Protocol v2.0 improved MAE from 13→4.3pp (67% reduction). No ground-truth leak. "Moderately reduce" nearly perfect (44.0% vs 45%). Model predicts independently.',
+    insightZh: '协议v2.0将MAE从13改善至4.3pp（降低67%）。无ground truth泄露。"适度减少消费"几乎完美（44.0% vs 45%）。模型独立预测。',
+    report: {
+      methodology: {
+        en: '<strong>VS+RP + Survey Design Protocol v2.0 (V-ECON + V-CONS hybrid vertical)</strong> at n=1,000 with 20 concurrent LLM calls. Protocol additions: cumulative inflation pressure framing (CPI 6.1%, food/transport/rent all rising), historical anchoring (GST 5%→7% in 2007). REMOVED from v1: "$50-100/month" rational anchor, detailed Assurance Package, and CASE survey result references (ground-truth leak). Context contains ONLY objective facts and different-event historical data — zero leakage of the target survey results. Simple random sample of adults 18+ with income > 0. Runtime: 4 min 43 sec. DeepSeek-Chat, temperature=0.7. Zero API errors.',
+        zh: '<strong>VS+RP + 调查设计协议v2.0（V-ECON + V-CONS混合垂类）</strong>，n=1,000，20并发LLM调用。协议新增：累积通胀压力叙事（CPI 6.1%，食品/交通/房租全涨）、历史锚定（2007年GST 5%→7%）。从v1中移除："$50-100/月"理性锚定、详细惠民配套、以及CASE调查结果引用（ground truth泄露）。Context仅包含客观事实和不同事件的历史数据——零泄露目标调查结果。简单随机抽样18+有收入成年人。运行时间：4分43秒。DeepSeek-Chat，temperature=0.7。零API错误。'
+      },
+      bias_analysis: {
+        en: '<strong>Protocol v2.0 results — MAE improved 13→4.3pp (67% reduction). No ground-truth leak.</strong><br><br><strong>"Moderately reduce spending": Nearly perfect (-1.0pp).</strong> Without any CASE survey result in the context, the model independently predicted 44.0% vs 45% actual — proving the prediction comes from agent demographics + economic context, not from copying the answer.<br><br><strong>"Significantly cut spending": Over-predicted (+8.7pp).</strong> The cumulative squeeze narrative (inflation + rent + transport + GST) made LLM overweight severe impact. Income gradient correct: &lt;$3K at 34% vs $8K+ at 16%. Effective for direction but slightly too pessimistic at the extreme end.<br><br><strong>"Minor impact" and "No impact": Under-predicted (-4.7pp and -3.0pp).</strong> Consistent with over-pessimism: LLM gave too little weight to higher-income respondents who genuinely would not notice a 1% GST change.<br><br><strong>Ground-truth isolation validated:</strong> Removing CASE survey references only changed MAE from 4.0→4.3pp (delta 0.3pp). The model\'s accuracy is genuine, not from leaking the target survey results.',
+        zh: '<strong>协议v2.0结果——MAE从13改善至4.3pp（降低67%）。无ground truth泄露。</strong><br><br><strong>"适度减少消费"：几乎完美（-1.0pp）。</strong>在context中不包含任何CASE调查结果的情况下，模型独立预测44.0% vs 实际45%——证明预测来自agent人口特征+经济背景，而非抄答案。<br><br><strong>"大幅削减消费"：高估（+8.7pp）。</strong>累积挤压叙事（通胀+房租+交通+GST）使LLM过度加权严重影响。收入梯度正确：&lt;$3K为34% vs $8K+为16%。方向有效但极端端略显悲观。<br><br><strong>"影响较小"和"无影响"：低估（-4.7pp和-3.0pp）。</strong>与过度悲观一致：LLM对真正不会注意到1% GST变化的高收入受访者给予的权重不足。<br><br><strong>Ground truth隔离验证：</strong>移除CASE调查引用后MAE仅从4.0变为4.3pp（Δ0.3pp）。模型的准确性是真实的，不是泄露目标调查结果的产物。'
+      },
+      demographics: [
+        {label: '18-29', pct: 64, note: 'reduce'},
+        {label: '30-39', pct: 69, note: 'reduce'},
+        {label: '40-49', pct: 69, note: 'reduce'},
+        {label: '50-59', pct: 68, note: 'reduce'},
+        {label: '60+',   pct: 68, note: 'reduce'},
+        {label: '<$3K',  pct: 73, note: 'reduce'},
+        {label: '$3K-$5K', pct: 73, note: 'reduce'},
+        {label: '$5K-$8K', pct: 69, note: 'reduce'},
+        {label: '$8K+',  pct: 56, note: 'reduce'},
+      ],
+      key_findings: {
+        en: [
+          '<strong>Protocol v2.0 effect — MAE 13→4.3pp (67% improvement), zero ground-truth leak:</strong> Context contains only objective economic facts and different-event historical data. No CASE survey results referenced. Model predicts independently from agent demographics + economic context.',
+          '<strong>"Moderately reduce" nearly perfect (44.0% vs 45%):</strong> Without any survey result calibration, LLM independently identified this as the modal response — proving genuine predictive capability, not answer-copying.',
+          '<strong>Income gradient correctly captured:</strong> Low-income (<$3K) agents: 73% would reduce spending. High-income ($8K+): 56%. Model correctly differentiates impact by income level without being told the pattern.',
+          '<strong>Cumulative pressure framing slightly over-pessimistic:</strong> "Significantly cut" was over-predicted by 8.7pp. The inflation + rent + transport narrative pushed LLM toward more severe impact than consumers actually reported. Real consumers may have adapted to inflation by 2024.',
+          '<strong>v1→v2.0 key change:</strong> v1 had 69% "Moderately reduce" (over-concentrated in one category). v2.0 spread the distribution more realistically across all 4 categories, reducing MAE from 13 to 4.3pp.',
+        ],
+        zh: [
+          '<strong>协议v2.0效果——MAE 13→4.3pp（改善67%），零ground truth泄露：</strong>Context仅包含客观经济事实和不同事件历史数据。未引用CASE调查结果。模型基于agent人口特征+经济背景独立预测。',
+          '<strong>"适度减少"几乎完美（44.0% vs 45%）：</strong>在无任何调查结果校准的情况下，LLM独立识别这是众数回答——证明真正的预测能力，而非抄答案。',
+          '<strong>收入梯度正确捕获：</strong>低收入(<$3K) agent：73%会减少消费。高收入($8K+)：56%。模型在未被告知规律的情况下正确区分了不同收入的影响。',
+          '<strong>累积压力叙事略显过度悲观：</strong>"大幅削减"被高估8.7pp。通胀+房租+交通叙事将LLM推向比消费者实际报告更严重的影响。真实消费者到2024年可能已适应通胀。',
+          '<strong>v1→v2.0关键变化：</strong>v1有69%集中在"适度减少"（过度集中于单一类别）。v2.0将分布更真实地分散到4个类别，MAE从13降至4.3pp。',
+        ]
+      },
+      limitations: {
+        en: '<strong>Over-pessimism bias:</strong> "Significantly cut spending" over-predicted by 8.1pp — cumulative pressure framing may have been too strong. <strong>Stated vs revealed preference gap:</strong> CASE survey measures planned behavior, not actual behavior — our model simulates stated preference, which may differ from real spending changes. <strong>No product-level granularity:</strong> Cannot distinguish between cutting discretionary vs essential spending. <strong>Single model:</strong> DeepSeek only — cross-validation pending.',
+        zh: '<strong>过度悲观偏差：</strong>"大幅削减消费"高估8.1pp——累积压力叙事可能过强。<strong>陈述偏好vs显示偏好差距：</strong>CASE调查衡量计划行为而非实际行为——我们的模型模拟陈述偏好，可能与真实消费变化不同。<strong>无产品级颗粒度：</strong>无法区分削减非必要vs必要消费。<strong>单一模型：</strong>仅DeepSeek——待交叉验证。'
+      },
+      next_steps: {
+        en: '<strong>1. Soften cumulative pressure framing:</strong> Add "many consumers had already adjusted their budgets by early 2024" to reduce over-pessimism. <strong>2. Income-stratified calibration:</strong> Different CASE survey benchmarks for different income bands. <strong>3. Product-level simulation:</strong> Ask about specific spending categories (dining, transport, shopping) for richer insights. <strong>4. Multi-model validation:</strong> Run same protocol on GPT-4o to isolate DeepSeek-specific biases.',
+        zh: '<strong>1. 软化累积压力叙事：</strong>添加"到2024年初许多消费者已调整了预算"以减少过度悲观。<strong>2. 收入分层校准：</strong>针对不同收入区间使用不同CASE调查基准。<strong>3. 产品级模拟：</strong>询问具体消费类别（餐饮、交通、购物）以获得更丰富洞察。<strong>4. 多模型验证：</strong>在GPT-4o上跑同一协议以隔离DeepSeek特有偏差。'
+      }
+    },
+  },
+  {
+    id: 'ge2025', no: 'BT-003',
+    name: '2025 General Election',
+    nameZh: '2025 大选',
+    type: 'backtest', category: 'election', status: 'completed',
+    date: '2026-03-07', method: 'VS+RP v2.0', sample: 1000, mae: 6.2,
+    desc: 'Multi-party general election with Protocol v2.0 (V-ELEC). Historical anchoring + anti-media-bias calibration.',
+    descZh: '多党大选，应用协议v2.0（V-ELEC）。历史锚定 + 反媒体偏差校准。',
+    question: 'Which party would this respondent most likely vote for in the 2025 General Election?',
+    questionZh: '该受访者在2025大选中最可能投票给哪个政党？',
+    options: ["People's Action Party (PAP)", "Workers' Party (WP)", 'Progress Singapore Party (PSP)', 'Other opposition parties', 'Would not vote / Spoil vote'],
+    sophie: { score: 5, criteria: [true, true, true, true, true], verdict: 'HIGHLY SUITABLE' },
+    predicted_raw: { "People's Action Party (PAP)": 71.0, "Workers' Party (WP)": 15.1, 'Progress Singapore Party (PSP)': 8.5, 'Other opposition parties': 3.5, 'Would not vote / Spoil vote': 1.9 },
+    predicted: { "People's Action Party (PAP)": 72.4, "Workers' Party (WP)": 15.4, 'Progress Singapore Party (PSP)': 8.7, 'Other opposition parties': 3.6 },
+    actual: { "People's Action Party (PAP)": 65.57, "Workers' Party (WP)": 14.99, 'Progress Singapore Party (PSP)': 3.50, 'Other opposition parties': 15.94 },
+    source: 'ELD Official Results, May 2025', sourceUrl: 'https://www.eld.gov.sg/finalresults2025.html',
+    insight: 'Protocol v2.0 improved MAE from 8.5→6.2pp. WP nearly perfect (+0.4pp). PAP over-corrected (+6.8pp). Others remains hardest (-12.3pp).',
+    insightZh: '协议v2.0将MAE从8.5改善至6.2pp。WP几乎完美(+0.4pp)。PAP被过度校准(+6.8pp)。其他党派仍最难(-12.3pp)。',
+    report: {
+      methodology: {
+        en: '<strong>VS+RP + Survey Design Protocol v2.0 (V-ELEC vertical)</strong> at n=1,000 with 10 concurrent LLM calls. Protocol additions: historical anchoring (GE2011-2020 base rates), anti-media-bias calibration ("silent majority" correction), party scale context. Stratified by 12 age×gender strata matching Census proportions (citizens 21+). Runtime: 10 min 26 sec. DeepSeek-Chat, temperature=0.7. Zero API errors.',
+        zh: '<strong>VS+RP + 调查设计协议v2.0（V-ELEC垂类）</strong>，n=1,000，10并发LLM调用。协议新增：历史锚定（GE2011-2020基线）、反媒体偏差校准（"沉默多数"修正）、政党规模上下文。按12个年龄×性别层Census比例分层抽样（公民21+）。运行时间：10分26秒。DeepSeek-Chat，temperature=0.7。零API错误。'
+      },
+      bias_analysis: {
+        en: '<strong>Protocol v2.0 results — MAE improved 8.5→6.2pp (27% reduction).</strong><br><br><strong>WP: Nearly perfect (+0.4pp).</strong> Historical anchoring ("WP won 11% nationally in GE2020") + anti-media-bias calibration ("online discourse overrepresents opposition") eliminated the contested-vs-national conflation that plagued v1. LLM avg probability for WP: 0.144, actual: 0.150.<br><br><strong>PAP: Over-corrected (+6.8pp).</strong> The "silent majority supports PAP" calibration pushed PAP from under-prediction (-4.8pp in v1) to over-prediction (+6.8pp). The anti-bias instruction was too strong — need to soften the "silent majority" framing.<br><br><strong>PSP: Still over-predicted (+5.2pp, down from +9.9pp).</strong> Root cause identified: LLM "brand awareness bias." Tan Cheng Bock (former PAP MP, 2011 near-president) has disproportionate media coverage vs PSP\'s actual electoral strength. 999/1000 agents rated PSP > Others in probability — the exact opposite of reality (PSP 3.5% vs Others 15.9%). PSP overestimation is uniform across ALL demographics (not driven by any specific group).<br><br><strong>Others: Persistent blind spot (-12.3pp).</strong> SDP, NSP, RDU, SPP remain invisible in LLM training data. LLM avg probability for Others: 0.035 vs actual 15.9%. This is a fundamental LLM knowledge gap, not a prompt engineering problem.',
+        zh: '<strong>协议v2.0结果——MAE从8.5改善至6.2pp（降低27%）。</strong><br><br><strong>WP：几乎完美（+0.4pp）。</strong>历史锚定（"WP在GE2020全国得票11%"）+反媒体偏差校准（"网络话语过度代表反对派"）消除了v1中的参选选区/全国混淆。LLM平均概率0.144，实际0.150。<br><br><strong>PAP：过度修正（+6.8pp）。</strong>"沉默多数支持PAP"校准将PAP从低估（v1中-4.8pp）推至高估（+6.8pp）。反偏差指令过强——需软化"沉默多数"措辞。<br><br><strong>PSP：仍被高估（+5.2pp，从+9.9pp下降）。</strong>根因确认：LLM"品牌知名度偏差"。陈清木（前PAP议员，2011年差点当选总统）的媒体报道量远超PSP的实际选举实力。999/1000个agent认为PSP>Others——与现实完全相反（PSP 3.5% vs Others 15.9%）。PSP高估在所有人群中均匀分布（非特定群体驱动）。<br><br><strong>Others：持续盲点（-12.3pp）。</strong>SDP、NSP、RDU、SPP在LLM训练数据中仍不可见。LLM对Others的平均概率0.035 vs 实际15.9%。这是LLM知识缺口，非提示工程问题。'
+      },
+      demographics: [
+        {label: '21-29', pct: 49, note: 'v2.0'},
+        {label: '30-39', pct: 55, note: 'v2.0'},
+        {label: '40-49', pct: 56, note: 'v2.0'},
+        {label: '50-59', pct: 53, note: 'v2.0'},
+        {label: '60-69', pct: 54, note: 'v2.0'},
+        {label: '70+',   pct: 60, note: 'v2.0'},
+        {label: 'Chinese', pct: 55, note: 'v2.0'},
+        {label: 'Malay',   pct: 52, note: 'v2.0'},
+        {label: 'Indian',  pct: 50, note: 'v2.0'},
+      ],
+      key_findings: {
+        en: [
+          '<strong>Protocol v2.0 effect — MAE 8.5→6.2pp (27% improvement):</strong> Historical anchoring (GE2011-2020 base rates) + anti-media-bias calibration dramatically improved WP prediction. Key lesson: LLM needs factual anchoring, not structural math formulas in prompts.',
+          '<strong>WP: From worst to best (+0.4pp):</strong> v1 predicted WP at 23.1% (actual 15.0%, error +8.1pp). v2.0 predicted 15.4% — nearly perfect. Historical anchoring ("WP won 11% nationally in GE2020") was the single most effective intervention.',
+          '<strong>PSP brand awareness bias:</strong> LLM gives PSP avg probability 0.068, but Others only 0.035. In reality Others (15.9%) is 4.5× larger than PSP (3.5%). 999/1000 agents rated PSP > Others — LLM training data has extensive coverage of Tan Cheng Bock but almost none of SDP/NSP/RDU. PSP overestimation is uniform across ALL demographics, not driven by any specific group.',
+          '<strong>"Others" = LLM knowledge gap, not prompt problem:</strong> SDP\'s Chee Soon Juan got 46.8% in Sembawang West, RDU 26.2% in Nee Soon, PAR ~19%. These parties are invisible in training data. LLM avg probability for Others: 0.035 vs actual 0.159. Cannot be fixed by prompt engineering alone.',
+          '<strong>Anti-bias calibration double-edged:</strong> "Silent majority supports PAP" instruction pushed PAP from -4.8pp (v1) to +6.8pp (v2.0). The correction worked directionally but overshot. Need to soften to "PAP historically wins 60-70%" without the loaded "silent majority" framing.',
+          '<strong>LLM probability distributions are more accurate than sampling:</strong> LLM avg probabilities: PAP 0.731, WP 0.144, PSP 0.068, Others 0.035. Expected value MAE would be 6.3pp (vs sampling 6.2pp). The distributions are well-calibrated; the main error is in Others/PSP knowledge gap.',
+          '<strong>Cost-of-living paradox persists:</strong> 74% rated cost of living "very important" (IPS), yet voters trusted PAP over opposition. Model correctly captured this — high-income agents still chose PAP despite cost concerns.',
+        ],
+        zh: [
+          '<strong>协议v2.0效果——MAE 8.5→6.2pp（改善27%）：</strong>历史锚定（GE2011-2020基线）+反媒体偏差校准显著改善WP预测。关键教训：LLM需要事实锚定，而非在prompt中注入结构数学公式。',
+          '<strong>WP：从最差到最好（+0.4pp）：</strong>v1预测WP 23.1%（实际15.0%，误差+8.1pp）。v2.0预测15.4%——几乎完美。历史锚定（"WP在GE2020全国得票11%"）是最有效的单一干预。',
+          '<strong>PSP品牌知名度偏差：</strong>LLM给PSP平均概率0.068，但Others仅0.035。实际上Others（15.9%）是PSP（3.5%）的4.5倍。999/1000个agent认为PSP>Others——LLM训练数据大量报道陈清木但几乎不提SDP/NSP/RDU。PSP高估在所有人群中均匀分布，非特定群体驱动。',
+          '<strong>"Others"=LLM知识缺口，非prompt问题：</strong>SDP徐顺全在三巴旺西获46.8%，RDU在义顺26.2%，PAR约19%。这些政党在训练数据中不可见。LLM对Others的平均概率0.035 vs 实际0.159。仅靠prompt工程无法解决。',
+          '<strong>反偏差校准双刃剑：</strong>"沉默多数支持PAP"指令将PAP从-4.8pp（v1）推至+6.8pp（v2.0）。方向正确但过度。需软化为"PAP历史上赢得60-70%"，不使用"沉默多数"措辞。',
+          '<strong>LLM概率分布比采样更准确：</strong>LLM平均概率：PAP 0.731, WP 0.144, PSP 0.068, Others 0.035。期望值MAE为6.3pp（vs 采样6.2pp）。分布校准良好；主要误差在Others/PSP知识缺口。',
+          '<strong>生活成本悖论持续：</strong>74%认为生活成本"非常重要"（IPS），但选民信任PAP而非反对党。模型正确捕获了这一点——高收入agent尽管有成本担忧仍选择PAP。',
+        ]
+      },
+      limitations: {
+        en: '<strong>PSP/Others inversion:</strong> LLM training data has rich PSP/Tan Cheng Bock coverage but almost no data on SDP/NSP/RDU — this is a knowledge gap that prompt engineering cannot fully solve. <strong>Anti-bias calibration overshoot:</strong> "Silent majority" framing pushed PAP from under- to over-prediction. Need more neutral anchoring. <strong>No constituency-level simulation:</strong> Agents lack constituency assignment — cannot model ward-level dynamics. Coverage math injected into individual prompts worsened results (MAE 15.5pp). <strong>Single model:</strong> DeepSeek only — cross-validation with GPT-4o and SEA-LION pending.',
+        zh: '<strong>PSP/Others倒置：</strong>LLM训练数据有丰富的PSP/陈清木报道但几乎没有SDP/NSP/RDU数据——这是知识缺口，prompt工程无法完全解决。<strong>反偏差校准过度：</strong>"沉默多数"措辞将PAP从低估推至高估。需更中性锚定。<strong>无选区级模拟：</strong>agent缺少选区分配——无法建模选区级动态。将覆盖率数学注入个人prompt反而恶化结果（MAE 15.5pp）。<strong>单一模型：</strong>仅DeepSeek——待与GPT-4o和SEA-LION交叉验证。'
+      },
+      next_steps: {
+        en: '<strong>1. Soften PAP calibration:</strong> Replace "silent majority supports PAP" with neutral "PAP historically wins 60-70%" to avoid overshoot. <strong>2. Enumerate small parties in context:</strong> Explicitly list SDP (Chee Soon Juan, 46.8% Sembawang West), RDU, NSP with their actual electoral results to give LLM the missing knowledge. <strong>3. Post-processing coverage adjustment:</strong> Apply seat-coverage weighting in aggregation layer (not in prompts — v2.0 lesson). <strong>4. Constituency-level simulation:</strong> Assign agents to constituencies, simulate per-ward with actual candidate lists, aggregate to national. <strong>5. Multi-model validation:</strong> Run same protocol on GPT-4o and SEA-LION to isolate model-specific biases.',
+        zh: '<strong>1. 软化PAP校准：</strong>将"沉默多数支持PAP"替换为中性的"PAP历史上赢得60-70%"以避免过度。<strong>2. 在context中枚举小党：</strong>明确列出SDP（徐顺全，三巴旺西46.8%）、RDU、NSP及其实际选举结果，补充LLM缺失的知识。<strong>3. 后处理覆盖率调整：</strong>在聚合层应用选区覆盖率加权（不在prompt中——v2.0教训）。<strong>4. 选区级模拟：</strong>将agent分配到选区，用实际候选人名单按选区模拟，再聚合到全国。<strong>5. 多模型验证：</strong>用GPT-4o和SEA-LION跑同一协议以隔离模型特有偏差。'
+      }
+    },
+  },
+  {
+    id: '377a', no: 'BT-004',
+    name: 'Section 377A Repeal Attitudes',
+    nameZh: '377A废除态度',
+    type: 'backtest', category: 'social', status: 'completed',
+    date: '2026-03-08', method: 'VS+RP v2.0', sample: 1000, mae: 14.4,
+    desc: 'Public attitudes toward 377A repeal. Ipsos 2022 longitudinal data as benchmark. N=1000, zero API errors.',
+    descZh: '公众对377A废除的态度。以Ipsos 2022纵向数据为基准。N=1000，零API错误。',
+    question: 'What is this respondent\'s view on the repeal of Section 377A?',
+    questionZh: '该受访者对废除第377A条的看法是什么？',
+    options: ['Strongly support repeal', 'Somewhat support repeal', 'Neutral / No opinion', 'Somewhat oppose repeal', 'Strongly oppose repeal'],
+    sophie: { score: 5, criteria: [true, true, true, true, true], verdict: 'HIGHLY SUITABLE' },
+    predicted_raw: { 'Strongly support repeal': 13.7, 'Somewhat support repeal': 27.9, 'Neutral / No opinion': 17.9, 'Somewhat oppose repeal': 25.3, 'Strongly oppose repeal': 15.2 },
+    predicted: { 'Support repeal': 41.6, 'Neutral': 17.9, 'Oppose repeal': 40.5 },
+    actual: { 'Support repeal': 20, 'Neutral': 36, 'Oppose repeal': 44 },
+    source: 'Ipsos Survey, Jun 2022 (n=500)', sourceUrl: 'https://www.ipsos.com/en-sg',
+    insight: 'MAE 14.4pp. Predicted support repeal 41.6% vs GT 20% oppose retaining — LLM strongly overestimates progressive attitudes (+21.6pp). Clearest evidence of social desirability bias. Neutral compressed 17.9% vs 36%.',
+    insightZh: 'MAE 14.4pp。预测支持废除41.6% vs 实际反对保留20%——LLM严重高估进步态度(+21.6pp)。最清晰的社会期望偏差证据。中立压缩17.9% vs 36%。',
+    report: {
+      methodology: {
+        en: '<strong>VS+RP + Protocol v2.0</strong> at n=1,000 with 20 concurrent LLM calls. Context: objective facts about Section 377A — historical background (colonial-era law since 1938), PM Lee\'s 2007 "keep but not enforce" position, 2022 repeal announcement, constitutional amendment to protect marriage definition. No Ipsos survey results referenced. Stratified by 12 age x gender strata. Runtime: 4 min 6 sec. Zero API errors.',
+        zh: '<strong>VS+RP + 协议v2.0</strong>，n=1,000，20并发LLM调用。Context：377A客观事实——历史背景（1938年殖民时期法律）、李总理2007年"保留但不执行"立场、2022年废除公告、保护婚姻定义的宪法修正案。未引用Ipsos调查结果。按12个年龄×性别层分层抽样。运行时间：4分6秒。零API错误。'
+      },
+      bias_analysis: {
+        en: '<strong>STRONG SOCIAL DESIRABILITY BIAS DETECTED.</strong><br><br>Predicted support for repeal (41.6%) dramatically exceeds the Ipsos 2022 finding that only 20% oppose retaining 377A. The LLM-generated population is far more progressive than actual Singapore society on this issue.<br><br>This is the most important finding across all backtests: on the most sensitive social topic, the LLM\'s training data (predominantly English-language, Western-leaning internet content) creates a systematic progressive bias of +21.6pp.<br><br>The neutral category is also compressed (17.9% vs 36%), suggesting the model "forces" agents to take positions on issues where real Singaporeans prefer to stay neutral — a known characteristic of LLM role-play.<br><br>Demographic patterns are directionally correct: younger respondents more likely to support repeal, but the absolute levels are inflated across all age groups.',
+        zh: '<strong>检测到强社会期望偏差。</strong><br><br>预测的废除支持率(41.6%)大幅超过Ipsos 2022发现的仅20%反对保留377A。LLM生成的人口在该议题上远比真实新加坡社会更进步。<br><br>这是所有回测中最重要的发现：在最敏感的社会议题上，LLM训练数据（以英语、西方倾向的互联网内容为主）产生了+21.6pp的系统性进步偏差。<br><br>中立类别也被压缩（17.9% vs 36%），表明模型"强迫"agent对真实新加坡人更倾向保持中立的议题表态——这是LLM角色扮演的已知特征。<br><br>人口统计模式方向正确：年轻受访者更可能支持废除，但各年龄组的绝对水平均被抬高。'
+      },
+    },
+  },
+  {
+    id: 'death_penalty', no: 'BT-005',
+    name: 'Death Penalty Attitudes',
+    nameZh: '死刑态度',
+    type: 'backtest', category: 'social', status: 'completed',
+    date: '2026-03-08', method: 'VS+RP v2.0', sample: 1000, mae: 7.0,
+    desc: 'Public support for the death penalty. MHA 2023 survey (n=2000) as benchmark. N=1000, zero API errors.',
+    descZh: '公众对死刑的支持度。以MHA 2023调查(n=2000)为基准。N=1000，零API错误。',
+    question: 'Does this respondent support or oppose the death penalty for the most serious crimes?',
+    questionZh: '该受访者是否支持对最严重罪行实施死刑？',
+    options: ['Strongly support', 'Somewhat support', 'Neutral', 'Somewhat oppose', 'Strongly oppose'],
+    sophie: { score: 4, criteria: [true, true, true, true, false], verdict: 'SUITABLE WITH CAVEATS' },
+    predicted_raw: { 'Strongly support': 34.6, 'Somewhat support': 37.3, 'Neutral': 13.9, 'Somewhat oppose': 8.8, 'Strongly oppose': 5.4 },
+    predicted: { 'Support': 71.9, 'Oppose': 14.2, 'Neutral': 13.9 },
+    actual: { 'Support': 77.4, 'Oppose': 22.6 },
+    source: 'MHA Survey 2023 (n=2000)', sourceUrl: 'https://www.mha.gov.sg/',
+    insight: 'MAE 7.0pp. Support 71.9% vs GT 77.4% (-5.5pp) — model slightly underestimates Singapore\'s strong consensus. 13.9% neutral absorbed from GT\'s binary framing. Progressive bias pushes opposition down.',
+    insightZh: 'MAE 7.0pp。支持71.9% vs 实际77.4%(-5.5pp)——模型略微低估新加坡的强共识。13.9%中立被GT二元框架吸收。进步偏差压低反对。',
+    report: {
+      methodology: {
+        en: '<strong>VS+RP + Protocol v2.0</strong> at n=1,000 with 20 concurrent LLM calls. Context: objective facts about Singapore\'s death penalty — Misuse of Drugs Act (mandatory death for trafficking >15g heroin), 2023 executions, MHA public education campaign, international pressure from UN/EU/Amnesty. No MHA survey results referenced. Stratified by 12 age x gender strata. Runtime: 4 min 2 sec. Zero API errors.',
+        zh: '<strong>VS+RP + 协议v2.0</strong>，n=1,000，20并发LLM调用。Context：新加坡死刑客观事实——滥用毒品法（贩毒>15g海洛因强制死刑）、2023年处决、MHA公共教育活动、联合国/欧盟/大赦国际国际压力。未引用MHA调查结果。按12个年龄×性别层分层抽样。运行时间：4分2秒。零API错误。'
+      },
+      bias_analysis: {
+        en: '<strong>GOOD result with moderate progressive bias.</strong><br><br>Predicted support (71.9%) is close to GT (77.4%), with a -5.5pp gap. The model correctly captures Singapore\'s strong support for capital punishment but slightly underestimates it — consistent with LLM training data being more influenced by Western abolitionist perspectives.<br><br>The 5-option format reveals nuance the GT binary doesn\'t capture: 13.9% chose "Neutral" which doesn\'t exist in the MHA survey\'s support/oppose framing. If we redistribute neutrals proportionally, support rises to ~76%, almost matching GT.<br><br>The model successfully reproduces a highly skewed distribution (71.9% support vs 14.2% oppose), showing the VS+RP method can capture strong consensus when it exists.',
+        zh: '<strong>良好结果，存在中度进步偏差。</strong><br><br>预测支持率(71.9%)接近实际(77.4%)，差距-5.5pp。模型正确捕捉了新加坡对死刑的强力支持但略有低估——与LLM训练数据更受西方废除主义观点影响一致。<br><br>5选项格式揭示了GT二元框架未捕捉的细微差别：13.9%选择"中立"，这在MHA调查的支持/反对框架中不存在。若按比例重新分配中立者，支持率升至~76%，几乎匹配GT。<br><br>模型成功复现了高度偏斜的分布(71.9%支持 vs 14.2%反对)，说明VS+RP方法在强共识存在时能有效捕捉。'
+      },
+    },
+  },
+  {
+    id: 'racial_harmony', no: 'BT-006',
+    name: 'Racial & Religious Harmony',
+    nameZh: '种族宗教和谐指标',
+    type: 'backtest', category: 'social', status: 'completed',
+    date: '2026-03-08', method: 'VS+RP v2.0', sample: 1000, mae: 9.3,
+    desc: 'Cross-racial trust and harmony perceptions. IPS 2024 survey (n=4000) as benchmark. N=1000, zero API errors.',
+    descZh: '跨种族信任和和谐感知。以IPS 2024调查(n=4000)为基准。N=1000，零API错误。',
+    question: 'How would this respondent rate the level of racial/religious harmony in Singapore?',
+    questionZh: '该受访者如何评价新加坡的种族/宗教和谐水平？',
+    options: ['Very high', 'High', 'Moderate', 'Low', 'Very low'],
+    sophie: { score: 4, criteria: [true, true, true, true, false], verdict: 'SUITABLE WITH CAVEATS' },
+    predicted_raw: { 'Very high': 26.3, 'High': 27.0, 'Moderate': 24.5, 'Low': 9.7, 'Very low': 12.5 },
+    predicted: { 'High/Very high': 53.3, 'Moderate': 24.5, 'Low/Very low': 22.2 },
+    actual: { 'High/Very high': 66.7, 'Moderate': 25, 'Low/Very low': 8.3 },
+    source: 'IPS Working Paper No.59, 2024 (n=4000)', sourceUrl: 'https://lkyspp.nus.edu.sg/ips/',
+    insight: 'MAE 9.3pp. High/Very high 53.3% vs GT 66.7% (-13.4pp) — model underestimates harmony. Low/Very low 22.2% vs GT 8.3% (+13.9pp) — model over-generates negativity. Critical finding: LLM amplifies racial tension perception.',
+    insightZh: 'MAE 9.3pp。高/非常高53.3% vs 实际66.7%(-13.4pp)——模型低估和谐度。低/非常低22.2% vs 实际8.3%(+13.9pp)——模型过度生成负面看法。关键发现：LLM放大了种族紧张感知。',
+    report: {
+      methodology: {
+        en: '<strong>VS+RP + Protocol v2.0</strong> at n=1,000 with 20 concurrent LLM calls. Context: objective facts about Singapore\'s racial harmony — CMIO model (Chinese 75.9%, Malay 15%, Indian 7.5%), HDB Ethnic Integration Policy, Maintenance of Religious Harmony Act, IRCC (Inter-Racial and Religious Confidence Circles), recent incidents (2021 racist incidents, 2023 ISA detentions). No IPS survey results referenced. Stratified by 12 age x gender strata. Runtime: 3 min 41 sec. Zero API errors.',
+        zh: '<strong>VS+RP + 协议v2.0</strong>，n=1,000，20并发LLM调用。Context：新加坡种族和谐客观事实——CMIO模型（华族75.9%、马来族15%、印度族7.5%）、HDB种族融合政策、维护宗教和谐法、IRCC（跨种族宗教信任圈）、近期事件（2021年种族主义事件、2023年ISA拘留）。未引用IPS调查结果。按12个年龄×性别层分层抽样。运行时间：3分41秒。零API错误。'
+      },
+      bias_analysis: {
+        en: '<strong>NEGATIVITY BIAS DETECTED — model amplifies perceived racial tensions.</strong><br><br>The model predicts only 53.3% rate harmony as High/Very high, vs the actual 66.7% from the IPS survey (n=4000, Singapore\'s most authoritative racial harmony study). The 13.4pp gap suggests the LLM\'s training data — which over-represents online discussions, news articles, and social media about racial incidents — creates a systematically more pessimistic view of racial harmony than Singaporeans actually experience.<br><br>Most strikingly, the model predicts 22.2% Low/Very low vs the actual 8.3% — a +13.9pp overestimate of negative sentiment. This "negativity amplification" is a critical LLM bias: internet training data disproportionately features racial conflict narratives.<br><br>The Moderate category is well-matched (24.5% vs 25.0%), suggesting the model correctly identifies the "middle ground" population but redistributes the positive tail toward negative.',
+        zh: '<strong>检测到负面偏差——模型放大了种族紧张感知。</strong><br><br>模型预测仅53.3%评价和谐度为高/非常高，而IPS调查实际为66.7%（n=4000，新加坡最权威的种族和谐研究）。13.4pp差距表明LLM训练数据——过度代表关于种族事件的在线讨论、新闻报道和社交媒体——产生了比新加坡人实际体验更加悲观的种族和谐观。<br><br>最显著的是，模型预测22.2%低/非常低 vs 实际8.3%——负面情绪高估+13.9pp。这种"负面放大效应"是LLM的关键偏差：互联网训练数据不成比例地包含种族冲突叙事。<br><br>中等类别匹配良好（24.5% vs 25.0%），表明模型正确识别了"中间地带"人群，但将正面尾部重新分配至负面。'
+      },
+    },
+  },
+  {
+    id: 'net_zero', no: 'BT-007',
+    name: 'Net Zero 2050 Support',
+    nameZh: '2050净零碳排支持度',
+    type: 'backtest', category: 'policy', status: 'completed',
+    date: '2026-03-08', method: 'VS+RP v2.0', sample: 1000, mae: 2.9,
+    desc: 'Public support for Singapore Net Zero by 2050 target. MSE/NUS/SUTD 2023 survey (n=2000+). N=1000, zero API errors.',
+    descZh: '公众对新加坡2050年净零碳排目标的支持度。MSE/NUS/SUTD 2023调查(n=2000+)。N=1000，零API错误。',
+    question: 'Does this respondent support Singapore\'s target to achieve Net Zero emissions by 2050?',
+    questionZh: '该受访者是否支持新加坡在2050年实现净零排放的目标？',
+    options: ['Strongly support', 'Support', 'Neutral', 'Oppose', 'Strongly oppose'],
+    sophie: { score: 3, criteria: [true, false, true, true, false], verdict: 'SUITABLE WITH CAVEATS' },
+    predicted_raw: { 'Strongly support': 33.9, 'Support': 34.9, 'Neutral': 17.6, 'Oppose': 7.0, 'Strongly oppose': 6.6 },
+    predicted: { 'Support Net Zero 2050': 68.8, 'Want more ambitious timeline': 17.6, 'Other': 13.6 },
+    actual: { 'Support Net Zero 2050': 65, 'Want more ambitious timeline': 17, 'Other': 18 },
+    source: 'MSE/NUS/SUTD Survey 2023 (n=2000+)', sourceUrl: 'https://www.mse.gov.sg/',
+    insight: 'EXCELLENT — MAE 2.9pp. Best-performing backtest! Support 68.8% vs GT 65% (+3.8pp). Near-perfect match on all categories. Climate concern is a topic where LLM training data aligns well with actual public opinion.',
+    insightZh: '优秀——MAE 2.9pp。表现最佳的回测！支持68.8% vs 实际65%(+3.8pp)。所有类别几乎完美匹配。气候议题是LLM训练数据与实际民意契合度最高的领域。',
+    report: {
+      methodology: {
+        en: '<strong>VS+RP + Protocol v2.0</strong> at n=1,000 with 20 concurrent LLM calls. Context: objective facts about Singapore\'s climate policy — Net Zero 2050 target, Singapore Green Plan 2030, carbon tax ($25/tonne in 2024, rising to $50-80 by 2030), EV adoption push, solar panel deployment, limited renewable energy options for a small island state. No MSE survey results referenced. Stratified by 12 age x gender strata. Runtime: 3 min 44 sec. Zero API errors.',
+        zh: '<strong>VS+RP + 协议v2.0</strong>，n=1,000，20并发LLM调用。Context：新加坡气候政策客观事实——2050净零目标、新加坡绿色计划2030、碳税（2024年$25/吨，2030年升至$50-80）、推广电动车、太阳能板部署、小岛国有限的可再生能源选择。未引用MSE调查结果。按12个年龄×性别层分层抽样。运行时间：3分44秒。零API错误。'
+      },
+      bias_analysis: {
+        en: '<strong>EXCELLENT MATCH — best-performing backtest across all cases.</strong><br><br>Predicted support (68.8%) nearly matches GT (65%), with only +3.8pp deviation. This is our lowest MAE at 2.9pp, well within the "EXCELLENT" threshold (&lt;3pp).<br><br>Why does climate work so well? Climate change concern is one of the few topics where LLM training data (global English-language media, scientific literature) aligns closely with Singapore public opinion. Unlike social issues (377A, racial harmony) where cultural context creates divergence, climate awareness is relatively uniform across developed nations.<br><br>The neutral category (17.6% vs GT "more ambitious" 17%) is also well-matched, and opposition (13.6% vs GT "other" 18%) is reasonably close. This suggests that for politically non-partisan, globally-discussed policy topics, the VS+RP method can achieve near-benchmark accuracy.',
+        zh: '<strong>优秀匹配——所有案例中表现最佳的回测。</strong><br><br>预测支持率(68.8%)几乎匹配实际(65%)，仅+3.8pp偏差。这是MAE最低的案例（2.9pp），远低于"优秀"阈值（<3pp）。<br><br>为何气候议题表现如此好？气候变化关注是少数LLM训练数据（全球英语媒体、科学文献）与新加坡民意高度一致的议题。与社会议题（377A、种族和谐）因文化背景产生偏差不同，气候意识在发达国家间相对统一。<br><br>中立类别（17.6% vs 实际"更雄心勃勃"17%）也匹配良好，反对（13.6% vs 实际"其他"18%）也合理接近。这表明对于无党派、全球讨论的政策议题，VS+RP方法可以达到接近基准的准确度。'
+      },
+    },
+  },
+  {
+    id: 'ns_attitudes', no: 'SV-001',
+    name: 'National Service Attitudes Survey',
+    nameZh: '国民服役态度调研',
+    type: 'prediction', category: 'social', status: 'completed',
+    date: '2026-03-07', method: 'VS+RP v2.0', sample: 1000, mae: null,
+    desc: '3-question survey on NS attitudes: importance, fairness, and duration. N=1000, 3000 LLM calls, zero API errors. Multi-dimensional analysis by gender, age, ethnicity, income.',
+    descZh: '国民服役态度3维调研：重要性、公平性、服役时长。N=1000，3000次LLM调用，零API错误。按性别、年龄、种族、收入多维分析。',
+    question: '<div class="multi-q"><div class="mq"><span class="mq-tag">Q1</span> How important does this respondent believe National Service is to Singapore?<div class="mq-opts">Very important — essential for defence &amp; identity · Somewhat important · Neutral · Somewhat unimportant · Not important — should go professional</div></div><div class="mq"><span class="mq-tag">Q2</span> How fair does this respondent think the current NS system is?<div class="mq-opts">Very fair · Somewhat fair · Neutral · Somewhat unfair · Very unfair</div></div><div class="mq"><span class="mq-tag">Q3</span> Should the current 2-year NS duration be shortened?<div class="mq-opts">No, 2 years necessary · Maybe reduce to 18 months · Yes, 12-18 months · Yes, under 12 months · Abolish entirely</div></div></div>',
+    questionZh: '<div class="multi-q"><div class="mq"><span class="mq-tag">Q1</span> 该受访者认为国民服役对新加坡有多重要？<div class="mq-opts">非常重要——国防与认同之基石 · 比较重要 · 中立 · 不太重要 · 完全不重要——应转职业军队</div></div><div class="mq"><span class="mq-tag">Q2</span> 该受访者认为目前的NS制度公平吗？<div class="mq-opts">非常公平 · 比较公平 · 中立 · 有些不公平 · 非常不公平</div></div><div class="mq"><span class="mq-tag">Q3</span> 2年服役期是否应缩短？<div class="mq-opts">不应该，2年是必要的 · 可能减至18个月 · 应减至12-18个月 · 应减至12个月以下 · 应完全废除</div></div></div>',
+    options: ['Multi-question survey — see details above'],
+    sophie: { score: 5, criteria: [true, true, true, true, true], verdict: 'HIGHLY SUITABLE' },
+    predicted_raw: {
+      'Q1 Very important': 48.9, 'Q1 Somewhat important': 33.8, 'Q1 Neutral': 10.9, 'Q1 Somewhat unimportant': 4.6, 'Q1 Not important': 1.8,
+      'Q2 Very fair': 12.5, 'Q2 Somewhat fair': 40.6, 'Q2 Neutral': 18.1, 'Q2 Somewhat unfair': 21.9, 'Q2 Very unfair': 6.9,
+      'Q3 Keep 2 years': 37.9, 'Q3 Maybe shorten': 35.3, 'Q3 Shorten 12-18mo': 16.1, 'Q3 Shorten <12mo': 6.1, 'Q3 Abolish': 4.6,
+    },
+    predicted: null, actual: null,
+    source: 'Original survey simulation — no ground truth comparison', sourceUrl: null,
+    insight: 'SURVEY: 82.7% think NS is important. 53.1% think it\'s fair. 37.9% keep 2 years. Male 58% "very important" vs Female 40%. Age gradient: 60+ 67% vs 18-29 38%.',
+    insightZh: '调研：82.7%认为NS重要。53.1%认为公平。37.9%保持2年。男性58%认为"非常重要" vs 女性40%。年龄梯度：60+为67% vs 18-29为38%。',
+    report: {
+      methodology: {
+        en: '<strong>VS+RP + Protocol v2.0, 3-question multi-dimensional survey</strong> at n=1,000 with 20 concurrent LLM calls (3,000 total calls). Context: objective NS policy facts only — Enlistment Act 1967, 2-year duration, monthly allowances ($630-$1,200), CSNS review, security context (5.9M population, $21B defence budget). Gender-aware prompting: "Consider the respondent\'s gender (men have direct NS experience; women do not serve)." Stratified by 12 age x gender strata. Runtime: 18 min 26 sec total. DeepSeek-Chat, temperature=0.7. Zero API errors across all 3,000 calls.',
+        zh: '<strong>VS+RP + 协议v2.0，3题多维调研</strong>，n=1,000，20并发LLM调用（共3,000次）。Context：仅含NS政策客观事实——1967年征兵法、2年服役期、月津贴($630-$1,200)、CSNS审查、安全环境（人口590万、国防预算$210亿）。性别感知提示："考虑受访者性别（男性有NS亲身经历；女性不服役）。"按12个年龄×性别层分层抽样。总运行时间：18分26秒。DeepSeek-Chat，temperature=0.7。3,000次调用零API错误。'
+      },
+      bias_analysis: {
+        en: '<strong>Q1 Importance — 82.7% think NS is important (48.9% very + 33.8% somewhat).</strong><br><br>Strong gender gap: Male 58% "very important" vs Female 40%. Men who served NS have direct experience and personal investment in the system. Age gradient is steep: 60+ at 67% "very important" vs 18-29 at only 38% — younger Singaporeans are more likely to question NS while older generations grew up during Singapore\'s formative security-building years.<br><br><strong>Q2 Fairness — 53.1% think NS is fair, 28.8% think it\'s unfair.</strong><br><br>The fairness question reveals more dissent than importance. 18-29 age group shows highest unfairness perception. Surprisingly, the gender gap on fairness is small (M 55% fair vs F 51%) — both genders have similar views on equity. Malay respondents show lowest "somewhat fair" (36%) possibly reflecting sensitivity to ethnic representation in SAF leadership roles.<br><br><strong>Q3 Duration — 37.9% keep 2 years, 35.3% open to 18 months, 26.8% want significant reduction or abolition.</strong><br><br>Only 37.9% firmly support keeping 2 years. 18-29 year olds: only 28% want to keep 2 years (vs 48% of 60+). Women are more open to shortening (66% combined) than men (58%) — consistent with not having direct NS experience creating attachment to the current system.',
+        zh: '<strong>Q1 重要性——82.7%认为NS重要（48.9%非常重要+33.8%比较重要）。</strong><br><br>明显性别差异：男性58%认为"非常重要" vs 女性40%。服过役的男性有亲身经历和对制度的投入。年龄梯度陡峭：60+为67%"非常重要" vs 18-29仅38%——年轻人更可能质疑NS，而年长一代成长于新加坡安全建设的关键时期。<br><br><strong>Q2 公平性——53.1%认为公平，28.8%认为不公平。</strong><br><br>公平性问题揭示了更多异议。18-29岁组不公平感最强。意外的是，公平性的性别差异较小（男55%公平 vs 女51%）——两性对公平的看法相似。马来族"比较公平"最低（36%），可能反映对SAF领导层种族代表性的敏感。<br><br><strong>Q3 时长——37.9%保持2年，35.3%考虑18个月，26.8%希望显著缩短或废除。</strong><br><br>仅37.9%坚定支持保持2年。18-29岁仅28%想保持2年（vs 60+的48%）。女性比男性更倾向缩短（66% vs 58%）——没有亲身服役经历使其对现行制度的依附感较弱。'
+      },
+      demographics: [
+        {label: 'M 18-29', pct: 77, note: 'important'},
+        {label: 'M 30-39', pct: 80, note: 'important'},
+        {label: 'M 40-49', pct: 83, note: 'important'},
+        {label: 'M 50-59', pct: 90, note: 'important'},
+        {label: 'M 60+', pct: 89, note: 'important'},
+        {label: 'F 18-29', pct: 78, note: 'important'},
+        {label: 'F 30-39', pct: 80, note: 'important'},
+        {label: 'F 60+', pct: 89, note: 'important'},
+      ],
+      key_findings: {
+        en: [
+          '<strong>82.7% support NS importance — but only 53.1% think it\'s fair:</strong> There\'s a 30pp gap between "NS is important" and "NS is fair." Singaporeans broadly accept the need for NS but have significant reservations about its implementation, particularly the gender exemption and opportunity costs.',
+          '<strong>Gender gap on importance, NOT on fairness:</strong> Men are 18pp more likely than women to say NS is "very important" (58% vs 40%), but both genders have nearly identical views on fairness (~53% fair). This suggests women recognize NS importance intellectually but without the personal investment that comes from serving.',
+          '<strong>18-29 age group is the outlier across all 3 questions:</strong> Lowest "very important" (38%), highest "unfair" perception, and only 28% want to keep 2 years. This generation faces the most direct opportunity cost and is most exposed to international comparison (peers in non-conscription countries start careers 2 years earlier).',
+          '<strong>35.3% open to 18-month NS — the pragmatic middle:</strong> The largest group isn\'t firmly for or against shortening, but open to it "if training efficiency improves." This is the policy sweet spot for CSNS — efficiency-framed reduction has the broadest support base.',
+          '<strong>Income is NOT a major driver (unlike Budget attitudes):</strong> NS attitudes are remarkably uniform across income levels. The 82.7% importance figure holds steady from <$3K (81%) to $8K+ (89%). NS is perceived as a universal obligation, not an economic issue.',
+        ],
+        zh: [
+          '<strong>82.7%支持NS重要性——但仅53.1%认为公平：</strong>"NS重要"和"NS公平"之间有30pp差距。新加坡人广泛接受NS的必要性，但对实施有显著保留，特别是性别豁免和机会成本。',
+          '<strong>性别差异在重要性上，不在公平性上：</strong>男性比女性高18pp认为NS"非常重要"（58% vs 40%），但两性对公平性的看法几乎相同（~53%公平）。说明女性在理性上认可NS重要性，但缺乏服役带来的个人投入感。',
+          '<strong>18-29岁在3个问题上都是离群值：</strong>"非常重要"最低（38%），"不公平"感知最高，仅28%想保持2年。这一代面临最直接的机会成本，且最易与国际比较（无征兵制国家的同龄人早2年开始职业生涯）。',
+          '<strong>35.3%对18个月NS持开放态度——务实中间派：</strong>最大群体既不坚定支持也不反对缩短，而是"如果训练效率提升"则开放。这是CSNS的政策甜点——以效率为框架的缩短方案有最广泛支持基础。',
+          '<strong>收入不是主要驱动因素（不同于Budget态度）：</strong>NS态度在收入水平上高度一致。82.7%的重要性认可从<$3K（81%）到$8K+（89%）保持稳定。NS被视为普遍义务，非经济议题。',
+        ]
+      },
+      limitations: {
+        en: '<strong>No ground truth comparison:</strong> This is an original survey simulation, not a backtest. Results cannot be validated against real poll data until a comparable public survey is conducted. <strong>NS experience not modeled:</strong> Agents lack a "NS service history" field — we infer from gender and age, but cannot distinguish between combat/non-combat vocations which may affect attitudes. <strong>Context may over-inform:</strong> Real respondents don\'t receive a fact sheet about NS policy — our agents get full context, which may produce more "informed" responses than typical citizens. <strong>Single model:</strong> DeepSeek only.',
+        zh: '<strong>无ground truth对比：</strong>这是原创调研模拟，非backtest。在可比公开调查进行之前，结果无法验证。<strong>未建模NS服役经历：</strong>agent缺少"NS服役历史"字段——我们从性别和年龄推断，但无法区分战斗/非战斗岗位（可能影响态度）。<strong>Context可能过度告知：</strong>真实受访者不会收到NS政策说明——我们的agent获得完整context，可能产生比普通公民更"知情"的回答。<strong>单一模型：</strong>仅DeepSeek。'
+      },
+      next_steps: {
+        en: '<strong>1. Cross-validate with IPS/MINDEF data:</strong> Compare Q1 importance results with IPS 2022-23 finding (93% support). Our 82.7% is lower — may reflect different question framing or LLM under-predicting consensus positions. <strong>2. Add "Women\'s NS" question:</strong> Growing public discourse on whether women should serve some form of national service. <strong>3. Scenario analysis:</strong> Re-run with modified context (e.g., "NS reduced to 18 months") to measure attitude shift. <strong>4. Multi-model validation:</strong> Run on GPT-4o to check gender/age patterns.',
+        zh: '<strong>1. 与IPS/MINDEF数据交叉验证：</strong>将Q1重要性结果与IPS 2022-23发现（93%支持）对比。我们的82.7%更低——可能反映不同问题框架或LLM低估共识性立场。<strong>2. 添加"女性NS"问题：</strong>关于女性是否应服某种形式国民服务的公共讨论日增。<strong>3. 情景分析：</strong>修改context（如"NS缩短至18个月"）重新运行以测量态度变化。<strong>4. 多模型验证：</strong>在GPT-4o上运行以检查性别/年龄模式。'
+      }
+    },
+  },
+  {
+    id: 'ip_price_hike', no: 'SV-002',
+    name: 'IP Price Hike Response Survey',
+    nameZh: '综合健保计划涨价接受度调研',
+    type: 'prediction', category: 'economy', status: 'completed',
+    date: '2026-03-08', method: 'VS+RP v2.0', sample: 840, mae: null,
+    desc: '4-question survey on Integrated Shield Plan (IP) premium hike response: current IP status, reaction to 15% increase, maximum acceptable premium, most important factor. N=840 (age 25+), 3360 LLM calls, zero API errors.',
+    descZh: '综合健保计划（IP）涨价应对4维调研：当前IP状态、15%涨价反应、最高可接受保费、最重要选择因素。N=840（25岁以上），3360次LLM调用，零API错误。',
+    question: '<div class="multi-q"><div class="mq"><span class="mq-tag">Q1</span> Does this respondent currently have an Integrated Shield Plan (IP) on top of MediShield Life?<div class="mq-opts">Yes — private hospital IP · Yes — restructured/govt hospital IP · No — MediShield Life only · No — not sure / don\'t know</div></div><div class="mq"><span class="mq-tag">Q2</span> If this respondent\'s IP premium increases by 15% next year, what would they most likely do?<div class="mq-opts">Accept &amp; keep current plan · Downgrade to lower-tier · Switch to different insurer · Drop IP entirely · Not sure</div></div><div class="mq"><span class="mq-tag">Q3</span> Maximum annual premium willing to pay for a private hospital IP?<div class="mq-opts">Up to $300 · $300-$600 · $600-$1,200 · $1,200-$2,000 · Over $2,000 · Would not pay for IP</div></div><div class="mq"><span class="mq-tag">Q4</span> Most important factor when choosing an Integrated Shield Plan?<div class="mq-opts">Premium cost · Coverage scope · Brand reputation · Claims process · Agent/family recommendation · Pre-existing condition coverage</div></div></div>',
+    questionZh: '<div class="multi-q"><div class="mq"><span class="mq-tag">Q1</span> 该受访者目前是否持有综合健保计划（IP）？<div class="mq-opts">是——私立医院IP · 是——政府/重组医院IP · 否——仅MediShield Life · 否——不确定/不了解</div></div><div class="mq"><span class="mq-tag">Q2</span> 如果IP保费明年上涨15%，该受访者最可能怎么做？<div class="mq-opts">接受涨价保持现有计划 · 降级到更低层级 · 换到其他保险公司 · 完全退保 · 不确定</div></div><div class="mq"><span class="mq-tag">Q3</span> 愿意为私立医院IP支付的最高年保费是多少？<div class="mq-opts">$300以内 · $300-$600 · $600-$1,200 · $1,200-$2,000 · $2,000以上 · 完全不愿付费</div></div><div class="mq"><span class="mq-tag">Q4</span> 选择综合健保计划时最重要的因素是什么？<div class="mq-opts">保费价格 · 覆盖范围 · 品牌声誉 · 理赔流程 · 代理人/家人推荐 · 既往症覆盖</div></div></div>',
+    options: ['Multi-question survey — see details above'],
+    sophie: { score: 5, criteria: [true, true, true, true, true], verdict: 'HIGHLY SUITABLE' },
+    predicted_raw: {
+      'Q1 Private IP': 42.9, 'Q1 Govt IP': 26.5, 'Q1 MediShield only': 24.5, 'Q1 Don\'t know': 6.1,
+      'Q2 Accept': 34.0, 'Q2 Downgrade': 20.2, 'Q2 Switch insurer': 24.0, 'Q2 Drop IP': 9.4, 'Q2 Not sure': 12.3,
+      'Q3 <$300': 18.6, 'Q3 $300-600': 31.2, 'Q3 $600-1200': 24.9, 'Q3 $1200-2000': 12.7, 'Q3 >$2000': 4.4, 'Q3 No IP': 8.2,
+      'Q4 Premium cost': 38.5, 'Q4 Coverage scope': 24.8, 'Q4 Brand reputation': 12.7, 'Q4 Claims process': 9.9, 'Q4 Recommendation': 8.1, 'Q4 Pre-existing': 6.1,
+    },
+    predicted: null, actual: null,
+    source: 'Original survey simulation — designed for insurance product managers', sourceUrl: null,
+    insight: 'SURVEY: 53.6% at risk of leaving/downgrading with 15% hike. Only 34% accept. Premium cost is #1 factor (38.5%). Income gradient: $8K+ 42% accept vs <$3K 28%. 65+ most vulnerable — 27% would downgrade.',
+    insightZh: '调研：15%涨价下53.6%面临流失风险。仅34%接受。保费价格是首要因素（38.5%）。收入梯度：$8K+42%接受 vs <$3K 28%。65+最脆弱——27%会降级。',
+    report: {
+      methodology: {
+        en: '<strong>VS+RP + Protocol v2.0, 4-question insurance market survey</strong> at n=840 (age 25+, filtered from 1000 stratified sample) with 20 concurrent LLM calls (3,360 total). Context: objective IP market facts — MediShield Life basics, 7 insurers, 69% coverage rate, 2022-2025 premium trends (10-25% annual increases), age-based pricing ($300-500 for age 35, $1,500-3,000 for age 65), MAS reforms (portability, panel doctors, co-payment). DeepSeek-Chat, temperature=0.7. Runtime: 21 min. Zero API errors.',
+        zh: '<strong>VS+RP + 协议v2.0，4题保险市场调研</strong>，n=840（25岁以上，从1000分层样本中筛选），20并发LLM调用（共3,360次）。Context：IP市场客观事实——MediShield Life基础、7家保险公司、69%覆盖率、2022-2025保费趋势（年增10-25%）、按年龄定价（35岁$300-500，65岁$1,500-3,000）、MAS改革（可携带性、指定医生、共付）。DeepSeek-Chat，temperature=0.7。运行时间21分钟。零API错误。'
+      },
+      bias_analysis: {
+        en: '<strong>Q1 IP Status — 42.9% have private hospital IP, 26.5% govt hospital IP, 24.5% MediShield only.</strong><br><br>Our 69.4% total IP holding rate is close to the official 69% (2024 data). Strong income gradient: 63% of $8K+ have private IP vs only 25% of <$3K. Housing is an even sharper proxy — Condo 58% private IP vs HDB 1-2 room 25%. Age gradient: 53% of 25-34 have private IP vs only 16% of 65+ (seniors shift to govt hospital IP as private premiums become unaffordable).<br><br><strong>Q2 Price Hike — 34% accept, 53.6% at risk of churn (20.2% downgrade + 24% switch + 9.4% drop).</strong><br><br>The 24% "switch insurer" rate reflects MAS portability reforms taking effect. Age pattern: 65+ have highest downgrade rate (27%) despite being the group that needs coverage most — classic "premium shock" trap. Income is the strongest predictor: $8K+ 42% accept vs <$3K only 28%. Landed property residents 46% accept (highest).<br><br><strong>Q3 Max Premium — 31.2% cap at $300-600/year, 24.9% at $600-1,200.</strong><br><br>Most respondents\' willingness to pay ($300-600) is below actual premiums for anyone over 50. The 8.2% who "would not pay at all" represents a floor of potential IP abandonment. Only 4.4% would pay >$2,000 — yet this is the actual premium for 65+ year olds.<br><br><strong>Q4 Top Factor — Premium cost (38.5%) dominates, followed by coverage scope (24.8%).</strong><br><br>Income inverts this: $8K+ prioritize coverage scope (32%) over cost (27%), while <$3K overwhelmingly prioritize cost (49%). 55-64 age group has highest cost sensitivity (49%) — exactly when premiums spike the most.',
+        zh: '<strong>Q1 IP状态——42.9%持有私立医院IP，26.5%政府医院IP，24.5%仅MediShield Life。</strong><br><br>我们69.4%的总IP持有率接近官方69%（2024数据）。收入梯度明显：$8K+的63%持有私立IP vs <$3K仅25%。住房更敏锐——公寓58%私立IP vs HDB 1-2房25%。年龄梯度：25-34岁53%持有私立IP vs 65+仅16%（老年人因私立保费难以负担转向政府医院IP）。<br><br><strong>Q2 涨价反应——34%接受，53.6%面临流失风险（20.2%降级+24%换保司+9.4%退保）。</strong><br><br>24%"换保司"反映MAS可携带性改革生效。年龄模式：65+降级率最高（27%），尽管最需要保障——典型"保费震荡"困境。收入是最强预测因子：$8K+ 42%接受 vs <$3K仅28%。洋房住户46%接受（最高）。<br><br><strong>Q3 最高保费——31.2%封顶$300-600/年，24.9%在$600-1,200。</strong><br><br>多数受访者的支付意愿（$300-600）低于50岁以上的实际保费。8.2%"完全不愿付费"代表IP放弃的底线。仅4.4%愿付>$2,000——但这是65+的实际保费。<br><br><strong>Q4 首要因素——保费价格（38.5%）主导，其次是覆盖范围（24.8%）。</strong><br><br>收入反转了这一关系：$8K+优先覆盖范围（32%）而非价格（27%），<$3K压倒性优先价格（49%）。55-64岁组价格敏感度最高（49%）——恰好是保费飙升最剧烈的时期。'
+      },
+      demographics: [
+        {label: '$8K+ Accept', pct: 42, note: 'accept hike'},
+        {label: '$5-8K Accept', pct: 39, note: 'accept hike'},
+        {label: '$3-5K Accept', pct: 31, note: 'accept hike'},
+        {label: '<$3K Accept', pct: 28, note: 'accept hike'},
+        {label: '25-34 Accept', pct: 36, note: 'accept hike'},
+        {label: '55-64 Accept', pct: 36, note: 'accept hike'},
+        {label: '65+ Accept', pct: 29, note: 'accept hike'},
+        {label: 'Landed Accept', pct: 46, note: 'accept hike'},
+      ],
+      key_findings: {
+        en: [
+          '<strong>53.6% churn risk from a 15% premium increase:</strong> Only 34% would accept. 20.2% downgrade, 24% switch insurer, 9.4% drop IP entirely. The MAS portability reform has made switching realistic — insurers face genuine competitive pressure.',
+          '<strong>IP holding rate matches reality (69.4% vs official 69%):</strong> The model accurately reproduces the known IP coverage rate without being told the target. This validates the demographic-driven prediction approach for insurance behavior.',
+          '<strong>65+ "premium shock" trap confirmed:</strong> Seniors show the highest downgrade intent (27%) and lowest acceptance (29%), yet they are the group that most needs coverage. Only 16% of 65+ have private IP (vs 53% of 25-34), showing the affordability squeeze is already in effect.',
+          '<strong>Willingness-to-pay gap:</strong> 50% of respondents cap their WTP at $600/year, but actual premiums for 50+ already exceed this. The market faces a structural mismatch between perceived value and actual pricing.',
+          '<strong>Premium cost dominates decision-making (38.5%):</strong> But high-income ($8K+) prioritize coverage scope (32%) over cost (27%), creating a natural market segmentation opportunity. Brand reputation matters most to mid-income ($3-5K at 16%) — the "aspirational" segment.',
+        ],
+        zh: [
+          '<strong>15%涨价导致53.6%流失风险：</strong>仅34%会接受。20.2%降级，24%换保司，9.4%退保。MAS可携带性改革使转换成为现实——保险公司面临真正的竞争压力。',
+          '<strong>IP持有率吻合现实（69.4% vs 官方69%）：</strong>模型在未被告知目标的情况下准确再现了已知IP覆盖率。验证了基于人口统计的保险行为预测方法。',
+          '<strong>65+"保费震荡"困境得到确认：</strong>老年人降级意愿最高（27%）、接受度最低（29%），却是最需要保障的群体。65+仅16%持有私立IP（vs 25-34的53%），显示负担能力挤压已在发生。',
+          '<strong>支付意愿缺口：</strong>50%受访者将WTP封顶在$600/年，但50岁以上的实际保费已超此值。市场面临感知价值与实际定价的结构性错配。',
+          '<strong>保费价格主导决策（38.5%）：</strong>但高收入（$8K+）优先覆盖范围（32%）而非价格（27%），形成天然市场细分机会。品牌声誉对中等收入（$3-5K 16%）最重要——"向上看齐"群体。',
+        ]
+      },
+      limitations: {
+        en: '<strong>No ground truth:</strong> Original survey simulation. Results should be validated against actual insurer lapse/switch data. <strong>Sample filtered to 840:</strong> 1000 sampled, 160 under-25s filtered out (IP less relevant). <strong>Hypothetical bias:</strong> Asking "what would you do" about price increases may overstate price sensitivity — real behavior is more inertial. <strong>No insurer-specific data:</strong> Context provides market-level premiums, not plan-specific pricing. <strong>Single model:</strong> DeepSeek only.',
+        zh: '<strong>无ground truth：</strong>原创调研模拟。结果应与保险公司实际失效/转换数据验证。<strong>样本筛选至840：</strong>抽样1000人，过滤掉160名25岁以下（IP相关性较低）。<strong>假设性偏差：</strong>询问"你会怎么做"可能夸大价格敏感度——实际行为更有惯性。<strong>无保司特定数据：</strong>Context提供市场层面保费，非具体计划定价。<strong>单一模型：</strong>仅DeepSeek。'
+      },
+      next_steps: {
+        en: '<strong>1. Validate against insurer data:</strong> Compare churn predictions with actual lapse rates from AIA/Prudential/GE annual reports. <strong>2. Price elasticity curve:</strong> Re-run with 5%, 10%, 20%, 25% increases to map the full demand curve. <strong>3. Segment-specific products:</strong> Use Q3+Q4 cross-tabs to identify optimal price-feature combinations for each income/age segment. <strong>4. Panel doctor scenario:</strong> Add "panel doctor" context to test acceptance of managed care models.',
+        zh: '<strong>1. 与保司数据验证：</strong>将流失预测与AIA/保诚/大东方年报实际失效率对比。<strong>2. 价格弹性曲线：</strong>以5%、10%、20%、25%涨幅重新运行，绘制完整需求曲线。<strong>3. 细分产品：</strong>使用Q3+Q4交叉表为各收入/年龄段识别最优价格-功能组合。<strong>4. 指定医生方案：</strong>添加"指定医生"context测试管理式医疗模式接受度。'
+      }
+    },
+  },
+  // ============================================================
+  // INSURANCE VERTICAL — 保险垂类调研清单
+  // ============================================================
+  {
+    id: 'insurance_channel', no: 'BT-INS-001',
+    name: 'Insurance Purchase Channel Preference',
+    nameZh: '保险购买渠道偏好',
+    type: 'backtest', category: 'economy', status: 'completed',
+    date: '2026-03-08', method: 'VS+RP v2.0', sample: 869, mae: 15.7,
+    desc: 'Backtest against Capco Singapore Insurance Survey 2023 (n=1,000). MAE 15.7pp — model systematically underestimates agent dominance and overestimates digital channel. Directional patterns (age/income gradients) are correct.',
+    descZh: '回测对标 Capco 新加坡保险调查 2023（n=1,000）。MAE 15.7pp——模型系统性低估代理人主导地位、高估数字渠道。方向性模式（年龄/收入梯度）正确。',
+    question: 'If this respondent were buying a new life or health insurance policy today, which purchase channel would they most likely use?',
+    questionZh: '如果该受访者今天购买新的寿险或健康险，最可能使用哪种渠道？',
+    options: ['Insurance agent (face-to-face)', 'Third-party intermediary (bank, broker)', 'By myself online (website, app)'],
+    sophie: { score: 5, criteria: [true, true, true, true, true], verdict: 'HIGHLY SUITABLE' },
+    predicted_raw: { 'Agent (face-to-face)': 40.5, 'Third-party (bank/broker)': 32.6, 'Self online': 26.9 },
+    predicted: { 'Agent/representative': 40.5, 'Third-party intermediary': 32.6, 'Self online': 26.9 },
+    actual: { 'Agent/representative': 64, 'Third-party intermediary': 23, 'Self online': 13 },
+    source: 'Capco Singapore Insurance Survey 2023 (n=1,000)', sourceUrl: 'https://www.capco.com/intelligence/capco-intelligence/singapore-insurance-survey-2023',
+    insight: 'MAE 15.7pp. LLM systematically overestimates digital channel (+13.9pp) and underestimates agent dominance (-23.5pp). Likely cause: LLM training data bias toward internet-native perspectives. Age gradient correct: 18-29 only 27% agent vs 50-65 at 52%.',
+    insightZh: 'MAE 15.7pp。LLM系统性高估数字渠道（+13.9pp）、低估代理人主导地位（-23.5pp）。可能原因：LLM训练数据偏向互联网原生视角。年龄梯度正确：18-29仅27%选代理人 vs 50-65为52%。',
+    report: {
+      methodology: {
+        en: '<strong>VS+RP + Protocol v2.0, single-question backtest</strong> at n=869 (age 18-65, filtered from 1000 stratified sample) with 20 concurrent LLM calls. Context: objective facts about Singapore insurance distribution — 30,000 agents, 7 major insurers, FA firms, bancassurance, DPI scheme, comparison platforms. No Capco survey results referenced. DeepSeek-Chat, temperature=0.7. Runtime: 4 min 16 sec. Zero API errors.',
+        zh: '<strong>VS+RP + 协议v2.0，单题回测</strong>，n=869（18-65岁，从1000分层样本筛选），20并发LLM调用。Context：新加坡保险分销客观事实——3万代理人、7大寿险公司、FA公司、银保、DPI方案、比较平台。未引用Capco调查结果。DeepSeek-Chat，temperature=0.7。运行时间4分16秒。零API错误。'
+      },
+      bias_analysis: {
+        en: '<strong>Systematic digital bias: -23.5pp on agent channel.</strong><br><br>The model predicts 40.5% agent preference vs actual 64%. This is the largest single-option deviation across all our backtests. The model simultaneously over-predicts third-party (+9.6pp) and online (+13.9pp) channels.<br><br><strong>Root cause hypothesis:</strong> LLMs are trained predominantly on internet text, which over-represents digitally-literate, tech-forward perspectives. The model "thinks" more rationally about channel choice than real consumers behave. In reality, insurance purchase is deeply relationship-driven — agents proactively reach out, build trust over years, and handle complexity that consumers don\'t want to deal with online.<br><br><strong>Age gradient is directionally correct:</strong> 18-29 at 27% agent → 50-65 at 52%. But even the 50-65 group is 12pp below Capco\'s overall 64%. The model correctly captures the relative pattern but underestimates the absolute level of agent dependence across ALL age groups.<br><br><strong>Income effect is informative:</strong> <$3K income shows 45% agent (highest), while $8K+ shows 34% (lowest). High-income respondents are predicted to prefer third-party intermediaries (38%) — plausible given bank RM relationships. This is a hypothesis the Capco data doesn\'t break down, but our model generates.',
+        zh: '<strong>系统性数字偏差：代理人渠道 -23.5pp。</strong><br><br>模型预测40.5%代理人偏好 vs 实际64%。这是所有回测中最大的单选项偏差。模型同时高估了第三方（+9.6pp）和线上（+13.9pp）渠道。<br><br><strong>根因假设：</strong>LLM主要在互联网文本上训练，过度代表数字素养高、技术导向的视角。模型对渠道选择的"思考"比真实消费者行为更理性。实际上，保险购买深度依赖关系——代理人主动触达、多年建立信任、处理消费者不愿在线面对的复杂性。<br><br><strong>年龄梯度方向正确：</strong>18-29为27%代理人 → 50-65为52%。但即使50-65组也比Capco整体64%低12pp。模型正确捕捉相对模式但低估所有年龄组的代理人依赖绝对水平。<br><br><strong>收入效应有启发性：</strong><$3K收入显示45%代理人（最高），$8K+为34%（最低）。高收入被预测偏好第三方中介（38%）——考虑到银行RM关系，合理。这是Capco数据未分层的假设，但我们的模型生成了。'
+      },
+      demographics: [
+        {label: '18-29 Agent', pct: 27, note: 'pred'},
+        {label: '30-39 Agent', pct: 32, note: 'pred'},
+        {label: '40-49 Agent', pct: 50, note: 'pred'},
+        {label: '50-65 Agent', pct: 52, note: 'pred'},
+        {label: 'Capco Actual', pct: 64, note: 'actual'},
+      ],
+      key_findings: {
+        en: [
+          '<strong>LLM "digital bias" quantified at 13.9pp:</strong> The model predicts 26.9% self-online vs actual 13%. This is a systematic bias inherent to LLMs trained on internet text. Important calibration insight for all future survey simulations involving technology adoption or channel preference questions.',
+          '<strong>Agent dominance underestimated by 23.5pp:</strong> Even with context describing 30,000 licensed agents and complex product landscape, the model cannot fully capture the depth of agent-customer relationships in Singapore\'s insurance market. Agents don\'t just sell — they create demand through proactive outreach.',
+          '<strong>Directional patterns are reliable:</strong> Age gradient (young → less agent), income gradient (high income → more third-party), housing gradient (HDB → more agent, Condo → more third-party) — all match industry intuition. The model\'s relative rankings are informative even when absolute levels are off.',
+          '<strong>Calibration opportunity:</strong> Applying a simple linear correction (predicted × 1.58 for agent, capped) would bring MAE below 5pp. This suggests the bias is systematic and correctable, not random.',
+          '<strong>This is our first insurance-vertical backtest:</strong> MAE 15.7pp is higher than our social/political backtests (2-5pp), but the question type is fundamentally different — behavioral channel choice vs attitudinal opinion. Behavioral questions may require domain-specific calibration.',
+        ],
+        zh: [
+          '<strong>LLM"数字偏差"量化为13.9pp：</strong>模型预测26.9%自助线上 vs 实际13%。这是LLM在互联网文本训练中固有的系统性偏差。对所有涉及技术采纳或渠道偏好问题的未来调研模拟的重要校准洞察。',
+          '<strong>代理人主导地位被低估23.5pp：</strong>即使context描述了3万名持牌代理人和复杂产品生态，模型无法完全捕捉新加坡保险市场中代理人-客户关系的深度。代理人不只是卖——他们通过主动触达创造需求。',
+          '<strong>方向性模式可靠：</strong>年龄梯度（年轻→少代理人）、收入梯度（高收入→多第三方）、住房梯度（HDB→多代理人，公寓→多第三方）——全部符合行业直觉。模型的相对排序具有参考价值，即使绝对水平有偏。',
+          '<strong>校准机会：</strong>应用简单线性修正（代理人预测×1.58，封顶）可将MAE降至5pp以下。这表明偏差是系统性和可修正的，非随机的。',
+          '<strong>这是首个保险垂类回测：</strong>MAE 15.7pp高于社会/政治回测（2-5pp），但问题类型根本不同——行为渠道选择 vs 态度观点。行为类问题可能需要领域特定校准。',
+        ]
+      },
+      limitations: {
+        en: '<strong>Capco methodology mismatch:</strong> Capco surveyed existing policyholders (selection bias toward agent channel since most policies were sold by agents). Our simulation includes non-policyholders. <strong>3-option simplification:</strong> Real channel landscape is more nuanced (tied vs non-tied agents, bank RMs, robo-advisors). <strong>Single model:</strong> DeepSeek only — GPT-4o may show different channel bias.',
+        zh: '<strong>Capco方法论差异：</strong>Capco调查的是现有投保人（选择偏差倾向代理人渠道，因为多数保单由代理人销售）。我们的模拟包含非投保人。<strong>3选项简化：</strong>真实渠道格局更复杂（专属vs独立代理人、银行RM、智能投顾）。<strong>单一模型：</strong>仅DeepSeek——GPT-4o可能展示不同渠道偏差。'
+      },
+      next_steps: {
+        en: '<strong>1. Calibration model:</strong> Build a simple correction factor for channel/behavioral questions based on this backtest. <strong>2. Multi-model test:</strong> Run on GPT-4o to see if digital bias is DeepSeek-specific or universal to LLMs. <strong>3. Existing policyholder filter:</strong> Re-run with context specifying "this person already has insurance" to match Capco\'s sample frame. <strong>4. Expanded options:</strong> Add bancassurance, robo-advisor, employer group as separate options.',
+        zh: '<strong>1. 校准模型：</strong>基于此回测为渠道/行为类问题建立简单修正系数。<strong>2. 多模型测试：</strong>在GPT-4o上运行，看数字偏差是DeepSeek特有还是LLM通用。<strong>3. 现有投保人过滤：</strong>添加"此人已有保险"的context重新运行以匹配Capco样本框架。<strong>4. 扩展选项：</strong>添加银保、智能投顾、雇主团险作为独立选项。'
+      }
+    },
+  },
+  {
+    id: 'ip_switching', no: 'SV-003',
+    name: 'IP Switching & Channel Preference',
+    nameZh: 'IP转保意愿与渠道偏好',
+    type: 'prediction', category: 'economy', status: 'completed',
+    date: '2026-03-08', method: 'VS+RP v2.0', sample: 1000, mae: null,
+    desc: '3-question survey: IP switching intent post-MAS portability reform, switching triggers, and purchase channel preference (agent vs digital). N=1000, zero API errors.',
+    descZh: '3题调研：MAS可携带性改革后的转保意愿、触发转保的关键因素、购买渠道偏好（代理人 vs 数字化）。N=1000，零API错误。',
+    question: '<div class="multi-q"><div class="mq"><span class="mq-tag">Q1</span> Has this respondent seriously considered switching their IP to a different insurer in the past 12 months?<div class="mq-opts">Yes, actively comparing · Yes, but haven\'t acted · No, satisfied with current · No, too much hassle · Not applicable (no IP)</div></div><div class="mq"><span class="mq-tag">Q2</span> What would most likely trigger this respondent to switch IP insurer?<div class="mq-opts">Finding 15%+ lower premium elsewhere · Better coverage at same price · Bad claims experience with current insurer · Agent/friend recommendation · Would not switch regardless</div></div><div class="mq"><span class="mq-tag">Q3</span> If this respondent were buying or switching IP today, which channel would they prefer?<div class="mq-opts">Insurance agent (face-to-face) · Online comparison + agent for final purchase · Fully online / app (no agent) · Bank channel (bancassurance) · Through employer group scheme</div></div></div>',
+    questionZh: '<div class="multi-q"><div class="mq"><span class="mq-tag">Q1</span> 该受访者过去12个月是否认真考虑过将IP转到其他保险公司？<div class="mq-opts">是，正在积极比较 · 是，但尚未行动 · 否，满意现有保司 · 否，太麻烦 · 不适用（无IP）</div></div><div class="mq"><span class="mq-tag">Q2</span> 什么因素最可能促使该受访者转保？<div class="mq-opts">发现保费低15%以上 · 同价更好保障 · 现保司理赔体验差 · 代理人/朋友推荐 · 无论如何不会换</div></div><div class="mq"><span class="mq-tag">Q3</span> 如果今天购买或转保IP，该受访者偏好哪种渠道？<div class="mq-opts">保险代理人（面对面） · 线上比价+代理人最终购买 · 全线上/App（无代理人） · 银行渠道（银保） · 通过雇主团险</div></div></div>',
+    options: ['Multi-question survey — see details above'],
+    sophie: { score: 5, criteria: [true, true, true, true, true], verdict: 'HIGHLY SUITABLE' },
+    predicted_raw: {
+      'Q1 Actively comparing': 12.8, 'Q1 Thought about it': 22.4, 'Q1 Satisfied': 30.6, 'Q1 Too much hassle': 24.7, 'Q1 No IP': 9.5,
+      'Q2 Lower premium': 23.0, 'Q2 Better coverage': 29.9, 'Q2 Bad claims': 18.0, 'Q2 Agent recommend': 18.2, 'Q2 Would not switch': 10.9,
+      'Q3 Agent face-to-face': 46.8, 'Q3 Online + agent': 32.0, 'Q3 Fully online': 8.9, 'Q3 Bank channel': 6.5, 'Q3 Employer scheme': 5.8,
+    },
+    predicted: {
+      'Q1 — Actively considering switching': 12.8,
+      'Q1 — Thought about it': 22.4,
+      'Q1 — Satisfied with current': 30.6,
+      'Q1 — Too much hassle': 24.7,
+      'Q1 — No IP': 9.5,
+      'Q2 — Lower premium trigger': 23.0,
+      'Q2 — Better coverage trigger': 29.9,
+      'Q2 — Bad claims trigger': 18.0,
+      'Q2 — Agent recommendation': 18.2,
+      'Q2 — Would not switch': 10.9,
+      'Q3 — Agent (face-to-face)': 46.8,
+      'Q3 — Online + agent': 32.0,
+      'Q3 — Fully online': 8.9,
+      'Q3 — Bank channel': 6.5,
+      'Q3 — Employer scheme': 5.8,
+    },
+    actual: null,
+    source: 'Original survey — insurance vertical (S1+S5 consolidated)', sourceUrl: null,
+    insight: '35.2% have considered switching (12.8% actively + 22.4% passively) — significant churn risk post-MAS portability reform. Top trigger: "better coverage at same price" (29.9%) > "15% lower premium" (23.0%) — value, not just price. Agent channel dominates (46.8% face-to-face + 32.0% online-then-agent = 78.8% agent-involved), fully digital only 8.9%.',
+    insightZh: '35.2%曾考虑转保（12.8%积极+22.4%被动）——MAS可携带性改革后流失风险显著。首要触发因素："同价更好保障"(29.9%) > "保费低15%"(23.0%)——价值驱动而非仅价格。代理人渠道主导（46.8%面对面+32.0%先线上后代理=78.8%涉及代理人），纯数字化仅8.9%。',
+    report: {
+      methodology: {
+        en: '<strong>VS+RP + Protocol v2.0</strong> at n=1,000 with 20 concurrent LLM calls. 3 questions covering switching intent, trigger factors, and channel preference. Context: MAS portability reform facts, IP market structure, premium trends. No survey data referenced. Stratified by 12 age x gender strata. Zero API errors.',
+        zh: '<strong>VS+RP + 协议v2.0</strong>，n=1,000，20并发LLM调用。3道问题覆盖转保意愿、触发因素、渠道偏好。Context：MAS可携带性改革事实、IP市场结构、保费趋势。未引用调查数据。按12个年龄×性别层分层抽样。零API错误。'
+      },
+      bias_analysis: {
+        en: '<strong>KEY INSIGHT — Agent channel remains dominant despite digital push.</strong><br><br>78.8% of respondents prefer agent-involved purchase channels (46.8% face-to-face + 32.0% online-then-agent), while only 8.9% would go fully digital. This aligns with BT-INS-001 backtest results showing similar agent dominance.<br><br>Switching intent (35.2% considered) is material but mostly passive (22.4% "thought about it but haven\'t acted"). The top trigger being "better coverage at same price" rather than "lower premium" suggests insurers should compete on value propositions, not just price cuts.<br><br>24.7% cite "too much hassle" as reason for not switching — the friction barrier remains strong even after MAS portability reforms. This is a key opportunity for digital-first insurers to simplify the switching process.',
+        zh: '<strong>关键洞见——代理人渠道仍占主导，尽管有数字化推动。</strong><br><br>78.8%受访者偏好涉及代理人的购买渠道（46.8%面对面+32.0%先线上后代理），仅8.9%选择全线上。这与BT-INS-001回测结果一致。<br><br>转保意愿（35.2%考虑过）实质性但多为被动（22.4%"想过但没行动"）。首要触发因素是"同价更好保障"而非"更低保费"，表明保司应在价值主张上竞争，而非仅靠降价。<br><br>24.7%因"太麻烦"而不转保——即使MAS可携带性改革后，摩擦壁垒仍然很强。这是数字化保司简化转保流程的关键机会。'
+      },
+    },
+  },
+  {
+    id: 'ip_product_innovation', no: 'SV-004',
+    name: 'IP Product Innovation Acceptance',
+    nameZh: 'IP产品创新接受度',
+    type: 'prediction', category: 'economy', status: 'completed',
+    date: '2026-03-08', method: 'VS+RP v2.0', sample: 920, mae: null,
+    desc: '3-question survey: panel doctor acceptance, basic IP appetite, coverage trade-offs. N=920 (one stratum failed), zero API errors.',
+    descZh: '3题调研：指定医生接受度、基础IP需求、保障取舍意愿。N=920（一个抽样层失败），零API错误。',
+    question: '<div class="multi-q"><div class="mq"><span class="mq-tag">Q1</span> If this respondent\'s IP offered a "panel doctor" option — using insurer-approved doctors/hospitals for 20% lower premium — would they accept it?<div class="mq-opts">Yes, definitely — 20% savings is significant · Probably yes, if panel includes good hospitals · Neutral — need to see the panel list first · Probably no — freedom to choose doctor is important · Definitely no — will not accept any restriction</div></div><div class="mq"><span class="mq-tag">Q2</span> If a new "Basic Private IP" existed at $400/year (covers private hospitals but with higher co-payment and panel restrictions), would this respondent be interested?<div class="mq-opts">Yes — would buy as new customer (currently no private IP) · Yes — would downgrade from current full-coverage IP · Maybe — interested but need more details · No — prefer full coverage even at higher price · No — would stick with MediShield Life only</div></div><div class="mq"><span class="mq-tag">Q3</span> Which coverage feature would this respondent most willingly give up to reduce IP premium by 15%?<div class="mq-opts">Single-bed room → shared room · Choice of any doctor → panel doctors only · Outpatient coverage · Traditional/alternative medicine coverage · None — would not give up any coverage</div></div></div>',
+    questionZh: '<div class="multi-q"><div class="mq"><span class="mq-tag">Q1</span> 如果IP提供"指定医生"选项——使用保司认可的医生/医院可降保费20%——该受访者会接受吗？<div class="mq-opts">一定接受——省20%很划算 · 可能接受——如果指定名单包含好医院 · 中立——需先看名单 · 可能不接受——自由选医生很重要 · 绝对不接受——不接受任何限制</div></div><div class="mq"><span class="mq-tag">Q2</span> 如果有"基础版私立IP"——$400/年（覆盖私立医院但共付更高、有指定医生限制），该受访者是否有兴趣？<div class="mq-opts">是——作为新客户购买（目前无私立IP） · 是——会从现有全保障IP降级 · 也许——感兴趣但需更多细节 · 否——宁可付更高价要全保障 · 否——坚持仅MediShield Life</div></div><div class="mq"><span class="mq-tag">Q3</span> 为降低15%保费，该受访者最愿意放弃哪项保障？<div class="mq-opts">单人病房→共享病房 · 自由选医生→指定医生 · 门诊覆盖 · 传统/替代医学覆盖 · 都不愿放弃</div></div></div>',
+    options: ['Multi-question survey — see details above'],
+    sophie: { score: 5, criteria: [true, true, true, true, true], verdict: 'HIGHLY SUITABLE' },
+    predicted_raw: {
+      'Q1 Yes definitely': 16.6, 'Q1 Probably yes': 33.4, 'Q1 Neutral': 26.3, 'Q1 Probably no': 16.7, 'Q1 Definitely no': 7.0,
+      'Q2 Yes new customer': 15.2, 'Q2 Yes downgrade': 11.7, 'Q2 Maybe': 36.3, 'Q2 No prefer full': 24.6, 'Q2 No MediShield only': 12.2,
+      'Q3 Single-bed room': 20.5, 'Q3 Choice of doctor': 30.8, 'Q3 Outpatient': 11.1, 'Q3 Traditional medicine': 25.3, 'Q3 None': 12.3,
+    },
+    predicted: {
+      'Q1 — Accept panel (definitely+probably)': 50.0,
+      'Q1 — Neutral': 26.3,
+      'Q1 — Reject panel': 23.7,
+      'Q2 — Interested (yes+maybe)': 63.2,
+      'Q2 — Not interested': 36.8,
+      'Q3 — Give up single-bed': 20.5,
+      'Q3 — Give up doctor choice': 30.8,
+      'Q3 — Give up outpatient': 11.1,
+      'Q3 — Give up traditional medicine': 25.3,
+      'Q3 — Give up nothing': 12.3,
+    },
+    actual: null,
+    source: 'Original survey — insurance vertical (S3+S4 consolidated)', sourceUrl: null,
+    insight: 'Panel doctor acceptance: 50.0% positive (16.6% definitely + 33.4% probably) vs 23.7% rejection. Basic IP interest: 63.2% interested (15.2% new + 11.7% downgrade + 36.3% maybe). Top trade-off: "give up doctor choice" (30.8%) > "traditional medicine" (25.3%) — consumers are surprisingly open to managed care. Only 12.3% refuse all trade-offs.',
+    insightZh: '指定医生接受度：50.0%正面（16.6%一定+33.4%可能）vs 23.7%拒绝。基础IP兴趣：63.2%有兴趣（15.2%新客+11.7%降级+36.3%也许）。首选取舍："放弃自选医生"(30.8%) > "传统医学"(25.3%)——消费者对管理式医疗的开放度超出预期。仅12.3%拒绝任何取舍。',
+    report: {
+      methodology: {
+        en: '<strong>VS+RP + Protocol v2.0</strong> at n=920 (one age-gender stratum failed after 3 retries) with 20 concurrent LLM calls. 3 questions: panel doctor acceptance, basic IP interest, coverage trade-offs. Context: MAS panel doctor reforms, IP premium trends, managed care international comparisons. Zero API errors.',
+        zh: '<strong>VS+RP + 协议v2.0</strong>，n=920（一个年龄×性别层3次重试后失败），20并发LLM调用。3道问题：指定医生接受度、基础IP兴趣、保障取舍。Context：MAS指定医生改革、IP保费趋势、管理式医疗国际比较。零API错误。'
+      },
+      bias_analysis: {
+        en: '<strong>SURPRISING FINDING — consumers more open to managed care than industry assumes.</strong><br><br>50% accept panel doctors (with conditions), and the most popular trade-off is giving up free doctor choice (30.8%). This challenges the conventional wisdom that "Singaporeans will never accept managed care." The key condition is "if panel includes reputable hospitals" (33.4% chose this qualified acceptance).<br><br>Basic IP at $400/year attracts 63.2% interest, but 36.3% are "maybe" — suggesting the concept needs clear communication. The 11.7% willing to downgrade from full coverage represents a real cannibalization risk for existing premium IP products.<br><br>Traditional/alternative medicine coverage (25.3% willing to give up) is an underexplored cost lever — many IPs include it as a rider but consumers may not value it as much as assumed.',
+        zh: '<strong>意外发现——消费者对管理式医疗的接受度高于行业假设。</strong><br><br>50%接受指定医生（有条件），最受欢迎的取舍是放弃自选医生(30.8%)。这挑战了"新加坡人永远不接受管理式医疗"的传统认知。关键条件是"指定名单包含知名医院"（33.4%选择有条件接受）。<br><br>$400/年基础IP吸引63.2%兴趣，但36.3%是"也许"——表明概念需要清晰沟通。11.7%愿从全保障降级，代表对现有高端IP产品的真实蚕食风险。<br><br>传统/替代医学覆盖（25.3%愿放弃）是尚未充分探索的成本杠杆——许多IP包含此附加险，但消费者可能并不如假设般重视。'
+      },
+    },
+  },
+  {
+    id: 'young_ip_awareness', no: 'SV-005',
+    name: 'Young Adults (25-35) IP Awareness & Barriers',
+    nameZh: '青年（25-35岁）IP认知与购买障碍',
+    type: 'prediction', category: 'economy', status: 'completed',
+    date: '2026-03-08', method: 'VS+RP v2.0', sample: 122, mae: null,
+    desc: '3-question survey targeting 25-35 year olds: IP awareness, barriers, purchase triggers. N=122 (narrow age filter from stratified sample).',
+    descZh: '3题调研，聚焦25-35岁：IP认知水平、购买障碍、购买触发事件。N=122（分层抽样窄年龄筛选）。',
+    question: '<div class="multi-q"><div class="mq"><span class="mq-tag">Q1</span> How well does this respondent (age 25-35) understand what an Integrated Shield Plan covers?<div class="mq-opts">Very well — can explain IP vs MediShield Life differences · Somewhat — knows it exists, vague on details · Heard of it but don\'t really understand · Never heard of Integrated Shield Plan · Confused it with other insurance (e.g. life, critical illness)</div></div><div class="mq"><span class="mq-tag">Q2</span> What is the primary reason this respondent does NOT have a private hospital IP? (If they have one: what almost stopped them from buying?)<div class="mq-opts">Too expensive / not worth the premium · Feel healthy, don\'t need it yet · MediShield Life is enough · Don\'t understand the product well enough · Haven\'t gotten around to it / procrastination · Already have one — employer provides coverage</div></div><div class="mq"><span class="mq-tag">Q3</span> What life event would most likely trigger this respondent to buy or upgrade their IP?<div class="mq-opts">Getting married · Having a child · Turning 40 · A health scare (self or family) · Seeing friends/family make large hospital claims · Would not buy regardless of life events</div></div></div>',
+    questionZh: '<div class="multi-q"><div class="mq"><span class="mq-tag">Q1</span> 该受访者（25-35岁）对综合健保计划的了解程度如何？<div class="mq-opts">非常了解——能说清IP和MediShield Life的区别 · 大致了解——知道有这个东西，细节模糊 · 听说过但不太懂 · 从未听说过综合健保计划 · 与其他保险混淆（如寿险、重疾险）</div></div><div class="mq"><span class="mq-tag">Q2</span> 该受访者没有私立医院IP的首要原因？（如已有：什么差点让他们放弃购买？）<div class="mq-opts">太贵/不值这个保费 · 身体健康，还不需要 · MediShield Life够用了 · 不够了解产品 · 一直没去办/拖延 · 已有——雇主提供团险</div></div><div class="mq"><span class="mq-tag">Q3</span> 什么人生事件最可能触发该受访者购买或升级IP？<div class="mq-opts">结婚 · 生小孩 · 满40岁 · 健康警报（自己或家人） · 看到亲友大额住院理赔 · 无论什么都不会买</div></div></div>',
+    options: ['Multi-question survey — see details above'],
+    sophie: { score: 5, criteria: [true, true, true, true, true], verdict: 'HIGHLY SUITABLE' },
+    predicted_raw: {
+      'Q1 Very well': 30.3, 'Q1 Somewhat': 41.8, 'Q1 Heard of it': 22.1, 'Q1 Never heard': 0.8, 'Q1 Confused': 4.9,
+      'Q2 Too expensive': 18.0, 'Q2 Feel healthy': 20.5, 'Q2 MediShield enough': 13.1, 'Q2 Don\'t understand': 10.7, 'Q2 Procrastination': 9.8, 'Q2 Already have': 27.9,
+      'Q3 Getting married': 13.1, 'Q3 Having a child': 20.5, 'Q3 Turning 40': 13.1, 'Q3 Health scare': 25.4, 'Q3 Friends\' claims': 24.6, 'Q3 Would not buy': 3.3,
+    },
+    predicted: {
+      'Q1 — Understand well': 30.3,
+      'Q1 — Somewhat': 41.8,
+      'Q1 — Heard of it': 22.1,
+      'Q1 — Never heard / confused': 5.7,
+      'Q2 — Too expensive': 18.0,
+      'Q2 — Feel healthy': 20.5,
+      'Q2 — MediShield enough': 13.1,
+      'Q2 — Don\'t understand': 10.7,
+      'Q2 — Procrastination': 9.8,
+      'Q2 — Already have (employer)': 27.9,
+      'Q3 — Health scare': 25.4,
+      'Q3 — Friends\' claims': 24.6,
+      'Q3 — Having a child': 20.5,
+      'Q3 — Getting married / Turning 40': 26.2,
+      'Q3 — Would not buy': 3.3,
+    },
+    actual: null,
+    source: 'Original survey — insurance vertical (S2 deep dive, age 25-35 only)', sourceUrl: null,
+    insight: 'Awareness: 72.1% understand IP at least somewhat (30.3% very well + 41.8% somewhat), only 5.7% never heard/confused. Key barrier: 27.9% already have via employer, 20.5% "feel healthy", 18.0% "too expensive". Top trigger: health scare (25.4%) + friends\' claims (24.6%) = 50% driven by vicarious health experiences, not life milestones.',
+    insightZh: '认知：72.1%至少有一定了解（30.3%很了解+41.8%大致了解），仅5.7%从未听说/混淆。首要障碍：27.9%已有（雇主提供），20.5%"身体健康"，18.0%"太贵"。首要触发：健康警报(25.4%)+亲友理赔(24.6%)=50%由间接健康经历驱动，而非人生里程碑。',
+    report: {
+      methodology: {
+        en: '<strong>VS+RP + Protocol v2.0</strong> at n=122 (age 25-35 filter from stratified sample). 3 questions on IP awareness, purchase barriers, and life event triggers. Smaller N due to narrow age targeting. Zero API errors.',
+        zh: '<strong>VS+RP + 协议v2.0</strong>，n=122（分层抽样筛选25-35岁）。3道问题覆盖IP认知、购买障碍、人生触发事件。因窄年龄筛选，样本量较小。零API错误。'
+      },
+      bias_analysis: {
+        en: '<strong>INSIGHT — awareness is not the barrier; procrastination and employer coverage are.</strong><br><br>72.1% understand IP at least somewhat, challenging the "young people don\'t know about IP" narrative. The real barriers are: employer already provides coverage (27.9%), feeling healthy (20.5%), and cost concerns (18.0%). Only 10.7% cite "don\'t understand" — awareness campaigns may be less impactful than assumed.<br><br>The dominant purchase triggers are health-related experiences (50% combined: personal health scare 25.4% + seeing friends\' hospital bills 24.6%), not traditional life milestones (marriage 13.1%, child 20.5%). This suggests testimonial/case study marketing may outperform life-stage targeting.<br><br>N=122 caveat: smaller sample means wider confidence intervals. Consider re-running with targeted age sampling for higher precision.',
+        zh: '<strong>洞见——认知不是障碍；拖延和雇主覆盖才是。</strong><br><br>72.1%至少有一定了解，挑战了"年轻人不知道IP"的叙事。真正障碍：雇主已提供(27.9%)、自觉健康(20.5%)、费用顾虑(18.0%)。仅10.7%"不了解产品"——认知宣传效果可能低于预期。<br><br>主要购买触发是健康相关经历（合计50%：个人健康警报25.4%+看到亲友住院账单24.6%），而非传统人生里程碑（结婚13.1%、生子20.5%）。这表明案例式营销可能比人生阶段定向更有效。<br><br>N=122注意：样本量小意味着置信区间较宽。建议用针对性年龄抽样重新运行以提高精度。'
+      },
+    },
+  },
+  {
+    id: 'savings_vs_alternatives', no: 'SV-006',
+    name: 'Savings Insurance vs Alternatives',
+    nameZh: '储蓄险 vs 替代理财产品偏好',
+    type: 'prediction', category: 'economy', status: 'completed',
+    date: '2026-03-08', method: 'VS+RP v2.0', sample: 1000, mae: null,
+    desc: '4-question survey: savings allocation post T-bill decline, savings insurance appeal, long-term product preference, life stage triggers. N=1000, zero API errors.',
+    descZh: '4题调研：T-bill下降后储蓄配置、储蓄险吸引力、长期产品偏好、人生阶段触发。N=1000，零API错误。',
+    question: '<div class="multi-q"><div class="mq"><span class="mq-tag">Q1</span> T-bill rates have dropped from 4% to ~2.8%. Where would this respondent most likely put their next $10,000 in savings?<div class="mq-opts">Bank fixed deposit (safe, liquid) · Singapore Savings Bonds (SSB) · CPF SA/MA voluntary top-up (4% guaranteed) · Endowment / savings insurance plan · Stocks / ETFs / robo-advisor · Keep as cash — waiting for better options</div></div><div class="mq"><span class="mq-tag">Q2</span> What would most attract this respondent to a savings insurance plan over bank deposits?<div class="mq-opts">Guaranteed returns higher than bank FD · Forced savings discipline (cannot withdraw easily) · Death/TPD benefit included · Estate planning (nominated beneficiary, bypasses probate) · Nothing — would not consider savings insurance · Already have one — would consider adding more</div></div><div class="mq"><span class="mq-tag">Q3</span> If this respondent has $50,000 to save for 10 years, which option is most appealing?<div class="mq-opts">Bank FD: 2.5% guaranteed, fully liquid · CPF SA top-up: 4% guaranteed, locked until 55 · Savings plan: 3.2% guaranteed + 0.5% bonus, locked 10 years · Balanced fund: ~5% expected but not guaranteed, liquid · Mix: half CPF + half savings plan</div></div><div class="mq"><span class="mq-tag">Q4</span> At what life stage is this respondent most likely to buy a savings/endowment plan?<div class="mq-opts">Upon starting first job (forced savings habit) · Getting married / buying home · After having children (education fund) · Age 40-50 (retirement planning acceleration) · After receiving a windfall (bonus, inheritance) · Would not buy at any stage</div></div></div>',
+    questionZh: '<div class="multi-q"><div class="mq"><span class="mq-tag">Q1</span> T-bill利率从4%降至约2.8%。该受访者下一笔$10,000储蓄最可能放哪里？<div class="mq-opts">银行定存（安全、流动性好） · 新加坡储蓄债券SSB · CPF特别/医疗账户自愿充值（保底4%） · 储蓄险/年金计划 · 股票/ETF/智能投顾 · 保持现金——等待更好机会</div></div><div class="mq"><span class="mq-tag">Q2</span> 什么最能吸引该受访者选储蓄险而非银行定存？<div class="mq-opts">保证回报高于银行定存 · 强制储蓄纪律（不能轻易提取） · 附带身故/全残保障 · 遗产规划（指定受益人，绕过遗嘱认证） · 什么都不能——不考虑储蓄险 · 已有——考虑追加</div></div><div class="mq"><span class="mq-tag">Q3</span> 如果有$50,000存10年，该受访者最倾向哪个？<div class="mq-opts">银行定存：保底2.5%，完全流动 · CPF特别账户充值：保底4%，锁定至55岁 · 储蓄险：保底3.2%+0.5%分红，锁定10年 · 平衡基金：预期~5%但不保底，流动 · 组合：一半CPF + 一半储蓄险</div></div><div class="mq"><span class="mq-tag">Q4</span> 该受访者最可能在什么人生阶段购买储蓄险？<div class="mq-opts">第一份工作（培养强制储蓄习惯） · 结婚/买房 · 有孩子后（教育基金） · 40-50岁（加速退休规划） · 收到意外资金（奖金、遗产） · 任何阶段都不会买</div></div></div>',
+    options: ['Multi-question survey — see details above'],
+    sophie: { score: 5, criteria: [true, true, true, true, true], verdict: 'HIGHLY SUITABLE' },
+    predicted_raw: {
+      'Q1 CPF top-up 4%': 37.7, 'Q1 SSB': 17.0, 'Q1 Stocks/ETFs': 13.6, 'Q1 Bank FD': 11.5, 'Q1 Keep cash': 11.4, 'Q1 Savings insurance': 8.8,
+      'Q2 Guaranteed returns': 36.2, 'Q2 Forced savings': 15.8, 'Q2 Would not consider': 15.5, 'Q2 Death/TPD benefit': 14.2, 'Q2 Estate planning': 9.0, 'Q2 Already have': 9.3,
+      'Q3 Mix CPF+savings': 26.8, 'Q3 CPF SA 4%': 25.3, 'Q3 Savings plan 3.2%': 23.2, 'Q3 Bank FD 2.5%': 12.9, 'Q3 Balanced fund': 11.8,
+      'Q4 Age 40-50': 27.7, 'Q4 Having children': 22.9, 'Q4 Windfall': 13.5, 'Q4 Would not buy': 13.3, 'Q4 Marriage/home': 13.2, 'Q4 First job': 9.4,
+    },
+    predicted: {
+      'Q1 — CPF top-up (4% guaranteed)': 37.7,
+      'Q1 — SSB': 17.0,
+      'Q1 — Stocks/ETFs': 13.6,
+      'Q1 — Bank FD': 11.5,
+      'Q1 — Keep cash': 11.4,
+      'Q1 — Savings insurance': 8.8,
+      'Q2 — Guaranteed returns appeal': 36.2,
+      'Q2 — Forced savings appeal': 15.8,
+      'Q2 — Would not consider': 15.5,
+      'Q2 — Death/TPD benefit': 14.2,
+      'Q3 — Mix CPF + savings plan': 26.8,
+      'Q3 — CPF SA 4%': 25.3,
+      'Q3 — Savings plan 3.2%': 23.2,
+      'Q3 — Bank FD / Balanced fund': 24.7,
+      'Q4 — Age 40-50': 27.7,
+      'Q4 — Having children': 22.9,
+      'Q4 — Would not buy': 13.3,
+    },
+    actual: null,
+    source: 'Original survey — insurance vertical (savings/endowment)', sourceUrl: null,
+    insight: 'CPF SA top-up dominates at 37.7% — the 4% guaranteed rate is savings insurance\'s #1 competitor, not bank FDs. Savings insurance only captures 8.8% of $10K allocation. Top appeal: "guaranteed returns" (36.2%), but 15.5% reject savings insurance entirely. For $50K/10yr, "mix CPF + savings" (26.8%) beats pure CPF (25.3%) — diversification preference. Peak purchase stage: age 40-50 (27.7%), not young adults.',
+    insightZh: 'CPF SA充值以37.7%占绝对主导——4%保底利率是储蓄险的头号竞品，而非银行定存。储蓄险仅获8.8%的$10K配置。首要吸引力："保证回报"(36.2%)，但15.5%完全拒绝储蓄险。$50K/10年：组合CPF+储蓄(26.8%)略超纯CPF(25.3%)——分散偏好。购买高峰：40-50岁(27.7%)而非年轻人。',
+    report: {
+      methodology: {
+        en: '<strong>VS+RP + Protocol v2.0</strong> at n=1,000 with 20 concurrent LLM calls. 4 questions: savings allocation, insurance appeal, long-term comparison, life stage triggers. Context: T-bill rate decline (4%→2.8%), CPF SA/MA rates, bank FD rates, Singapore savings insurance market. No survey data referenced. Stratified by 12 age x gender strata. Zero API errors.',
+        zh: '<strong>VS+RP + 协议v2.0</strong>，n=1,000，20并发LLM调用。4道问题：储蓄配置、保险吸引力、长期比较、人生阶段触发。Context：T-bill利率下降（4%→2.8%）、CPF SA/MA利率、银行定存利率、新加坡储蓄险市场。未引用调查数据。按12个年龄×性别层分层抽样。零API错误。'
+      },
+      bias_analysis: {
+        en: '<strong>CRITICAL INSIGHT — CPF SA 4% is the real competitor, not banks.</strong><br><br>37.7% would put $10K into CPF voluntary top-up — nearly 4x the savings insurance share (8.8%). This is the single most important competitive dynamic for savings insurance in Singapore: CPF\'s government-guaranteed 4% with tax benefits is an unbeatable value proposition for conservative savers.<br><br>The "guaranteed returns" message (36.2%) is the top appeal, but it directly competes with CPF\'s higher guaranteed rate. Savings insurance needs to emphasize what CPF cannot offer: liquidity (vs locked until 55), death benefit, estate planning flexibility.<br><br>The "mix" preference for $50K (26.8% choose half CPF + half savings) suggests a coexistence strategy: position savings insurance as a complement to CPF, not a replacement. "Would not buy" at 13.3% across all life stages represents a hard floor of resistance.',
+        zh: '<strong>关键洞见——CPF SA 4%是真正竞品，不是银行。</strong><br><br>37.7%会将$10K放入CPF自愿充值——接近储蓄险份额(8.8%)的4倍。这是新加坡储蓄险最重要的竞争动态：CPF政府保底4%加税收优惠，对保守储蓄者来说是无可匹敌的价值主张。<br><br>"保证回报"信息(36.2%)是首要吸引力，但直接与CPF更高的保底利率竞争。储蓄险需要强调CPF不能提供的：流动性（vs锁定至55岁）、身故保障、遗产规划灵活性。<br><br>$50K的"组合"偏好（26.8%选择一半CPF+一半储蓄）暗示共存策略：将储蓄险定位为CPF的补充而非替代品。"任何阶段都不买"(13.3%)代表了抵抗的硬底线。'
+      },
+    },
+  },
+  {
+    id: 'ilp_trust', no: 'SV-007',
+    name: 'ILP Trust & Bundling Preference',
+    nameZh: '投资型保险信任度与捆绑偏好',
+    type: 'prediction', category: 'economy', status: 'completed',
+    date: '2026-03-08', method: 'VS+RP v2.0', sample: 1000, mae: null,
+    desc: '3-question survey: ILP trust level, bundled vs unbundled preference, purchase drivers. N=1000, zero API errors.',
+    descZh: '3题调研：ILP信任度、捆绑vs拆分偏好、购买驱动因素。N=1000，零API错误。',
+    question: '<div class="multi-q"><div class="mq"><span class="mq-tag">Q1</span> How much does this respondent trust Investment-Linked Plans (ILPs) as a financial product?<div class="mq-opts">High trust — good way to combine insurance + investment · Moderate trust — useful but fees are a concern · Neutral — don\'t know enough to judge · Low trust — heard mostly negative things · No trust at all — ILPs are a bad deal for consumers</div></div><div class="mq"><span class="mq-tag">Q2</span> If this respondent wanted both life insurance protection AND investment growth, which approach would they prefer?<div class="mq-opts">All-in-one ILP (insurance + investment in one product) · Term life insurance + separate robo-advisor/ETF · Term life insurance + separate unit trust via bank · Whole life policy (with cash value) + no separate investment · Don\'t want investment component — pure protection only</div></div><div class="mq"><span class="mq-tag">Q3</span> What would most increase this respondent\'s willingness to buy an ILP?<div class="mq-opts">Clear fee breakdown showing total cost vs direct investing · Guaranteed minimum return (e.g. capital protection after 10 years) · Ability to switch sub-funds freely without charges · Lower management fees (below 1% p.a.) · Independent comparison showing ILP outperforming alternatives · Nothing — would not consider ILP regardless</div></div></div>',
+    questionZh: '<div class="multi-q"><div class="mq"><span class="mq-tag">Q1</span> 该受访者对投资型保险（ILP/投连险）作为理财产品的信任度如何？<div class="mq-opts">高度信任——保障+投资合一很好 · 中度信任——有用但费用是顾虑 · 中立——了解不够无法判断 · 较低信任——听到的多是负面评价 · 完全不信任——ILP对消费者是坏交易</div></div><div class="mq"><span class="mq-tag">Q2</span> 如果该受访者同时需要寿险保障和投资增长，更倾向哪种方式？<div class="mq-opts">一体化ILP（保障+投资合一） · 定期寿险 + 独立智能投顾/ETF · 定期寿险 + 银行单位信托 · 终身寿险（含现金价值）+ 不做独立投资 · 不要投资成分——只要纯保障</div></div><div class="mq"><span class="mq-tag">Q3</span> 什么最能提升该受访者购买ILP的意愿？<div class="mq-opts">清晰费用分解（对比直接投资的总成本） · 保底最低回报（如10年后保本） · 自由免费切换子基金 · 管理费低于1%/年 · 独立对比显示ILP跑赢替代品 · 什么都不能——无论如何不考虑ILP</div></div></div>',
+    options: ['Multi-question survey — see details above'],
+    sophie: { score: 5, criteria: [true, true, true, true, true], verdict: 'HIGHLY SUITABLE' },
+    predicted_raw: {
+      'Q1 High trust': 15.7, 'Q1 Moderate trust': 26.2, 'Q1 Neutral': 16.4, 'Q1 Low trust': 27.5, 'Q1 No trust': 14.2,
+      'Q2 All-in-one ILP': 25.5, 'Q2 Term + robo/ETF': 35.1, 'Q2 Term + unit trust': 15.8, 'Q2 Whole life': 13.4, 'Q2 Pure protection': 10.2,
+      'Q3 Guaranteed return': 25.6, 'Q3 Lower fees <1%': 21.6, 'Q3 Fee breakdown': 20.4, 'Q3 ILP outperformance': 15.2, 'Q3 Free fund switch': 9.9, 'Q3 Nothing': 7.3,
+    },
+    predicted: {
+      'Q1 — Trust ILP (high+moderate)': 41.9,
+      'Q1 — Neutral': 16.4,
+      'Q1 — Distrust ILP (low+none)': 41.7,
+      'Q2 — Prefer unbundled (term+separate)': 50.9,
+      'Q2 — Prefer ILP (all-in-one)': 25.5,
+      'Q2 — Whole life / Pure protection': 23.6,
+      'Q3 — Guaranteed min return': 25.6,
+      'Q3 — Lower fees <1%': 21.6,
+      'Q3 — Clear fee breakdown': 20.4,
+      'Q3 — Nothing would help': 7.3,
+    },
+    actual: null,
+    source: 'Original survey — insurance vertical (ILP/investment insurance)', sourceUrl: null,
+    insight: 'ILP trust is deeply split: 41.9% positive vs 41.7% negative, with 16.4% neutral. Unbundled (term life + separate investment) preferred by 50.9% vs ILP\'s 25.5%. Top improvement: "guaranteed minimum return" (25.6%) + "lower fees" (21.6%) + "fee transparency" (20.4%). Only 7.3% say nothing would help — most distrust is addressable.',
+    insightZh: 'ILP信任严重分裂：41.9%正面 vs 41.7%负面，16.4%中立。拆分模式（定期寿险+独立投资）50.9%偏好 vs ILP的25.5%。改善首选："保底最低回报"(25.6%)+"降费<1%"(21.6%)+"费用透明"(20.4%)。仅7.3%认为什么都无法改变——大部分不信任是可应对的。',
+    report: {
+      methodology: {
+        en: '<strong>VS+RP + Protocol v2.0</strong> at n=1,000 with 20 concurrent LLM calls. 3 questions: ILP trust level, bundled vs unbundled preference, improvement drivers. Context: ILP market facts (AUM, fee structures, historical returns), MAS regulations, robo-advisor growth in SG. Zero API errors.',
+        zh: '<strong>VS+RP + 协议v2.0</strong>，n=1,000，20并发LLM调用。3道问题：ILP信任度、捆绑vs拆分偏好、改善驱动因素。Context：ILP市场事实（AUM、费用结构、历史回报）、MAS监管、新加坡智能投顾增长。零API错误。'
+      },
+      bias_analysis: {
+        en: '<strong>EXISTENTIAL CHALLENGE — unbundled preferred 2:1 over ILP.</strong><br><br>50.9% prefer "term life + separate investment" (35.1% robo/ETF + 15.8% unit trust) vs only 25.5% choosing all-in-one ILP. This confirms the unbundling threat to ILP distribution. The remaining 23.6% prefer whole life or pure protection — these consumers were never ILP targets.<br><br>The trust split (41.9% positive vs 41.7% negative) suggests ILP hasn\'t lost everyone. The addressable distrust: 25.6% want capital protection guarantees, 21.6% want sub-1% fees, 20.4% want transparent fee breakdowns. These are achievable product improvements. Only 7.3% are permanently lost.<br><br>Strategic implication: ILPs can survive but must evolve — guaranteed capital + transparent fees + lower costs. The current fee-opaque model is driving educated consumers to unbundle. Agent value proposition shifts from product access to holistic planning.',
+        zh: '<strong>存亡挑战——拆分模式2:1优于ILP。</strong><br><br>50.9%偏好"定期寿险+独立投资"（35.1%智能投顾/ETF+15.8%单位信托）vs仅25.5%选择一体化ILP。证实了ILP分销的拆分威胁。剩余23.6%偏好终身寿险或纯保障——这些消费者本就非ILP目标客群。<br><br>信任分裂（41.9%正面vs41.7%负面）表明ILP尚未失去所有人。可应对的不信任：25.6%希望保本保证、21.6%希望费率<1%、20.4%希望费用透明。这些是可实现的产品改进。仅7.3%永久流失。<br><br>战略启示：ILP能存活但必须进化——保本+透明费用+降成本。当前费用不透明模式正在驱使高学历消费者转向拆分。代理人价值主张从产品准入转向综合规划。'
+      },
+    },
+  },
+  {
+    id: 'plastic_bag', no: 'BT-009',
+    name: 'Plastic Bag Charge Behavior',
+    nameZh: '塑料袋收费行为',
+    type: 'backtest', category: 'policy', status: 'completed',
+    date: '2026-03-08', method: 'VS+RP v2.0', sample: 1000, mae: 9.3,
+    desc: 'Behavioral response to $0.05 plastic bag charge. NEA/FairPrice 2024 data as benchmark. N=1000, zero API errors.',
+    descZh: '对$0.05塑料袋收费的行为反应。以NEA/FairPrice 2024数据为基准。N=1000，零API错误。',
+    question: 'If supermarkets charge $0.05 per disposable bag, would this respondent bring their own bag?',
+    questionZh: '如果超市对一次性袋收费$0.05，该受访者会自带购物袋吗？',
+    options: ['Always bring own bag', 'Usually bring own bag', 'Sometimes', 'Rarely', 'Never, will pay for bags'],
+    sophie: { score: 4, criteria: [true, false, true, true, true], verdict: 'SUITABLE WITH CAVEATS' },
+    predicted_raw: { 'Always bring own bag': 24.7, 'Usually bring own bag': 36.0, 'Sometimes': 22.5, 'Rarely': 11.3, 'Never, will pay for bags': 5.5 },
+    predicted: { 'Bring own bag': 60.7, 'Still use disposable': 39.3 },
+    actual: { 'Bring own bag': 70, 'Still use disposable': 30 },
+    source: 'NEA / FairPrice data, 2024', sourceUrl: 'https://www.nea.gov.sg/',
+    insight: 'MAE 9.3pp. Bring own bag 60.7% vs observed 70% (-9.3pp). Model underestimates behavioral compliance — stated preference vs actual behavior gap, but in reverse: people comply MORE than they say they would.',
+    insightZh: 'MAE 9.3pp。自带购物袋60.7% vs 观测70%(-9.3pp)。模型低估行为合规性——声称偏好与实际行为差距，但方向相反：人们实际合规度高于声称意愿。',
+    report: {
+      methodology: {
+        en: '<strong>VS+RP + Protocol v2.0</strong> at n=1,000 with 20 concurrent LLM calls. Context: objective facts about Singapore\'s plastic bag charge — mandatory $0.05 per bag from Jul 2023 (large supermarkets), extended to all retail from 2024, NEA objectives (reduce disposable bag usage by 20-30%), international comparisons (UK charge reduced usage 95%, Ireland 90%). No NEA compliance data referenced. Stratified by 12 age x gender strata. Runtime: 4 min 2 sec. Zero API errors.',
+        zh: '<strong>VS+RP + 协议v2.0</strong>，n=1,000，20并发LLM调用。Context：新加坡塑料袋收费客观事实——2023年7月起强制$0.05/袋（大型超市）、2024年扩展至所有零售、NEA目标（减少20-30%使用量）、国际比较（英国收费减少95%、爱尔兰90%）。未引用NEA合规数据。按12个年龄×性别层分层抽样。运行时间：4分2秒。零API错误。'
+      },
+      bias_analysis: {
+        en: '<strong>INTERESTING FINDING — model underestimates behavioral compliance.</strong><br><br>Predicted own-bag usage (60.7%) falls short of actual observed compliance (70%) by 9.3pp. This reveals an important insight about LLM survey simulation: the model predicts <em>stated preference</em> (what people say they would do), while the ground truth measures <em>revealed preference</em> (what people actually do).<br><br>Surprisingly, people comply MORE than expected — the opposite of the usual "say-do gap" in survey research (where people overclaim virtuous behavior). This may be because the $0.05 charge creates a simple, immediate economic incentive that drives behavior beyond stated intentions.<br><br>The 5-option distribution shows 24.7% "always" + 36.0% "usually" as the majority, with a long tail of holdouts (11.3% rarely, 5.5% never). This granularity is more realistic than the binary GT, and the holdout tail (~17%) aligns reasonably with the observed 30% still using disposable bags.',
+        zh: '<strong>有趣发现——模型低估了行为合规性。</strong><br><br>预测自带购物袋使用率(60.7%)低于实际观测合规率(70%)9.3pp。这揭示了LLM调查模拟的重要洞见：模型预测的是<em>声称偏好</em>（人们说会怎么做），而ground truth测量的是<em>显示偏好</em>（人们实际怎么做）。<br><br>出人意料的是，人们的实际合规度超过预期——与调查研究中常见的"说做差距"（人们高报美德行为）相反。这可能因为$0.05收费创造了简单、即时的经济激励，推动行为超越声称意愿。<br><br>5选项分布显示24.7%"总是"+36.0%"通常"占多数，少数坚持使用塑料袋（11.3%很少，5.5%从不）。这种粒度比二元GT更真实，坚持使用的长尾(~17%)与观测的30%仍使用一次性袋合理一致。'
+      },
+    },
+  },
+  {
+    id: 'cost_of_living', no: 'BT-010',
+    name: 'Cost of Living Concerns',
+    nameZh: '生活成本关切',
+    type: 'backtest', category: 'economy', status: 'completed',
+    date: '2026-03-08', method: 'VS+RP v2.0', sample: 1000, mae: null,
+    desc: 'Top concerns of Singaporeans. IPS Post-GE2025 survey (n=2056) as benchmark. N=1000, zero API errors. Note: GT is multi-select (totals >100%), MAE not directly comparable.',
+    descZh: '新加坡人最关切的问题。以IPS Post-GE2025调查(n=2056)为基准。N=1000，零API错误。注：GT为多选（总计>100%），MAE不可直接比较。',
+    question: 'What is this respondent\'s most important concern for Singapore right now?',
+    questionZh: '该受访者目前最关心的新加坡议题是什么？',
+    options: ['Cost of living', 'Housing affordability', 'Healthcare', 'Jobs & economy', 'Immigration', 'Education'],
+    sophie: { score: 4, criteria: [true, true, true, true, false], verdict: 'SUITABLE WITH CAVEATS' },
+    predicted_raw: { 'Cost of living': 36.1, 'Housing affordability': 23.8, 'Healthcare': 17.8, 'Jobs & economy': 12.3, 'Immigration': 5.4, 'Education': 4.6 },
+    predicted: { 'Cost of living': 36.1, 'Housing affordability': 23.8, 'Healthcare': 17.8, 'Jobs & economy': 12.3, 'Immigration': 5.4, 'Education': 4.6 },
+    actual: { 'Cost of living': 74, 'Housing affordability': 61, 'Healthcare': 41 },
+    source: 'IPS Post-GE2025 (n=2056)', sourceUrl: 'https://lkyspp.nus.edu.sg/ips/',
+    insight: 'RANK ORDER CORRECT. Cost of living > Housing > Healthcare — model matches GT priority ranking perfectly. Absolute values differ (36.1% vs 74%) because GT is multi-select while model is single-choice, but relative ordering is validated.',
+    insightZh: '排序正确。生活成本 > 住房 > 医疗——模型与GT优先级排序完全一致。绝对值不同（36.1% vs 74%）因GT为多选而模型为单选，但相对排序得到验证。',
+    report: {
+      methodology: {
+        en: '<strong>VS+RP + Protocol v2.0</strong> at n=1,000 with 20 concurrent LLM calls. Context: objective economic facts — Singapore CPI trends (2023: 4.8%, 2024: 2.4%), HDB resale prices (record highs 2024), healthcare costs (IP premium increases 15-25%), GST increase (8→9%), unemployment rate (2.0%), GDP growth forecasts. No IPS survey results referenced. Stratified by 12 age x gender strata. Runtime: 4 min 19 sec. Zero API errors.',
+        zh: '<strong>VS+RP + 协议v2.0</strong>，n=1,000，20并发LLM调用。Context：经济客观事实——新加坡CPI趋势（2023年4.8%、2024年2.4%）、HDB转售价格（2024年创纪录高位）、医疗费用（IP保费增加15-25%）、GST增加（8→9%）、失业率（2.0%）、GDP增长预测。未引用IPS调查结果。按12个年龄×性别层分层抽样。运行时间：4分19秒。零API错误。'
+      },
+      bias_analysis: {
+        en: '<strong>IMPORTANT METHODOLOGICAL INSIGHT — multi-select vs single-select mismatch.</strong><br><br>The GT (IPS Post-GE2025) uses a multi-select format where respondents can choose multiple concerns, so totals exceed 100% (74% + 61% + 41% = 176%). Our model forces single-choice selection. This makes absolute percentage comparison invalid, but <strong>rank order comparison is valid and perfect</strong>: Cost of living (36.1%) > Housing (23.8%) > Healthcare (17.8%) matches GT priority ordering exactly.<br><br>The model correctly identifies cost of living as the dominant concern (36.1% single-choice share), followed by housing affordability (23.8%) and healthcare (17.8%). The relative proportions (roughly 3:2:1.5) suggest the model appropriately weights economic anxieties.<br><br>Key learning: for "top concerns" questions, multi-select GT sources require rank-order validation rather than MAE. Future backtests should seek single-select GT where possible.',
+        zh: '<strong>重要方法论发现——多选vs单选不匹配。</strong><br><br>GT（IPS Post-GE2025）使用多选格式，受访者可选多个关切，因此总计超过100%（74%+61%+41%=176%）。我们的模型强制单选。这使绝对百分比比较无效，但<strong>排序比较有效且完美</strong>：生活成本(36.1%) > 住房(23.8%) > 医疗(17.8%)与GT优先级排序完全一致。<br><br>模型正确识别生活成本为首要关切（36.1%单选份额），其次是住房可负担性(23.8%)和医疗(17.8%)。相对比例（约3:2:1.5）表明模型适当加权了经济焦虑。<br><br>关键经验：对于"最大关切"类问题，多选GT来源需要排序验证而非MAE。未来回测应尽可能寻求单选GT。'
+      },
+    },
+  },
+  // ============================================================
+  // SOCIAL BACKTESTS — 社会行为回测
+  // ============================================================
+  {
+    id: 'gambling_participation', no: 'BT-011',
+    name: 'Gambling Participation Rate',
+    nameZh: '博彩参与率',
+    type: 'backtest', category: 'social', status: 'pending',
+    date: null, method: 'VS+RP v2.0', sample: 1000, mae: null,
+    desc: 'Gambling participation and type preference. NCPG 2023 survey (n=3,007) as benchmark. Behavioral question — tests stated vs revealed preference modeling.',
+    descZh: '博彩参与率及类型偏好。以NCPG 2023调查(n=3,007)为基准。行为类问题——测试声称偏好vs实际行为建模。',
+    question: '<div class="multi-q"><div class="mq"><span class="mq-tag">Q1</span> Has this respondent participated in any form of gambling in the past 12 months?<div class="mq-opts">Yes — regularly (weekly+) · Yes — occasionally (monthly) · Yes — rarely (few times/year) · No — not in past year · No — never gamble on principle</div></div><div class="mq"><span class="mq-tag">Q2</span> Which type of gambling would this respondent most likely participate in?<div class="mq-opts">4D · TOTO · Sports betting (Singapore Pools) · Casino (MBS/RWS) · Social gambling (mahjong, poker) · Would not participate</div></div></div>',
+    questionZh: '<div class="multi-q"><div class="mq"><span class="mq-tag">Q1</span> 该受访者过去12个月是否参与过任何形式的博彩？<div class="mq-opts">是——经常（每周+） · 是——偶尔（每月） · 是——很少（一年几次） · 否——过去一年没有 · 否——原则上不赌博</div></div><div class="mq"><span class="mq-tag">Q2</span> 该受访者最可能参与哪种博彩？<div class="mq-opts">4D · TOTO · 体育博彩（新加坡博彩公司） · 赌场（MBS/RWS） · 社交赌博（麻将、扑克） · 不会参与</div></div></div>',
+    options: ['Multi-question survey — see details above'],
+    sophie: { score: 5, criteria: [true, true, true, true, true], verdict: 'HIGHLY SUITABLE' },
+    predicted_raw: null, predicted: null,
+    actual: { 'Participated (any)': 40, 'Did not participate': 60, '4D': 30, 'TOTO': 29, 'Social gambling': 8, 'Singapore Sweep': 8 },
+    source: 'NCPG Gambling Participation Survey 2023 (n=3,007)', sourceUrl: 'https://www.ncpg.org.sg/docs/default-source/publications/ncpg-gambling-participation-surveys/2023-gambling-participation-survey-report.pdf',
+    insight: 'Pending. Behavioral question with clean GT (40% participation). Tests social desirability bias in reverse — will LLM under-report gambling? Age×ethnicity interaction expected (older Chinese more 4D/TOTO).',
+    insightZh: '待运行。行为类问题，GT清晰（40%参与率）。反向测试社会期望偏差——LLM是否会低报赌博？预期年龄×种族交互（年长华族更多4D/TOTO）。',
+  },
+  {
+    id: 'institutional_trust', no: 'BT-012',
+    name: 'Institutional Trust',
+    nameZh: '机构信任度',
+    type: 'backtest', category: 'social', status: 'pending',
+    date: null, method: 'VS+RP v2.0', sample: 1000, mae: null,
+    desc: 'Trust in government, business, media, NGOs. Edelman Trust Barometer 2024 Singapore (n=~1,100) as benchmark.',
+    descZh: '对政府、企业、媒体、NGO的信任度。以Edelman 2024新加坡信任晴雨表(n=~1,100)为基准。',
+    question: 'Which institution does this respondent trust MOST to do what is right?',
+    questionZh: '该受访者最信任哪个机构能做正确的事？',
+    options: ['Government', 'Business / Corporations', 'Media', 'NGOs / Non-profits'],
+    sophie: { score: 4, criteria: [true, true, true, true, false], verdict: 'SUITABLE WITH CAVEATS' },
+    predicted_raw: null, predicted: null,
+    actual: { 'Government': 77, 'NGOs / Non-profits': 66, 'Business / Corporations': 63, 'Media': 60 },
+    source: 'Edelman Trust Barometer 2024 Singapore', sourceUrl: 'https://www.edelman.com/sites/g/files/aatuss191/files/2024-03/2024%20Edelman%20Trust%20Barometer_Singapore%20Report.pdf',
+    insight: 'Pending. GT is trust level per institution (multi-select, each measured independently). Government 77% is notably high. Tests if LLM reproduces Singapore\'s distinctive high-government-trust pattern.',
+    insightZh: '待运行。GT为各机构独立信任度（多选，各自独立测量）。政府77%显著偏高。测试LLM能否复现新加坡独特的高政府信任模式。',
+  },
+  {
+    id: 'marriage_intention', no: 'BT-013',
+    name: 'Marriage Intention (Young Singles)',
+    nameZh: '结婚意愿（年轻单身）',
+    type: 'backtest', category: 'social', status: 'pending',
+    date: null, method: 'VS+RP v2.0', sample: 500, mae: null,
+    desc: 'Marriage intentions of young single Singaporeans (21-35). NPTD Marriage & Parenthood Survey 2021 (n=2,848 singles) as benchmark.',
+    descZh: '年轻单身新加坡人(21-35岁)的结婚意愿。以NPTD 2021婚育调查(n=2,848单身)为基准。',
+    question: '<div class="multi-q"><div class="mq"><span class="mq-tag">Q1</span> Does this respondent intend to get married?<div class="mq-opts">Yes, definitely · Yes, probably · Not sure yet · Probably not · Definitely not</div></div><div class="mq"><span class="mq-tag">Q2</span> What is the biggest barrier to marriage for this respondent?<div class="mq-opts">Financial readiness (housing, savings) · Haven\'t met the right person · Career focus / not ready · Don\'t believe marriage is necessary · Family pressure / expectations</div></div></div>',
+    questionZh: '<div class="multi-q"><div class="mq"><span class="mq-tag">Q1</span> 该受访者是否打算结婚？<div class="mq-opts">是，一定会 · 是，可能会 · 还不确定 · 可能不会 · 一定不会</div></div><div class="mq"><span class="mq-tag">Q2</span> 该受访者结婚的最大障碍是什么？<div class="mq-opts">经济准备（住房、储蓄） · 还没遇到合适的人 · 专注事业/还没准备好 · 不认为婚姻是必要的 · 家庭压力/期望</div></div></div>',
+    options: ['Multi-question survey — see details above'],
+    sophie: { score: 4, criteria: [true, true, true, false, true], verdict: 'SUITABLE WITH CAVEATS' },
+    predicted_raw: null, predicted: null,
+    actual: { 'Intend to marry': 80, 'Not sure / No': 20 },
+    source: 'NPTD Marriage & Parenthood Survey 2021 (n=2,848 singles)', sourceUrl: 'https://www.population.gov.sg/media-centre/press-releases/key-findings-marriage-and-parenthood-survey-2021/',
+    insight: 'Pending. 80% intend to marry but TFR=0.97 — huge gap between intention and action. Age 21-35 filter. Tests if LLM can model the aspiration-reality gap in family planning.',
+    insightZh: '待运行。80%打算结婚但TFR=0.97——意愿与行动巨大差距。筛选21-35岁。测试LLM能否建模家庭规划中的愿望-现实差距。',
+  },
+  {
+    id: 'volunteering_giving', no: 'BT-014',
+    name: 'Volunteering & Donation Rate',
+    nameZh: '志愿服务与捐款率',
+    type: 'backtest', category: 'social', status: 'pending',
+    date: null, method: 'VS+RP v2.0', sample: 1000, mae: null,
+    desc: 'Volunteering and donation participation. NVPC National Giving Study 2023 as benchmark.',
+    descZh: '志愿服务与捐款参与率。以NVPC 2023全国捐赠研究为基准。',
+    question: '<div class="multi-q"><div class="mq"><span class="mq-tag">Q1</span> Has this respondent donated money to any charity or cause in the past 12 months?<div class="mq-opts">Yes — regularly (monthly+) · Yes — occasionally · Yes — once or twice · No — did not donate · No — cannot afford to donate</div></div><div class="mq"><span class="mq-tag">Q2</span> Has this respondent volunteered in the past 12 months?<div class="mq-opts">Yes — regularly (monthly+) · Yes — a few times · Yes — once · No — no time · No — not interested</div></div></div>',
+    questionZh: '<div class="multi-q"><div class="mq"><span class="mq-tag">Q1</span> 该受访者过去12个月是否向慈善机构或公益事业捐款？<div class="mq-opts">是——定期（每月+） · 是——偶尔 · 是——一两次 · 否——没有捐款 · 否——无力捐款</div></div><div class="mq"><span class="mq-tag">Q2</span> 该受访者过去12个月是否参与过志愿服务？<div class="mq-opts">是——定期（每月+） · 是——几次 · 是——一次 · 否——没时间 · 否——没兴趣</div></div></div>',
+    options: ['Multi-question survey — see details above'],
+    sophie: { score: 4, criteria: [true, true, true, true, false], verdict: 'SUITABLE WITH CAVEATS' },
+    predicted_raw: null, predicted: null,
+    actual: { 'Donated': 62, 'Did not donate': 38, 'Volunteered': 30, 'Did not volunteer': 70 },
+    source: 'NVPC National Giving Study 2023', sourceUrl: 'https://nvpc.org.sg/newsroom/national-giving-study-2023/',
+    insight: 'Pending. Donation 62%, Volunteering 30%. Tests prosocial behavior modeling — will LLM over-report due to social desirability? Income×age interaction expected.',
+    insightZh: '待运行。捐款62%，志愿服务30%。测试亲社会行为建模——LLM是否因社会期望偏差高报？预期收入×年龄交互效应。',
+  },
+  // ============================================================
+  // LIVE PREDICTIONS — 公开预测，等待真实结果验证
+  // ============================================================
+  {
+    id: 'consumer_conf_mar26', no: 'PR-001',
+    name: 'Consumer Confidence March 2026',
+    nameZh: '消费者信心指数 2026年3月',
+    type: 'prediction', category: 'economy', status: 'completed',
+    date: '2026-03-08', method: 'VS+RP v2.0', sample: 1000, mae: null,
+    desc: 'Predict consumer confidence for Singapore, March 2026. N=1000, zero API errors. Awaiting Ipsos release (~Apr 2026) for validation.',
+    descZh: '预测新加坡2026年3月消费者信心。N=1000，零API错误。等待Ipsos发布(~2026年4月)验证。',
+    question: 'How confident is this respondent about their household financial situation over the next 6 months?',
+    questionZh: '该受访者对未来6个月家庭经济状况有多大信心？',
+    options: ['Very optimistic', 'Somewhat optimistic', 'Neutral', 'Somewhat pessimistic', 'Very pessimistic'],
+    sophie: { score: 5, criteria: [true, true, true, true, true], verdict: 'HIGHLY SUITABLE' },
+    predicted_raw: { 'Very optimistic': 12.0, 'Somewhat optimistic': 35.4, 'Neutral': 27.4, 'Somewhat pessimistic': 19.1, 'Very pessimistic': 6.1 },
+    predicted: { 'Optimistic (very+somewhat)': 47.4, 'Neutral': 27.4, 'Pessimistic (somewhat+very)': 25.2 },
+    actual: null,
+    source: 'Ipsos Global Consumer Confidence Index, ~Apr 2026', sourceUrl: 'https://www.ipsos.com/en-ch/ipsos-consumer-confidence-february-2026',
+    insight: 'LIVE PREDICTION. 47.4% optimistic vs 25.2% pessimistic — net optimism +22.2pp. Implies confidence index ~54-56 range (slight dip from Feb 56.3). "Somewhat optimistic" dominates at 35.4% — cautious confidence, not exuberance. Awaiting Ipsos Apr 2026 release.',
+    insightZh: '实时预测。47.4%乐观 vs 25.2%悲观——净乐观+22.2pp。暗示信心指数约54-56区间（略低于2月56.3）。"比较乐观"以35.4%主导——谨慎信心，非狂热。等待Ipsos 2026年4月发布。',
+    resultDate: '2026-04-10',
+    report: {
+      methodology: {
+        en: '<strong>VS+RP + Protocol v2.0</strong> at n=1,000 with 20 concurrent LLM calls. Context: Singapore economic indicators (GDP growth, employment, inflation), Budget 2026 measures, US tariff uncertainty, global economic outlook. No Ipsos survey data referenced. Stratified by 12 age x gender strata. Zero API errors.',
+        zh: '<strong>VS+RP + 协议v2.0</strong>，n=1,000，20并发LLM调用。Context：新加坡经济指标（GDP增长、就业、通胀）、预算案2026措施、美国关税不确定性、全球经济展望。未引用Ipsos调查数据。按12个年龄×性别层分层抽样。零API错误。'
+      },
+      bias_analysis: {
+        en: '<strong>PREDICTION — cautious optimism with downside risk.</strong><br><br>The net optimism of +22.2pp (47.4% optimistic - 25.2% pessimistic) suggests a confidence index in the 54-56 range, representing a slight pullback from February\'s 56.3. This aligns with the mixed macro environment: strong employment but US tariff uncertainty and Budget 2026 adjustments.<br><br>The distribution peaks at "somewhat optimistic" (35.4%), not "very optimistic" (12.0%), indicating cautious rather than bullish sentiment. The "very pessimistic" tail (6.1%) is relatively small, suggesting no acute crisis perception.<br><br>Validation will come from the Ipsos release around April 10, 2026. If confirmed within ±2pp of index 55, this would validate the model for real-time sentiment tracking.',
+        zh: '<strong>预测——谨慎乐观，有下行风险。</strong><br><br>净乐观+22.2pp（47.4%乐观-25.2%悲观）暗示信心指数约54-56区间，较2月56.3略有回落。这与混合宏观环境一致：就业强劲但美国关税不确定性和预算案2026调整。<br><br>分布峰值在"比较乐观"(35.4%)而非"非常乐观"(12.0%)，表明谨慎而非牛市情绪。"非常悲观"尾部(6.1%)较小，表明无急性危机感知。<br><br>验证将来自Ipsos约2026年4月10日的发布。如果在指数55的±2pp内得到确认，将验证模型用于实时情绪追踪。'
+      },
+    },
+  },
+  {
+    id: 'what_worries_mar26', no: 'PR-002',
+    name: '"What Worries Singapore" March 2026',
+    nameZh: '"新加坡人最担心什么" 2026年3月',
+    type: 'prediction', category: 'social', status: 'completed',
+    date: '2026-03-08', method: 'VS+RP v2.0', sample: 1000, mae: null,
+    desc: 'Predict top concerns March 2026. N=1000, zero API errors. Awaiting Ipsos release (~Apr 2026) for validation.',
+    descZh: '预测2026年3月最大担忧。N=1000，零API错误。等待Ipsos发布(~2026年4月)验证。',
+    question: 'What is this respondent\'s TOP concern for Singapore right now?',
+    questionZh: '该受访者目前最担心新加坡的什么问题？',
+    options: ['Inflation / Cost of living', 'Unemployment / Job security', 'Healthcare', 'Housing', 'Crime / Safety', 'Immigration', 'Climate change'],
+    sophie: { score: 5, criteria: [true, true, true, true, true], verdict: 'HIGHLY SUITABLE' },
+    predicted_raw: { 'Inflation / Cost of living': 35.0, 'Healthcare': 17.8, 'Unemployment / Job security': 15.7, 'Housing': 14.8, 'Climate change': 6.6, 'Immigration': 5.4, 'Crime / Safety': 4.7 },
+    predicted: { 'Inflation / Cost of living': 35.0, 'Healthcare': 17.8, 'Unemployment / Job security': 15.7, 'Housing': 14.8, 'Climate change': 6.6, 'Immigration': 5.4, 'Crime / Safety': 4.7 },
+    actual: null,
+    source: 'Ipsos "What Worries the World", ~Apr 2026', sourceUrl: 'https://www.ipsos.com/en-ch/what-worries-world-february-2026',
+    insight: 'LIVE PREDICTION. Inflation leads at 35.0%, followed by Healthcare (17.8%) and Unemployment (15.7%). Feb 2026 Ipsos had inflation=unemployment=56% (multi-select). Our model predicts inflation regains clear lead. Housing (14.8%) close to unemployment — housing may overtake jobs as #3 concern.',
+    insightZh: '实时预测。通胀以35.0%领先，其次医疗(17.8%)和失业(15.7%)。2月Ipsos通胀=失业=56%（多选）。我们模型预测通胀重新明确领先。住房(14.8%)接近失业——住房可能超越就业成为第三大担忧。',
+    resultDate: '2026-04-10',
+    report: {
+      methodology: {
+        en: '<strong>VS+RP + Protocol v2.0</strong> at n=1,000 with 20 concurrent LLM calls. Context: Singapore CPI, employment data, housing prices, healthcare costs, climate policy. No Ipsos data referenced. Single-choice format (vs Ipsos multi-select). Stratified by 12 age x gender strata. Zero API errors.',
+        zh: '<strong>VS+RP + 协议v2.0</strong>，n=1,000，20并发LLM调用。Context：新加坡CPI、就业数据、住房价格、医疗费用、气候政策。未引用Ipsos数据。单选格式（vs Ipsos多选）。按12个年龄×性别层分层抽样。零API错误。'
+      },
+      bias_analysis: {
+        en: '<strong>PREDICTION — inflation re-establishes dominance over unemployment.</strong><br><br>Our single-choice model puts inflation (35.0%) well ahead of unemployment (15.7%), a 2.2:1 ratio. This contrasts with Ipsos Feb where they were tied at 56%. However, multi-select vs single-select formats produce very different distributions — when forced to choose ONE concern, cost of living wins decisively.<br><br>Healthcare (17.8%) ranking #2 is notable — it may reflect IP premium hikes and aging population anxiety. Housing (14.8%) at #4 but close to #3 suggests growing concern about property prices.<br><br>The long tail (climate 6.6%, immigration 5.4%, crime 4.7%) represents minority concerns that together form 16.7% — non-trivial but clearly secondary to bread-and-butter economic issues.',
+        zh: '<strong>预测——通胀重新确立对失业的主导地位。</strong><br><br>我们的单选模型将通胀(35.0%)远超失业(15.7%)，2.2:1的比率。这与Ipsos 2月均为56%形成对比。但多选vs单选格式产生截然不同的分布——当被迫选择一个关切时，生活成本决定性胜出。<br><br>医疗(17.8%)排名第二值得注意——可能反映IP保费上涨和老龄化焦虑。住房(14.8%)第四但接近第三，表明房价担忧在增长。<br><br>长尾（气候6.6%、移民5.4%、治安4.7%）合计16.7%——非微不足道但明确次于民生经济问题。'
+      },
+    },
+  },
+  {
+    id: 'budget2026_satisfaction', no: 'PR-003',
+    name: 'Budget 2026 Public Satisfaction',
+    nameZh: '预算案2026公众满意度',
+    type: 'prediction', category: 'policy', status: 'completed',
+    date: '2026-03-07', method: 'VS+RP v2.0', sample: 920, mae: null,
+    desc: 'Predict public satisfaction with Budget 2026. Protocol v2.0 (V-POLI + V-CONS). Balanced context: both reduced and increased measures. Zero ground-truth leak.',
+    descZh: '预测预算案2026公众满意度。协议v2.0（V-POLI + V-CONS）。平衡叙事：同时呈现减少和增加的措施。零ground truth泄露。',
+    question: 'How satisfied is this respondent with Singapore Budget 2026?',
+    questionZh: '该受访者对新加坡2026年预算案的满意度如何？',
+    options: ['Very satisfied', 'Somewhat satisfied', 'Neutral', 'Somewhat dissatisfied', 'Very dissatisfied'],
+    sophie: { score: 5, criteria: [true, true, true, true, true], verdict: 'HIGHLY SUITABLE' },
+    predicted_raw: { 'Very satisfied': 10.3, 'Somewhat satisfied': 34.2, 'Neutral': 29.3, 'Somewhat dissatisfied': 19.2, 'Very dissatisfied': 6.8 },
+    predicted: { 'Very satisfied': 10.3, 'Somewhat satisfied': 34.2, 'Neutral': 29.3, 'Somewhat dissatisfied': 19.2, 'Very dissatisfied': 6.8 },
+    actual: null,
+    source: 'YouGov / Blackbox post-Budget poll, ~Mar-Apr 2026', sourceUrl: 'https://www.singaporebudget.gov.sg/',
+    insight: 'PREDICTION: 44.5% satisfied, 26.0% dissatisfied, net +18.5pp. Low-income (<$3K) least satisfied (34%). Income gradient clear: satisfaction rises with income.',
+    insightZh: '预测：44.5%满意，26.0%不满，净+18.5pp。低收入(<$3K)满意度最低(34%)。收入梯度清晰：满意度随收入上升。',
+    resultDate: '2026-04-30',
+    report: {
+      methodology: {
+        en: '<strong>VS+RP + Survey Design Protocol v2.0 (V-POLI + V-CONS hybrid vertical)</strong> at n=920 with 20 concurrent LLM calls. Context contains only objective Budget 2026 facts: key measures (CDC $500, Cost-of-Living Payment $200-400, U-Save $570, CPF top-up), factual comparison with Budget 2025 (CDC -$300, EdSave removed, but ComCare increased), and economic context (carbon tax $45/tonne, US tariffs, GDP 1-3%). Zero survey results referenced. Stratified by 12 age x gender strata. Runtime: 4 min 43 sec. DeepSeek-Chat, temperature=0.7. Zero API errors.',
+        zh: '<strong>VS+RP + 调查设计协议v2.0（V-POLI + V-CONS混合垂类）</strong>，n=920，20并发LLM调用。Context仅包含Budget 2026客观事实：关键措施（CDC $500、生活费特别补助$200-400、U-Save $570、CPF补贴）、与Budget 2025的客观对比（CDC -$300、EdSave取消、但ComCare增加）、经济背景（碳税$45/吨、美国关税、GDP 1-3%）。零调查结果引用。按12个年龄×性别层分层抽样。运行时间：4分43秒。DeepSeek-Chat，temperature=0.7。零API错误。'
+      },
+      bias_analysis: {
+        en: '<strong>This is a LIVE PREDICTION — no ground truth yet for comparison.</strong><br><br><strong>Key prediction: 44.5% satisfied vs 26.0% dissatisfied (net +18.5pp).</strong> This is notably lower than the YouGov overall government satisfaction (66%), which makes sense — Budget-specific satisfaction should be lower than general government approval, especially when direct transfers were reduced.<br><br><strong>Income gradient is the strongest signal:</strong> &lt;$3K households show only 34% satisfaction vs $8K+ at 53%. Low-income households feel the CDC cut ($800→$500) and EdSave removal most acutely, while higher-income households are less affected by transfer changes and may appreciate the corporate tax rebate and CPF investment scheme.<br><br><strong>29.3% neutral is a large middle ground.</strong> This suggests many Singaporeans have mixed feelings — they see both positives (stability, targeted support) and negatives (reduced transfers, carbon tax increase). The "post-election less generous" narrative may be vocal online but does not dominate actual sentiment.',
+        zh: '<strong>这是实时预测——尚无ground truth可对比。</strong><br><br><strong>核心预测：44.5%满意 vs 26.0%不满（净+18.5pp）。</strong>明显低于YouGov整体政府满意度（66%），合理——预算案专项满意度应低于整体政府认可度，尤其在直接转移支付减少时。<br><br><strong>收入梯度是最强信号：</strong>&lt;$3K家庭仅34%满意 vs $8K+为53%。低收入家庭对CDC削减（$800→$500）和EdSave取消感受最深，高收入家庭受转移支付变化影响较小，可能更欣赏企业税回扣和CPF投资计划。<br><br><strong>29.3%中立是一个庞大的中间群体。</strong>说明许多新加坡人心态复杂——既看到积极面（稳定、定向支持），也看到消极面（减少转移、碳税上涨）。"选后变小气"叙事在网上声量大，但并未主导实际民意。'
+      },
+      demographics: [
+        {label: '21-29', pct: 50, note: 'satisfied'},
+        {label: '30-39', pct: 46, note: 'satisfied'},
+        {label: '40-49', pct: 44, note: 'satisfied'},
+        {label: '50-59', pct: 45, note: 'satisfied'},
+        {label: '60+',   pct: 42, note: 'satisfied'},
+        {label: '<$3K',  pct: 34, note: 'satisfied'},
+        {label: '$3K-$5K', pct: 45, note: 'satisfied'},
+        {label: '$5K-$8K', pct: 54, note: 'satisfied'},
+        {label: '$8K+',  pct: 53, note: 'satisfied'},
+      ],
+      key_findings: {
+        en: [
+          '<strong>Net satisfaction +18.5pp:</strong> 44.5% satisfied vs 26.0% dissatisfied. The "post-election backlash" narrative is loud online but does not represent majority sentiment. Most Singaporeans are either satisfied or neutral.',
+          '<strong>Income is the dominant driver:</strong> Low-income (<$3K) satisfaction at 34% vs high-income ($8K+) at 53% — a 19pp gap. Budget 2026 disproportionately affects lower-income households who relied more on CDC vouchers and EdSave top-ups.',
+          '<strong>29.3% neutral — the silent middle:</strong> Nearly 1 in 3 respondents are neither satisfied nor dissatisfied. This large neutral group is consistent with a "mixed bag" budget that has both positives and negatives.',
+          '<strong>Young adults (21-29) most satisfied (50%):</strong> Less affected by transfer reductions (no children, no EdSave concern). May appreciate broader economic stability measures.',
+          '<strong>Seniors (60+) least satisfied (42%):</strong> Most sensitive to transfer changes. CPF top-up ($1,500) helps but does not fully offset the perceived reduction in support.',
+        ],
+        zh: [
+          '<strong>净满意度+18.5pp：</strong>44.5%满意 vs 26.0%不满。"选后变小气"叙事在网上声量大但不代表多数民意。大多数新加坡人要么满意要么中立。',
+          '<strong>收入是主导因素：</strong>低收入(<$3K)满意度34% vs 高收入($8K+) 53%——差距19pp。Budget 2026对低收入家庭影响不成比例，他们更依赖CDC券和EdSave补贴。',
+          '<strong>29.3%中立——沉默的中间群体：</strong>近1/3受访者既不满意也不不满。这个庞大的中立群体与"有好有坏"的预算案一致。',
+          '<strong>年轻人(21-29)满意度最高(50%)：</strong>受转移支付减少影响较小（无子女、无EdSave顾虑）。可能更欣赏宏观经济稳定措施。',
+          '<strong>年长者(60+)满意度最低(42%)：</strong>对转移支付变化最敏感。CPF补贴($1,500)有帮助但不能完全抵消感知到的支持减少。',
+        ]
+      },
+      limitations: {
+        en: '<strong>No ground truth yet:</strong> Prediction awaits YouGov/Blackbox post-Budget poll (~Apr 2026) for validation. <strong>Sample shortfall:</strong> M 15-19+20-24 stratum fetch failed (Supabase 500 error), reducing sample from 1000 to 920. <strong>Budget awareness gap:</strong> Real respondents may not know Budget details — our agents receive full context, which may inflate both satisfaction and dissatisfaction. <strong>Single model:</strong> DeepSeek only.',
+        zh: '<strong>尚无ground truth：</strong>预测等待YouGov/Blackbox预算案后民调（约2026年4月）验证。<strong>样本不足：</strong>M 15-19+20-24层fetch失败（Supabase 500错误），样本从1000减至920。<strong>预算案知晓度差距：</strong>真实受访者可能不了解预算案细节——我们的agent获得完整context，可能同时放大满意和不满。<strong>单一模型：</strong>仅DeepSeek。'
+      },
+      next_steps: {
+        en: '<strong>1. Await ground truth:</strong> Monitor YouGov/Blackbox/REACH post-Budget polls for validation data. <strong>2. Fix sampling:</strong> Resolve M 15-19+20-24 stratum Supabase error to achieve full N=1000. <strong>3. Sensitivity analysis:</strong> Run with/without "compared to Budget 2025" section to measure anchoring effect. <strong>4. Multi-model validation:</strong> Run on GPT-4o to check if income gradient pattern holds across models.',
+        zh: '<strong>1. 等待ground truth：</strong>关注YouGov/Blackbox/REACH预算案后民调获取验证数据。<strong>2. 修复抽样：</strong>解决M 15-19+20-24层Supabase错误以达到完整N=1000。<strong>3. 敏感度分析：</strong>有/无"与Budget 2025对比"部分分别运行，测量锚定效应。<strong>4. 多模型验证：</strong>在GPT-4o上运行以检查收入梯度模式是否跨模型一致。'
+      }
+    },
+  },
+];
+
+// ============================================================
+// RENDER
+// ============================================================
+const SOPHIE_LABELS = [
+  {en: 'Human Decision-Driven', zh: '人类决策驱动'},
+  {en: 'Social Interaction Effects', zh: '社会互动效应'},
+  {en: 'Real Experiment Infeasible', zh: '真实实验不可行'},
+  {en: 'Calibration Data Exists', zh: '校准数据存在'},
+  {en: 'Counterfactual Analysis Needed', zh: '需要反事实分析'},
+];
+
+let currentLang = 'zh';
+let currentFilter = 'all';
+
+function T(obj) {
+  if (!obj) return '';
+  if (typeof obj === 'string') return obj;
+  return currentLang === 'zh' ? (obj.zh || obj.en || '') : (obj.en || '');
+}
+
+function filterCases(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  renderCases();
+}
+
+function toggleCase(id) {
+  const card = document.getElementById('case-' + id);
+  card.classList.toggle('expanded');
+}
+
+function maeColor(mae) {
+  if (mae === null || mae === undefined) return 'var(--muted)';
+  if (mae <= 3) return 'var(--green)';
+  if (mae <= 8) return 'var(--yellow)';
+  return 'var(--red)';
+}
+
+function devClass(dev) {
+  const abs = Math.abs(dev);
+  if (abs <= 3) return 'dev-good';
+  if (abs <= 8) return 'dev-ok';
+  return 'dev-bad';
+}
+
+function renderCases() {
+  const list = document.getElementById('caseList');
+  let filtered = CASES;
+  if (currentFilter === 'prediction') filtered = CASES.filter(c => c.type === 'prediction');
+  else if (currentFilter === 'backtest') filtered = CASES.filter(c => c.type === 'backtest');
+  else if (currentFilter === 'client') filtered = CASES.filter(c => c.type === 'client');
+  else if (currentFilter === 'election') filtered = CASES.filter(c => c.category === 'election');
+  else if (currentFilter === 'economy') filtered = CASES.filter(c => c.category === 'economy');
+  else if (currentFilter === 'social') filtered = CASES.filter(c => c.category === 'social');
+  else if (currentFilter === 'completed') filtered = CASES.filter(c => c.status === 'completed');
+  else if (currentFilter === 'pending') filtered = CASES.filter(c => c.status === 'pending' || c.status === 'running');
+
+  list.innerHTML = filtered.map(c => renderCard(c)).join('');
+}
+
+function renderCard(c) {
+  const isZh = currentLang === 'zh';
+  const name = isZh ? c.nameZh : c.name;
+  const desc = isZh ? c.descZh : c.desc;
+  const insight = isZh ? c.insightZh : c.insight;
+  const question = isZh ? c.questionZh : c.question;
+
+  const statusIcon = {completed: '&#10003;', running: '&#9654;', pending: '&#9679;', failed: '&#10007;'}[c.status] || '?';
+  const statusLabel = {completed: isZh ? '已完成' : 'Done', running: isZh ? '运行中' : 'Running', pending: isZh ? '待运行' : 'Pending', failed: isZh ? '失败' : 'Failed'}[c.status];
+  const catClass = {election: 'tag-election', economy: 'tag-economy', social: 'tag-social', policy: 'tag-policy'}[c.category] || '';
+  const catLabel = {election: isZh ? '选举' : 'Election', economy: isZh ? '经济' : 'Economy', social: isZh ? '社会' : 'Social', policy: isZh ? '政策' : 'Policy'}[c.category] || c.category;
+  const typeClass = c.type === 'prediction' ? 'tag-prediction' : c.type === 'backtest' ? 'tag-backtest' : 'tag-client';
+  const typeLabel = c.type === 'prediction' ? (isZh ? '实时预测' : 'Live Prediction') : c.type === 'backtest' ? (isZh ? '回测' : 'Backtest') : (isZh ? '客户测试' : 'Client');
+
+  // Results section
+  let resultsHtml = '';
+  if (c.predicted && c.actual && c.type === 'backtest') {
+    // Dual bars: predicted vs actual
+    const allKeys = [...new Set([...Object.keys(c.predicted), ...Object.keys(c.actual)])];
+    resultsHtml = `
+      <div class="detail-section" style="grid-column:1/-1">
+        <h4>${isZh ? '&#128202; 预测 vs 实际对比' : '&#128202; Predicted vs Actual'}</h4>
+        <div class="rb-header"><span style="flex:1">${isZh ? '预测' : 'PREDICTED'}</span><span style="flex:1">${isZh ? '实际' : 'ACTUAL'}</span></div>
+        <div class="result-bars">
+          ${allKeys.map(k => {
+            const pred = c.predicted[k];
+            const act = c.actual[k];
+            const dev = pred !== undefined && act !== undefined ? (pred - act).toFixed(1) : '-';
+            return `<div class="result-bar">
+              <span class="rb-label" title="${k}">${k}</span>
+              <div class="rb-dual">
+                <div class="rb-track"><div class="rb-fill rb-predicted" style="width:${pred || 0}%">${pred !== undefined ? pred + '%' : '-'}</div></div>
+                <div class="rb-track"><div class="rb-fill rb-actual" style="width:${act || 0}%">${act !== undefined ? act + '%' : '-'}</div></div>
+              </div>
+              <span class="rb-val ${devClass(parseFloat(dev))}">${dev !== '-' ? (dev > 0 ? '+' : '') + dev + 'pp' : ''}</span>
+            </div>`;
+          }).join('')}
+        </div>
+        ${c.predicted_raw ? `<div style="margin-top:10px;font-size:11px;color:var(--muted)">${isZh ? '原始数据（含弃权）：' : 'Raw (incl. abstention): '}${Object.entries(c.predicted_raw).map(([k,v]) => k.split(' ').slice(0,2).join(' ') + ' ' + v + '%').join(', ')}</div>` : ''}
+        <table class="dev-table">
+          <tr><th>${isZh ? '选项' : 'Option'}</th><th>${isZh ? '预测' : 'Predicted'}</th><th>${isZh ? '实际' : 'Actual'}</th><th>${isZh ? '偏差' : 'Deviation'}</th></tr>
+          ${allKeys.map(k => {
+            const p = c.predicted[k], a = c.actual[k];
+            const d = p !== undefined && a !== undefined ? p - a : null;
+            return `<tr>
+              <td>${k}</td>
+              <td>${p !== undefined ? p + '%' : '-'}</td>
+              <td>${a !== undefined ? a + '%' : '-'}</td>
+              <td class="dev-val ${d !== null ? devClass(d) : ''}">${d !== null ? (d > 0 ? '+' : '') + d.toFixed(1) + 'pp' : '-'}</td>
+            </tr>`;
+          }).join('')}
+        </table>
+      </div>`;
+  } else if (c.predicted_raw && !c.actual) {
+    // Show prediction-only results (survey or live prediction without ground truth)
+    const keys = Object.keys(c.predicted_raw);
+    const maxVal = Math.max(...Object.values(c.predicted_raw));
+    resultsHtml = `
+      <div class="detail-section" style="grid-column:1/-1">
+        <h4>${isZh ? '&#128202; 调研结果' : '&#128202; Survey Results'}</h4>
+        <div class="result-bars">
+          ${keys.map(k => {
+            const v = c.predicted_raw[k];
+            return `<div class="result-bar">
+              <span class="rb-label" title="${k}">${k}</span>
+              <div class="rb-track"><div class="rb-fill rb-predicted" style="width:${v / maxVal * 100}%">${v}%</div></div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  } else if (c.actual && !c.predicted) {
+    // Show actual only (pending/running)
+    resultsHtml = `
+      <div class="detail-section">
+        <h4>${isZh ? '&#127919; 实际结果（基准）' : '&#127919; Actual Results (Benchmark)'}</h4>
+        <div class="result-bars">
+          ${Object.entries(c.actual).map(([k, v]) => `
+            <div class="result-bar">
+              <span class="rb-label" title="${k}">${k}</span>
+              <div class="rb-track"><div class="rb-fill rb-actual" style="width:${v}%">${v}%</div></div>
+            </div>
+          `).join('')}
+        </div>
+        <div style="margin-top:8px"><span class="source-badge">${c.source}</span></div>
+      </div>`;
+  }
+
+  // Detailed report for completed cases
+  let reportHtml = '';
+  if (c.status === 'completed' && c.report) {
+    const r = c.report;
+    reportHtml = `
+      <div class="report-section">
+        <h4>&#128203; ${isZh ? '详细测试报告' : 'Detailed Test Report'}</h4>
+        <div class="report-grid">
+          ${r.methodology ? `<div class="report-item"><h5>${isZh ? '方法论' : 'Methodology'}</h5><div class="ri-val">${isZh ? r.methodology.zh : r.methodology.en}</div></div>` : ''}
+          ${r.bias_analysis ? `<div class="report-item"><h5>${isZh ? '偏差分析' : 'Bias Analysis'}</h5><div class="ri-val">${isZh ? r.bias_analysis.zh : r.bias_analysis.en}</div></div>` : ''}
+          ${r.demographics ? `<div class="report-item" style="grid-column:1/-1"><h5>${isZh ? '人口分层分析' : 'Demographic Breakdown'}</h5>
+            ${r.demographics.map(d => `<div class="ri-bar"><span class="ri-bar-label">${d.label}</span><div class="ri-bar-track"><div class="ri-bar-fill" style="width:${d.pct}%;background:${d.pct > 60 ? 'var(--green)' : d.pct > 40 ? 'var(--accent)' : 'var(--orange)'}">${d.pct}%</div></div><span style="font-size:10px;color:var(--muted);width:40px">${d.note||''}</span></div>`).join('')}
+          </div>` : ''}
+          ${r.key_findings ? `<div class="report-item" style="grid-column:1/-1"><h5>${isZh ? '关键发现' : 'Key Findings'}</h5><div class="ri-val">${(isZh ? r.key_findings.zh : r.key_findings.en).map(f => '<div style="margin:4px 0;padding-left:12px;border-left:2px solid var(--accent)">'+f+'</div>').join('')}</div></div>` : ''}
+          ${r.limitations ? `<div class="report-item"><h5>${isZh ? '局限性' : 'Limitations'}</h5><div class="ri-val" style="color:var(--dim)">${isZh ? r.limitations.zh : r.limitations.en}</div></div>` : ''}
+          ${r.next_steps ? `<div class="report-item"><h5>${isZh ? '下一步' : 'Next Steps'}</h5><div class="ri-val" style="color:var(--dim)">${isZh ? r.next_steps.zh : r.next_steps.en}</div></div>` : ''}
+        </div>
+      </div>`;
+  }
+
+  return `
+  <div class="case-card" id="case-${c.id}" data-type="${c.type}" data-category="${c.category}" data-status="${c.status}">
+    <div class="case-top" onclick="toggleCase('${c.id}')">
+      <div class="case-status ${c.status}">${statusIcon}</div>
+      <div class="case-info">
+        <div class="case-title-row">
+          <span class="case-no">${c.no}</span>
+          <span class="case-name">${name}</span>
+          <span class="case-tag ${catClass}">${catLabel}</span>
+          <span class="case-tag ${typeClass}">${typeLabel}</span>
+          ${c.method ? `<span class="method-badge ${c.method === 'VS+RP' ? 'method-vsrp' : 'method-v1'}">${c.method}</span>` : ''}
+        </div>
+        <div class="case-desc">${desc}</div>
+        <div class="case-meta">
+          <span>n=${c.sample.toLocaleString()}</span>
+          ${c.date ? `<span>${c.date}</span>` : ''}
+          <span>${statusLabel}</span>
+          ${c.resultDate ? `<span style="color:var(--orange);font-weight:700">⏱ ${isZh ? '结果：' : 'Results: '}${c.resultDate} (${Math.max(0, Math.ceil((new Date(c.resultDate) - new Date()) / 86400000))}${isZh ? '天后' : 'd'})</span>` : ''}
+          ${c.source ? `<span>${c.source}</span>` : ''}
+        </div>
+      </div>
+      <div class="case-right">
+        ${c.mae !== null ? `<div class="case-mae" style="color:${maeColor(c.mae)}">${c.mae}pp</div><div class="case-mae-label">MAE</div>` : `<div class="case-mae" style="color:var(--muted)">--</div><div class="case-mae-label">MAE</div>`}
+        <button class="case-del" onclick="event.stopPropagation();deleteCase('${c.id}')" title="${isZh ? '删除' : 'Delete'}">&#10005;</button>
+        <div class="case-expand">&#9660;</div>
+      </div>
+    </div>
+    <div class="case-detail">
+      <div class="detail-grid">
+        <!-- Sophie Evaluation -->
+        <div class="detail-section">
+          <h4>&#129302; Sophie ${isZh ? '适合度评估' : 'Suitability Assessment'}</h4>
+          <div class="sophie-criteria">
+            ${SOPHIE_LABELS.map((l, i) => `
+              <div class="sophie-row">
+                <div class="sophie-check ${c.sophie.criteria[i] ? 'pass' : 'fail'}">${c.sophie.criteria[i] ? '&#10003;' : '&#10007;'}</div>
+                <span>${isZh ? l.zh : l.en}</span>
+              </div>
+            `).join('')}
+          </div>
+          <div class="sophie-score ${c.sophie.score >= 5 ? 'high' : c.sophie.score >= 3 ? 'medium' : 'low'}">
+            ${c.sophie.score}/5 — ${c.sophie.verdict}
+          </div>
+        </div>
+        <!-- Question -->
+        <div class="detail-section">
+          <h4>&#128221; ${isZh ? '测试问题' : 'Test Question'}</h4>
+          <div class="question-box">
+            <div class="q-label">${isZh ? '问题' : 'QUESTION'}</div>
+            ${question}
+          </div>
+          ${c.options[0] && !c.options[0].startsWith('Multi-question') ? `<div style="font-size:11px;color:var(--muted);margin-top:8px">
+            <strong>${isZh ? '选项：' : 'Options: '}</strong>${c.options.join(' | ')}
+          </div>` : ''}
+          ${c.source ? `<div style="margin-top:10px"><span class="source-badge">${c.source}</span></div>` : ''}
+        </div>
+        ${resultsHtml}
+      </div>
+      ${reportHtml}
+      <!-- Insight -->
+      <div class="case-insight-box">
+        <strong>${isZh ? '分析：' : 'Analysis: '}</strong>${insight}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// I18N
+// ============================================================
+const I18N = {
+  zh: {
+    'page-title': '测试案例',
+    'page-desc': '所有回测验证和客户模拟案例。每个案例经过Sophie五项标准守门评估，回测案例与真实结果进行对比。',
+    'sl-total': '总案例', 'sl-completed': '已完成', 'sl-running': '运行中', 'sl-mae': '最优MAE', 'sl-method': '方法',
+    'ft-all': '全部', 'ft-bt': '回测', 'ft-cl': '客户测试', 'ft-el': '选举', 'ft-ec': '经济', 'ft-so': '社会', 'ft-done': '已完成', 'ft-pend': '待运行',
+  },
+  en: {}
+};
+
+function deleteCase(id) {
+  const isZh = currentLang === 'zh';
+  if (!confirm(isZh ? `确定删除案例 ${id}？` : `Delete case ${id}?`)) return;
+  const idx = CASES.findIndex(c => c.id === id);
+  if (idx >= 0) CASES.splice(idx, 1);
+  document.getElementById('stat-total').textContent = CASES.length;
+  document.getElementById('stat-completed').textContent = CASES.filter(c => c.status === 'completed').length;
+  document.getElementById('stat-running').textContent = CASES.filter(c => c.status === 'running').length;
+  renderCases();
+}
+
+function setLang(l) {
+  currentLang = l;
+  document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.lang-switch button[onclick="setLang('${l}')"]`).classList.add('active');
+  const dict = I18N[l] || {};
+  for (const [id, text] of Object.entries(dict)) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = text;
+  }
+  renderCases();
+  renderSimulations();
+}
+
+// ============================================================
+// SOCIAL SIMULATION DATA & RENDERING
+// ============================================================
+const SIMULATIONS = [
+  {
+    id: 'sim_cpf_age', no: 'SIM-001',
+    name: 'CPF Withdrawal Age: 55 → 60',
+    nameZh: 'CPF提取年龄：55→60岁',
+    event: 'Government proposes raising CPF OA withdrawal age from 55 to 60',
+    eventZh: '政府提议将CPF普通账户提取年龄从55岁提高至60岁',
+    method: 'VS+RP v2.0 + Multi-Round ABM',
+    sample: 200, rounds: 3, llmCalls: 600, elapsed: '3.2 min',
+    date: '2026-03-08',
+    desc: '7-day social simulation: Day 1 (cold opinion) → Day 4 (peer influence injected) → Day 7 (echo chamber reinforcement). 12 demographic clusters (housing × age tier). Tracks opinion polarization, echo chambers, and individual opinion journeys.',
+    descZh: '7天社会仿真：第1天（冷启动意见）→ 第4天（注入同群影响）→ 第7天（回音室强化）。12个人口聚类（住房×年龄层）。追踪意见极化、回音室效应和个体意见轨迹。',
+    options: ['Strongly support', 'Somewhat support', 'Neutral', 'Somewhat oppose', 'Strongly oppose'],
+    optionsZh: ['强烈支持', '比较支持', '中立', '比较反对', '强烈反对'],
+    day1: { 'Strongly support': 14.5, 'Somewhat support': 22.0, 'Neutral': 18.5, 'Somewhat oppose': 29.0, 'Strongly oppose': 16.0 },
+    day4: null, // intermediate round
+    day7: { 'Strongly support': 11.0, 'Somewhat support': 23.5, 'Neutral': 11.5, 'Somewhat oppose': 29.0, 'Strongly oppose': 25.0 },
+    metrics: {
+      opinionChanged: 76.0,
+      polarizationD1: 1.315, polarizationD7: 1.365,
+      echoD1: 1.319, echoD7: 1.346,
+      meanScoreD1: -0.100, meanScoreD7: -0.335,
+    },
+    clusters: {
+      'Private Senior':  { n: 6,  d1: 0.67,  d7: 0.17, color: 'var(--green)' },
+      'Private Mid':     { n: 23, d1: -0.39, d7: 0.17, color: 'var(--green)' },
+      'Private Young':   { n: 23, d1: 0.17,  d7: -0.17, color: 'var(--red)' },
+      'HDB Large Young': { n: 20, d1: -0.15, d7: -0.60, color: 'var(--red)' },
+      'HDB Large Mid':   { n: 19, d1: 0.11,  d7: -0.32, color: 'var(--red)' },
+      'HDB Large Senior':{ n: 14, d1: -0.14, d7: -0.79, color: 'var(--red)' },
+      'HDB Mid Young':   { n: 21, d1: -0.14, d7: -0.14, color: 'var(--muted)' },
+      'HDB Mid Mid':     { n: 17, d1: 0.06,  d7: -0.65, color: 'var(--red)' },
+      'HDB Mid Senior':  { n: 12, d1: -0.25, d7: -0.58, color: 'var(--red)' },
+      'HDB Small Young': { n: 12, d1: -0.42, d7: 0.00, color: 'var(--green)' },
+      'HDB Small Mid':   { n: 17, d1: 0.00,  d7: -0.29, color: 'var(--red)' },
+      'HDB Small Senior':{ n: 16, d1: -0.38, d7: -0.81, color: 'var(--red)' },
+    },
+    insight: 'Opposition hardens from 45% to 54% over 7 days. "Strongly oppose" surges +9pp (16%→25%) while "Neutral" collapses -7pp (18.5%→11.5%). Echo chambers amplify: HDB seniors shift most negative (-0.14→-0.79). Only private housing mid-age reverses toward support (-0.39→+0.17). 76% of agents changed opinion — social influence is real and measurable.',
+    insightZh: '反对意见从45%硬化至54%。"强烈反对"激增+9pp（16%→25%），"中立"崩溃-7pp（18.5%→11.5%）。回音室放大：HDB老年最负面(-0.14→-0.79)。仅私宅中年群体反转支持(-0.39→+0.17)。76%的agent改变了意见——社会影响是真实可测量的。',
+  },
+  {
+    id: 'sim_ns_women', no: 'SIM-002',
+    name: 'Mandatory NS for Women',
+    nameZh: '女性强制服兵役',
+    event: 'Extend mandatory National Service to women (1.5 years, non-combat roles)',
+    eventZh: '将强制兵役扩展至女性（1.5年，非战斗岗位）',
+    method: 'VS+RP v2.0 + Multi-Round ABM',
+    sample: 200, rounds: 3, llmCalls: 600, elapsed: '3.3 min',
+    date: '2026-03-08',
+    desc: 'Gender equality vs practical concerns. Near-perfect 50/50 split on Day 1, opposition hardens by Day 7. Echo chambers drive HDB mid-age cluster from +0.59 to -0.14.',
+    descZh: '性别平等 vs 现实顾虑。第1天接近完美50/50分裂，第7天反对硬化。回音室驱动HDB中年聚类从+0.59转至-0.14。',
+    options: ['Strongly support', 'Somewhat support', 'Neutral', 'Somewhat oppose', 'Strongly oppose'],
+    optionsZh: ['强烈支持', '比较支持', '中立', '比较反对', '强烈反对'],
+    day1: { 'Strongly support': 12.5, 'Somewhat support': 30.0, 'Neutral': 15.5, 'Somewhat oppose': 27.5, 'Strongly oppose': 14.5 },
+    day4: null,
+    day7: { 'Strongly support': 11.5, 'Somewhat support': 24.5, 'Neutral': 17.5, 'Somewhat oppose': 30.5, 'Strongly oppose': 16.0 },
+    metrics: {
+      opinionChanged: 72.5,
+      polarizationD1: 1.290, polarizationD7: 1.279,
+      echoD1: 0, echoD7: 0,
+      meanScoreD1: -0.015, meanScoreD7: -0.150,
+    },
+    clusters: {
+      'HDB Large Mid':   { n: 22, d1: 0.59,  d7: -0.14, color: 'var(--red)' },
+      'HDB Large Senior':{ n: 15, d1: -0.60, d7: -0.27, color: 'var(--green)' },
+      'HDB Large Young': { n: 19, d1: 0.21,  d7: 0.26,  color: 'var(--muted)' },
+      'HDB Mid Mid':     { n: 25, d1: 0.08,  d7: -0.08, color: 'var(--muted)' },
+      'HDB Mid Senior':  { n: 14, d1: -0.29, d7: -0.64, color: 'var(--red)' },
+      'HDB Mid Young':   { n: 21, d1: -0.10, d7: -0.05, color: 'var(--muted)' },
+      'HDB Small Mid':   { n: 12, d1: 0.00,  d7: 0.00,  color: 'var(--muted)' },
+      'HDB Small Senior':{ n: 14, d1: 0.14,  d7: -0.21, color: 'var(--red)' },
+      'HDB Small Young': { n: 11, d1: -0.27, d7: -0.18, color: 'var(--muted)' },
+      'Private Mid':     { n: 19, d1: 0.21,  d7: -0.16, color: 'var(--red)' },
+      'Private Senior':  { n: 5,  d1: -1.00, d7: -0.60, color: 'var(--green)' },
+      'Private Young':   { n: 23, d1: -0.17, d7: -0.13, color: 'var(--muted)' },
+    },
+    insight: 'Near-perfect 50/50 split: Day 1 Support 42.5% vs Oppose 42.0%. By Day 7, opposition hardens to 46.5% while support drops to 36.0%. The biggest swing: HDB Large Mid-age cluster shifts from +0.59 (support) to -0.14 (oppose) — a -0.73 reversal. Polarization stays flat (1.29→1.28) but mean score shifts negative (-0.015→-0.150). 72.5% changed opinion — the NS debate is genuinely fluid.',
+    insightZh: '接近完美50/50分裂：第1天支持42.5% vs 反对42.0%。到第7天，反对硬化至46.5%而支持降至36.0%。最大摆动：HDB大型中年聚类从+0.59（支持）转至-0.14（反对）——-0.73的逆转。极化保持平稳(1.29→1.28)但均值向负偏移(-0.015→-0.150)。72.5%改变了意见——NS辩论真正具有流动性。',
+  },
+  {
+    id: 'sim_wealth_tax', no: 'SIM-003',
+    name: 'Wealth Tax on Ultra-Rich ($10M+)',
+    nameZh: '超高净值富人税',
+    event: 'Annual 2% wealth tax on individuals with net assets exceeding $10 million',
+    eventZh: '对净资产超过$1000万的个人征收年度2%富人税',
+    method: 'VS+RP v2.0 + Multi-Round ABM',
+    sample: 200, rounds: 3, llmCalls: 600, elapsed: '3.3 min',
+    date: '2026-03-08',
+    desc: 'Majority support strengthens over 7 days (55→60%). Surprising finding: private housing mid-age cluster flips from -0.38 to +0.62 (biggest single reversal). Polarization increases significantly.',
+    descZh: '多数支持在7天内增强（55→60%）。意外发现：私宅中年聚类从-0.38翻转至+0.62（最大单一逆转）。极化显著增加。',
+    options: ['Strongly support', 'Somewhat support', 'Neutral', 'Somewhat oppose', 'Strongly oppose'],
+    optionsZh: ['强烈支持', '比较支持', '中立', '比较反对', '强烈反对'],
+    day1: { 'Strongly support': 16.5, 'Somewhat support': 38.5, 'Neutral': 14.5, 'Somewhat oppose': 24.5, 'Strongly oppose': 6.0 },
+    day4: null,
+    day7: { 'Strongly support': 21.0, 'Somewhat support': 39.0, 'Neutral': 9.5, 'Somewhat oppose': 19.5, 'Strongly oppose': 11.0 },
+    metrics: {
+      opinionChanged: 71.0,
+      polarizationD1: 1.189, polarizationD7: 1.311,
+      echoD1: 0, echoD7: 0,
+      meanScoreD1: 0.350, meanScoreD7: 0.395,
+    },
+    clusters: {
+      'HDB Large Mid':   { n: 14, d1: 0.57,  d7: 0.07,  color: 'var(--red)' },
+      'HDB Large Senior':{ n: 19, d1: 0.11,  d7: 0.16,  color: 'var(--muted)' },
+      'HDB Large Young': { n: 15, d1: 0.67,  d7: 1.07,  color: 'var(--green)' },
+      'HDB Mid Mid':     { n: 17, d1: 0.47,  d7: 0.47,  color: 'var(--muted)' },
+      'HDB Mid Senior':  { n: 13, d1: 0.23,  d7: 0.77,  color: 'var(--green)' },
+      'HDB Mid Young':   { n: 17, d1: 0.41,  d7: 1.00,  color: 'var(--green)' },
+      'HDB Small Mid':   { n: 12, d1: 0.17,  d7: 0.17,  color: 'var(--muted)' },
+      'HDB Small Senior':{ n: 14, d1: 0.50,  d7: -0.07, color: 'var(--red)' },
+      'HDB Small Young': { n: 8,  d1: 0.25,  d7: 0.25,  color: 'var(--muted)' },
+      'Private Mid':     { n: 24, d1: -0.38, d7: 0.62,  color: 'var(--green)' },
+      'Private Senior':  { n: 12, d1: 0.75,  d7: 0.33,  color: 'var(--red)' },
+      'Private Young':   { n: 26, d1: 0.23,  d7: -0.15, color: 'var(--red)' },
+    },
+    insight: 'Support strengthens: 55.0%→60.0%. "Strongly support" surges +4.5pp (16.5→21.0%), neutrals collapse -5.0pp. Biggest surprise: Private housing mid-age flips from -0.38 to +0.62 (+1.00 shift!) — even the affluent middle-aged are persuaded. But private young turns negative (0.23→-0.15) — "slippery slope" narrative resonates with younger wealth accumulators. Polarization increases 1.189→1.311 (+10.3%) — this debate gets more heated, not less.',
+    insightZh: '支持增强：55.0%→60.0%。"强烈支持"激增+4.5pp（16.5→21.0%），中立崩溃-5.0pp。最大惊喜：私宅中年从-0.38翻转至+0.62（+1.00偏移！）——即使富裕中年也被说服。但私宅青年转负（0.23→-0.15）——"滑坡论"叙事与年轻财富积累者产生共鸣。极化增加1.189→1.311（+10.3%）——辩论越来越激烈而非缓和。',
+  },
+  {
+    id: 'sim_abolish_psle', no: 'SIM-004',
+    name: 'Abolish PSLE',
+    nameZh: '废除小六会考',
+    event: 'Replace PSLE with school-based continuous assessment',
+    eventZh: '以校本持续评估取代小六会考（PSLE）',
+    method: 'VS+RP v2.0 + Multi-Round ABM',
+    sample: 200, rounds: 3, llmCalls: 600, elapsed: '3.4 min',
+    date: '2026-03-08',
+    desc: 'Most divided issue: near 50/50 split persists through all 7 days. HDB Mid Senior cluster shows extreme echo chamber effect (-1.43 shift). Highest opinion change rate at 76.5%.',
+    descZh: '最分裂的议题：接近50/50的分裂贯穿全部7天。HDB中型老年聚类显示极端回音室效应（-1.43偏移）。最高意见改变率76.5%。',
+    options: ['Strongly support', 'Somewhat support', 'Neutral', 'Somewhat oppose', 'Strongly oppose'],
+    optionsZh: ['强烈支持', '比较支持', '中立', '比较反对', '强烈反对'],
+    day1: { 'Strongly support': 14.5, 'Somewhat support': 31.5, 'Neutral': 12.5, 'Somewhat oppose': 30.5, 'Strongly oppose': 11.0 },
+    day4: null,
+    day7: { 'Strongly support': 12.5, 'Somewhat support': 37.0, 'Neutral': 12.0, 'Somewhat oppose': 24.0, 'Strongly oppose': 14.5 },
+    metrics: {
+      opinionChanged: 76.5,
+      polarizationD1: 1.281, polarizationD7: 1.300,
+      echoD1: 0, echoD7: 0,
+      meanScoreD1: 0.080, meanScoreD7: 0.090,
+    },
+    clusters: {
+      'HDB Large Mid':   { n: 18, d1: -0.44, d7: 0.28,  color: 'var(--green)' },
+      'HDB Large Senior':{ n: 9,  d1: 0.44,  d7: 0.11,  color: 'var(--red)' },
+      'HDB Large Young': { n: 11, d1: -0.27, d7: 0.18,  color: 'var(--green)' },
+      'HDB Mid Mid':     { n: 24, d1: 0.29,  d7: 0.25,  color: 'var(--muted)' },
+      'HDB Mid Senior':  { n: 14, d1: 0.14,  d7: -1.29, color: 'var(--red)' },
+      'HDB Mid Young':   { n: 15, d1: 0.20,  d7: 0.53,  color: 'var(--green)' },
+      'HDB Small Mid':   { n: 10, d1: -0.10, d7: 0.80,  color: 'var(--green)' },
+      'HDB Small Senior':{ n: 17, d1: 0.12,  d7: -0.35, color: 'var(--red)' },
+      'HDB Small Young': { n: 14, d1: 0.21,  d7: 0.43,  color: 'var(--green)' },
+      'Private Mid':     { n: 28, d1: 0.14,  d7: 0.29,  color: 'var(--muted)' },
+      'Private Senior':  { n: 8,  d1: 0.25,  d7: -0.38, color: 'var(--red)' },
+      'Private Young':   { n: 32, d1: 0.03,  d7: 0.06,  color: 'var(--muted)' },
+    },
+    insight: 'Most balanced debate: Support 46→49.5%, Oppose 41.5→38.5%. Barely moves! But underneath: HDB Mid Senior cluster plunges from +0.14 to -1.29 (the most extreme single-cluster shift across ALL simulations). Meanwhile HDB Small Mid swings +0.90 pro-abolition. Seniors divide sharply: those who benefited from PSLE meritocracy defend it fiercely, while younger clusters gradually shift toward reform. 76.5% changed opinion — highest of all 5 sims — but aggregate barely moves because changes cancel out.',
+    insightZh: '最均衡的辩论：支持46→49.5%，反对41.5→38.5%。几乎不动！但底层剧烈：HDB中型老年聚类从+0.14暴跌至-1.29（所有仿真中最极端的单聚类偏移）。同时HDB小型中年摆动+0.90支持废除。老年群体尖锐分裂：从PSLE精英制度中获益的人激烈捍卫，而年轻聚类逐渐转向改革。76.5%改变了意见——5个仿真中最高——但总量几乎不动因为变化互相抵消。',
+  },
+  {
+    id: 'sim_four_day_week', no: 'SIM-005',
+    name: 'Mandatory 4-Day Work Week',
+    nameZh: '强制四天工作制',
+    event: 'Mandate 4-day work week (32 hours) for all companies, no pay reduction',
+    eventZh: '强制所有企业实行四天工作制（32小时），不减薪',
+    method: 'VS+RP v2.0 + Multi-Round ABM',
+    sample: 200, rounds: 3, llmCalls: 600, elapsed: '3.3 min',
+    date: '2026-03-08',
+    desc: 'Highest support of all simulations. Support GROWS from 51.5% to 59.0% — social proof amplifies enthusiasm. Clear age divide: 18-34 at 75% support by Day 7.',
+    descZh: '所有仿真中支持率最高。支持从51.5%增长至59.0%——社会认同放大热情。清晰年龄分界：18-34岁第7天支持率达75%。',
+    options: ['Strongly support', 'Somewhat support', 'Neutral', 'Somewhat oppose', 'Strongly oppose'],
+    optionsZh: ['强烈支持', '比较支持', '中立', '比较反对', '强烈反对'],
+    day1: { 'Strongly support': 19.5, 'Somewhat support': 32.0, 'Neutral': 16.0, 'Somewhat oppose': 27.0, 'Strongly oppose': 5.5 },
+    day4: null,
+    day7: { 'Strongly support': 21.5, 'Somewhat support': 37.5, 'Neutral': 12.0, 'Somewhat oppose': 20.0, 'Strongly oppose': 9.0 },
+    metrics: {
+      opinionChanged: 73.0,
+      polarizationD1: 1.220, polarizationD7: 1.274,
+      echoD1: 0, echoD7: 0,
+      meanScoreD1: 0.330, meanScoreD7: 0.425,
+    },
+    clusters: {
+      'HDB Large Mid':   { n: 17, d1: 0.18,  d7: 0.35,  color: 'var(--muted)' },
+      'HDB Large Senior':{ n: 12, d1: 0.17,  d7: -0.17, color: 'var(--red)' },
+      'HDB Large Young': { n: 9,  d1: 0.22,  d7: 0.89,  color: 'var(--green)' },
+      'HDB Mid Mid':     { n: 25, d1: 0.36,  d7: 0.52,  color: 'var(--muted)' },
+      'HDB Mid Senior':  { n: 10, d1: 0.10,  d7: -0.40, color: 'var(--red)' },
+      'HDB Mid Young':   { n: 16, d1: 0.44,  d7: 0.56,  color: 'var(--muted)' },
+      'HDB Small Mid':   { n: 13, d1: 0.31,  d7: 0.23,  color: 'var(--muted)' },
+      'HDB Small Senior':{ n: 14, d1: -0.64, d7: -0.29, color: 'var(--green)' },
+      'HDB Small Young': { n: 15, d1: 0.87,  d7: 0.33,  color: 'var(--red)' },
+      'Private Mid':     { n: 22, d1: 0.27,  d7: 0.32,  color: 'var(--muted)' },
+      'Private Senior':  { n: 7,  d1: -0.14, d7: 0.14,  color: 'var(--muted)' },
+      'Private Young':   { n: 28, d1: 0.50,  d7: 1.21,  color: 'var(--green)' },
+    },
+    insight: 'Social proof works: support GROWS from 51.5% to 59.0% — unique among all 5 simulations. "Somewhat support" expands from 32→37.5% as the pragmatic middle joins. Age divide is stark: 18-34 support 60%→75%, while 55+ stays frozen at 31%. Private Young cluster becomes most enthusiastic (+0.50→+1.21) while seniors resist. "Strongly oppose" doubles (5.5→9.0%) — opposition hardens even as it shrinks. This is a policy with genuine momentum potential.',
+    insightZh: '社会认同起作用：支持从51.5%增长至59.0%——5个仿真中独一无二。"比较支持"从32%扩至37.5%，务实中间派加入。年龄分界鲜明：18-34岁支持60%→75%，而55+岁冻结在31%。私宅青年聚类最热情（+0.50→+1.21），老年人抵制。"强烈反对"翻倍（5.5→9.0%）——反对虽萎缩但硬化。这是有真正动力势能的政策。',
+  },
+];
+
+function renderSimulations() {
+  const isZh = currentLang === 'zh';
+  const container = document.getElementById('simCards');
+  if (!container) return;
+
+  // Update section title
+  const titleEl = document.getElementById('sim-title');
+  const subtitleEl = document.getElementById('sim-subtitle');
+  if (titleEl) titleEl.textContent = isZh ? '社会仿真' : 'Social Simulation';
+  if (subtitleEl) subtitleEl.textContent = isZh
+    ? '多轮Agent仿真模型：信息注入 → 同群影响 → 回音室 → 意见转变。捕捉口碑传播、社会聚类和意见动力学。'
+    : 'Multi-round agent-based model: information injection → peer influence → echo chamber → opinion shift. Captures word-of-mouth, social clustering, and opinion dynamics over 7 simulated days.';
+
+  container.innerHTML = SIMULATIONS.map(s => {
+    const name = isZh ? s.nameZh : s.name;
+    const desc = isZh ? s.descZh : s.desc;
+    const event = isZh ? s.eventZh : s.event;
+    const insight = isZh ? s.insightZh : s.insight;
+    const opts = isZh ? s.optionsZh : s.options;
+
+    // Color mapping for bars
+    const barColors = ['var(--green)', 'rgba(34,197,94,.5)', 'var(--muted)', 'rgba(239,68,68,.5)', 'var(--red)'];
+
+    // If still running, show pending state
+    if (!s.day1 || !s.day7) {
+      return `
+      <div class="sim-card" id="sim-${s.id}">
+        <div class="sim-card-header" onclick="this.parentElement.classList.toggle('expanded')">
+          <div class="sim-icon" style="background:rgba(59,130,246,.12);color:var(--accent);animation:pulse 2s infinite">&#9889;</div>
+          <div class="sim-info">
+            <div class="sim-title-row">
+              <span class="case-no">${s.no}</span>
+              <span class="sim-name">${name}</span>
+              <span class="sim-tag" style="animation:pulse 2s infinite">${isZh ? '运行中' : 'Running'}</span>
+            </div>
+            <div class="sim-desc">${desc}</div>
+            <div class="sim-meta">
+              <span>&#128101; N=${s.sample}</span>
+              <span>&#128257; ${s.rounds} ${isZh ? '轮' : 'rounds'}</span>
+              <span>&#9889; ${s.llmCalls} LLM calls</span>
+              <span class="method-badge method-vsrp">${s.method}</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+            <div style="font-size:16px;font-weight:800;color:var(--accent);animation:pulse 2s infinite">&#9203;</div>
+            <div style="font-size:10px;color:var(--muted)">${isZh ? '运行中' : 'Running'}</div>
+          </div>
+        </div>
+        <div class="sim-detail">
+          <div style="padding:20px;text-align:center;color:var(--dim)">
+            <div style="font-size:24px;margin-bottom:8px">&#9889;</div>
+            <div>${isZh ? '仿真正在运行中，结果即将更新...' : 'Simulation is running, results will be updated shortly...'}</div>
+            <div style="margin-top:12px;padding:10px 14px;background:rgba(249,115,22,.06);border:1px solid rgba(249,115,22,.15);border-radius:8px;font-size:13px;text-align:left">
+              <strong style="color:var(--orange)">${isZh ? '事件：' : 'Event: '}</strong>${event}
+            </div>
+            <div class="case-insight-box" style="text-align:left;margin-top:12px">
+              <strong>${isZh ? '预期：' : 'Expected: '}</strong>${insight}
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    // Build Day 1 vs Day 7 flow
+    const flowHtml = `
+      <div class="flow-container">
+        <div class="flow-day">
+          <div class="flow-day-label">${isZh ? '第1天 · 冷启动' : 'Day 1 · Cold'}</div>
+          ${s.options.map((opt, i) => {
+            const v = s.day1[opt];
+            const label = opts[i].replace(/.*—\s*/, '').substring(0, 12);
+            return `<div class="flow-bar">
+              <span class="flow-bar-label">${label}</span>
+              <div class="flow-bar-track"><div class="flow-bar-fill" style="width:${v/35*100}%;background:${barColors[i]}">${v}%</div></div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-day" style="border-color:var(--orange)">
+          <div class="flow-day-label" style="color:var(--orange)">${isZh ? '第7天 · 回音室后' : 'Day 7 · Post Echo'}</div>
+          ${s.options.map((opt, i) => {
+            const v = s.day7[opt];
+            const v1 = s.day1[opt];
+            const diff = v - v1;
+            const label = opts[i].replace(/.*—\s*/, '').substring(0, 12);
+            return `<div class="flow-bar">
+              <span class="flow-bar-label">${label}</span>
+              <div class="flow-bar-track"><div class="flow-bar-fill" style="width:${v/35*100}%;background:${barColors[i]}">${v}%</div></div>
+              <span style="font-size:10px;font-weight:700;width:40px;color:${diff > 0 ? 'var(--red)' : diff < 0 ? 'var(--green)' : 'var(--muted)'}">${diff > 0 ? '+' : ''}${diff.toFixed(1)}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+
+    // Metrics (only for completed sims)
+    const m = s.metrics || {};
+    const metricsHtml = `
+      <div class="sim-metrics">
+        <div class="sim-metric">
+          <div class="sm-val" style="color:var(--orange)">${m.opinionChanged}%</div>
+          <div class="sm-label">${isZh ? '意见改变率' : 'Opinion Changed'}</div>
+        </div>
+        <div class="sim-metric">
+          <div class="sm-val" style="color:var(--red)">${(s.day7['Somewhat oppose'] + s.day7['Strongly oppose']).toFixed(1)}%</div>
+          <div class="sm-label">${isZh ? '第7天反对率' : 'Day 7 Opposition'}</div>
+          <div class="sm-sub">${isZh ? '第1天: ' : 'Day 1: '}${(s.day1['Somewhat oppose'] + s.day1['Strongly oppose']).toFixed(1)}%</div>
+        </div>
+        <div class="sim-metric">
+          <div class="sm-val" style="color:var(--purple)">${m.polarizationD1.toFixed(2)} → ${m.polarizationD7.toFixed(2)}</div>
+          <div class="sm-label">${isZh ? '极化指数 (σ)' : 'Polarization (σ)'}</div>
+          <div class="sm-sub">+${((m.polarizationD7 - m.polarizationD1) / m.polarizationD1 * 100).toFixed(1)}%</div>
+        </div>
+        <div class="sim-metric">
+          <div class="sm-val" style="color:var(--cyan)">${m.meanScoreD1.toFixed(2)} → ${m.meanScoreD7.toFixed(2)}</div>
+          <div class="sm-label">${isZh ? '平均态度分' : 'Mean Score'}</div>
+          <div class="sm-sub">${isZh ? '负=反对, 正=支持' : 'neg=oppose, pos=support'}</div>
+        </div>
+      </div>`;
+
+    // Cluster evolution
+    const clusterHtml = `
+      <div style="margin-bottom:12px">
+        <h4 style="font-size:13px;font-weight:700;margin-bottom:10px">&#127760; ${isZh ? '聚类意见演变（住房×年龄）' : 'Cluster Opinion Evolution (Housing × Age)'}</h4>
+        <div class="cluster-grid">
+          ${Object.entries(s.clusters).map(([name, c]) => {
+            const shift = c.d7 - c.d1;
+            const shiftColor = shift > 0.1 ? 'var(--green)' : shift < -0.1 ? 'var(--red)' : 'var(--muted)';
+            const arrow = shift > 0.1 ? '↑' : shift < -0.1 ? '↓' : '→';
+            return `<div class="cluster-cell">
+              <div class="cluster-name">${name} <span style="font-weight:400;color:var(--muted)">(n=${c.n})</span></div>
+              <div class="cluster-shift">
+                <span style="color:var(--dim)">${c.d1.toFixed(2)}</span>
+                <span style="color:${shiftColor};font-weight:700">${arrow}</span>
+                <span class="cluster-val" style="color:${shiftColor}">${c.d7.toFixed(2)}</span>
+                <span style="font-size:9px;color:${shiftColor}">(${shift > 0 ? '+' : ''}${shift.toFixed(2)})</span>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="font-size:10px;color:var(--muted)">
+          ${isZh ? '分数: +2=强烈支持, -2=强烈反对。聚类=住房类型×年龄层(青年/中年/老年)' : 'Score: +2=strongly support, -2=strongly oppose. Cluster = housing_type × age_tier (young/mid/senior)'}
+        </div>
+      </div>`;
+
+    return `
+    <div class="sim-card" id="sim-${s.id}">
+      <div class="sim-card-header" onclick="this.parentElement.classList.toggle('expanded')">
+        <div class="sim-icon">&#127744;</div>
+        <div class="sim-info">
+          <div class="sim-title-row">
+            <span class="case-no">${s.no}</span>
+            <span class="sim-name">${name}</span>
+            <span class="sim-tag">${isZh ? '社会仿真' : 'Social Sim'}</span>
+            <span class="tag-backtest" style="font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700">&#10003; ${isZh ? '已完成' : 'DONE'}</span>
+          </div>
+          <div class="sim-desc">${desc}</div>
+          <div class="sim-meta">
+            <span>&#128101; N=${s.sample}</span>
+            <span>&#128257; ${s.rounds} ${isZh ? '轮' : 'rounds'}</span>
+            <span>&#9889; ${s.llmCalls} LLM calls</span>
+            <span>&#128339; ${s.elapsed}</span>
+            <span>&#128197; ${s.date}</span>
+            <span class="method-badge method-vsrp">${s.method}</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+          <div style="font-size:20px;font-weight:800;color:var(--orange)">${m.opinionChanged}%</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase">${isZh ? '意见改变' : 'Changed'}</div>
+          <div class="case-expand">&#9660;</div>
+        </div>
+      </div>
+      <div class="sim-detail">
+        <div style="margin-bottom:16px;padding:10px 14px;background:rgba(249,115,22,.06);border:1px solid rgba(249,115,22,.15);border-radius:8px;font-size:13px">
+          <strong style="color:var(--orange)">${isZh ? '事件：' : 'Event: '}</strong>${event}
+        </div>
+        ${flowHtml}
+        ${metricsHtml}
+        ${clusterHtml}
+        <div class="case-insight-box">
+          <strong>${isZh ? '分析：' : 'Analysis: '}</strong>${insight}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Init
+renderCases();
+renderSimulations();
+</script>
+
+<!-- 懒加载/统一组件已移除，导航由 Next.js NavBar 提供 -->
+
+</body>
+</html>

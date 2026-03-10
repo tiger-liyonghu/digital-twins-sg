@@ -1,0 +1,110 @@
+<!-- DeepSeek API生成的数据透明度组件 -->
+<!-- 生成时间: 2026-03-08 -->
+<!-- 项目: Digital Twin SG -->
+
+# Digital Twin SG 数据透明度展示区域
+
+我将设计一个专业、清晰的数据透明度展示区域，突出数学严谨性和透明度。这个区域将包含样本规模、置信度、数据来源追溯等关键信息。
+
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Twin SG - 数据透明度</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f9fc;
+            color: #333;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .transparency-container {
+            width: 100%;
+            max-width: 1200px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 82, 204, 0.08);
+            overflow: hidden;
+            border: 1px solid #e6f0ff;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #0052cc 0%, #0066ff 100%);
+            color: white;
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .header h1 i {
+            font-size: 32px;
+        }
+        
+        .badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .content {
+            padding: 32px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        
+        .metric-card {
+            background: #f8fbff;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #e6f0ff;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 82, 204, 0.1);
+        }
+        
+        .metric-card.highlight {
+            background: linear-gradient(135deg, #f8fbff 0%, #edf5ff 100%);
+            border-color: #c2d9ff;
+        }
+        
+        .metric-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #0052cc 0%, #0066ff 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom:

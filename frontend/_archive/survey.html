@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Research Studio | 调研工作室</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0e1a;--card:#111827;--border:#1e293b;--text:#e2e8f0;--dim:#94a3b8;--muted:#475569;--accent:#3b82f6;--green:#22c55e;--red:#ef4444;--orange:#f97316;--purple:#a855f7;--cyan:#06b6d4;--yellow:#eab308}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,system-ui,sans-serif;font-size:14px;min-height:100vh}
+
+/* NAV */
+.site-nav{background:var(--card);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.site-nav .logo{font-size:20px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-links a{color:var(--dim);text-decoration:none;font-size:12px;padding:6px 14px;border-radius:6px;transition:all .2s;font-weight:500}
+.nav-links a:hover{color:var(--accent);background:rgba(59,130,246,.08)}
+.nav-links a.active{color:var(--accent);background:rgba(59,130,246,.12);font-weight:600}
+.nav-links .sep{width:1px;height:16px;background:var(--border);margin:0 4px}
+.lang-switch{display:flex;gap:2px;background:var(--bg);border-radius:6px;padding:2px}
+.lang-switch button{background:transparent;border:none;color:var(--dim);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600}
+.lang-switch button.active{background:var(--accent);color:#fff}
+
+/* LAYOUT */
+.container{max-width:1100px;margin:0 auto;padding:24px}
+
+/* PHASE INDICATOR */
+.phases{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:24px}
+.phase{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;font-size:12px;font-weight:500;color:var(--muted);transition:all .3s}
+.phase.active{background:rgba(59,130,246,.1);color:var(--accent)}
+.phase.done{color:var(--green)}
+.phase-dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;border:2px solid var(--muted)}
+.phase.active .phase-dot{border-color:var(--accent);background:var(--accent);color:#fff}
+.phase.done .phase-dot{border-color:var(--green);background:var(--green);color:#fff}
+.phase-arrow{color:var(--muted);font-size:16px;margin:0 2px}
+
+/* CHAT */
+.chat-container{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-height:600px;height:calc(100vh - 200px);max-height:800px}
+.chat-header{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.chat-header .agent-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0}
+.chat-header .agent-info h3{font-size:15px;font-weight:600}
+.chat-header .agent-info p{font-size:12px;color:var(--muted)}
+.chat-messages{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:80%;padding:14px 18px;border-radius:14px;font-size:14px;line-height:1.7;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg-agent{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.15);align-self:flex-start;border-bottom-left-radius:4px}
+.msg-user{background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.15);align-self:flex-end;border-bottom-right-radius:4px}
+.msg-system{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);align-self:center;text-align:center;font-size:12px;color:var(--green);max-width:100%}
+.msg strong{color:var(--text)}
+.msg .highlight{color:var(--accent);font-weight:600}
+
+/* Quick replies */
+.quick-replies{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.quick-reply{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;cursor:pointer;transition:all .2s;color:var(--dim)}
+.quick-reply:hover{border-color:var(--accent);color:var(--accent);background:rgba(59,130,246,.06);transform:translateY(-1px)}
+
+/* Chat input */
+.chat-input-bar{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:12px;align-items:flex-end;background:var(--card)}
+.chat-input-bar textarea{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:14px 18px;border-radius:12px;font-size:14px;font-family:inherit;outline:none;resize:none;min-height:52px;max-height:150px;line-height:1.5;transition:border-color .2s}
+.chat-input-bar textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.chat-input-bar textarea::placeholder{color:var(--muted)}
+.chat-send{background:var(--accent);color:#fff;border:none;width:44px;height:44px;border-radius:12px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.chat-send:hover{background:#2563eb;transform:scale(1.05)}
+.chat-send:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* CONFIRM CARD */
+.confirm-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:18px;margin-top:10px}
+.confirm-card h4{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--accent)}
+.confirm-row{display:flex;gap:8px;margin-bottom:6px;font-size:12px}
+.confirm-row .cl{color:var(--muted);min-width:80px;flex-shrink:0}
+.confirm-row .cv{color:var(--text)}
+.confirm-options{list-style:none;padding:0;margin:6px 0}
+.confirm-options li{font-size:12px;color:var(--dim);padding:3px 0;padding-left:16px;position:relative}
+.confirm-options li::before{content:'';position:absolute;left:0;top:10px;width:8px;height:8px;border-radius:50%;border:2px solid var(--accent)}
+.confirm-actions{display:flex;gap:8px;margin-top:12px}
+
+/* Screening card */
+.screening-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:10px}
+.screening-card h4{font-size:14px;font-weight:700;margin-bottom:14px;color:var(--cyan);display:flex;align-items:center;gap:8px}
+.screening-card h4::before{content:'';display:inline-block;width:18px;height:18px;border-radius:50%;background:var(--cyan);opacity:.2}
+.screen-rows{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.screen-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;font-size:13px;background:rgba(6,182,212,.04);border:1px solid rgba(6,182,212,.1)}
+.screen-row.screen-open{background:transparent;border-color:var(--border);opacity:.6}
+.screen-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.screen-icon.active{background:rgba(6,182,212,.15);color:var(--cyan)}
+.screen-icon.open{background:var(--card);color:var(--muted)}
+.screen-dim{font-weight:600;min-width:50px;color:var(--text)}
+.screen-rule{color:var(--cyan);font-weight:600;min-width:80px}
+.screen-reason{color:var(--dim);flex:1}
+.screen-summary{display:flex;align-items:center;justify-content:center;gap:0;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.screen-stat{text-align:center;padding:10px 18px}
+.screen-stat-num{font-size:22px;font-weight:700;display:block;color:var(--dim)}
+.screen-stat-label{font-size:11px;color:var(--muted);margin-top:2px;display:block}
+.screen-stat.highlight .screen-stat-num{color:var(--cyan)}
+.screen-stat.sample .screen-stat-num{color:var(--green)}
+.screen-arrow{font-size:18px;color:var(--muted);margin:0 4px}
+.btn{padding:10px 22px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#2563eb}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-secondary{background:transparent;border:1px solid var(--border);color:var(--dim)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+
+/* PROGRESS */
+.progress-section{text-align:center;padding:40px 20px}
+.progress-ring{width:120px;height:120px;margin:0 auto 20px;position:relative}
+.progress-ring svg{transform:rotate(-90deg)}
+.progress-ring circle{fill:none;stroke-width:8}
+.progress-ring .bg{stroke:var(--border)}
+.progress-ring .fg{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset .3s}
+.progress-pct{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:24px;font-weight:700}
+.progress-text{font-size:14px;color:var(--dim);margin-bottom:8px}
+
+/* RESULTS */
+.result-section{margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px}
+.result-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.result-kpi .card{text-align:center}
+.big{font-size:32px;font-weight:700;line-height:1;margin-bottom:4px}
+.sub{font-size:12px;color:var(--dim)}
+.bar-group{margin-top:8px}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.bar-label{min-width:180px;font-size:12px;color:var(--dim);text-align:right}
+.bar-track{flex:1;height:24px;background:var(--bg);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:600;color:#fff;min-width:30px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+th{text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;padding:8px 10px;border-bottom:1px solid var(--border)}
+td{padding:8px 10px;border-bottom:1px solid rgba(30,41,59,.4)}
+.concern-item{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--dim);line-height:1.5;margin-bottom:6px}
+.log-table{max-height:400px;overflow-y:auto}
+.log-pos{color:var(--green)}.log-neg{color:var(--red)}.log-neu{color:var(--orange)}
+
+/* Analysis agent report */
+.report-box{background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:20px;margin-bottom:16px}
+.report-box h3{font-size:14px;font-weight:700;color:var(--green);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.report-box p{font-size:13px;color:var(--dim);line-height:1.7;margin-bottom:8px}
+.report-box .verdict{font-size:15px;font-weight:700;margin:8px 0}
+.quality-checks{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.qc{background:var(--card);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--border)}
+.qc .qc-status{font-size:18px;font-weight:800}
+.qc .qc-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.qc.pass .qc-status{color:var(--green)}
+.qc.warn .qc-status{color:var(--orange)}
+.qc.fail .qc-status{color:var(--red)}
+
+.hidden{display:none!important}
+.funnel{display:flex;align-items:center;justify-content:center;gap:0;margin:16px 0}
+.funnel-step{text-align:center;padding:14px 20px;border-radius:10px;min-width:120px}
+.funnel-num{font-size:24px;font-weight:700}
+.funnel-label{font-size:11px;color:var(--dim);margin-top:4px}
+.funnel-arrow{font-size:20px;color:var(--muted);margin:0 6px}
+
+/* Statistical indicators */
+.ci-range{font-size:10px;color:var(--muted);margin-left:4px;font-weight:400}
+.moe-badge{display:inline-block;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.15);border-radius:4px;padding:2px 6px;font-size:10px;color:var(--accent);font-weight:600;margin-left:6px}
+.stat-sig{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;display:inline-block}
+.stat-sig.sig{color:var(--green);background:rgba(34,197,94,.08)}
+.stat-sig.not-sig{color:var(--muted);background:rgba(71,85,105,.08)}
+.pvalue{font-size:10px;color:var(--muted);font-style:italic}
+
+/* Methodology statement */
+.methodology-box{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px;margin-top:16px}
+.methodology-box h4{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+.methodology-box .meth-row{display:flex;gap:8px;margin-bottom:6px;font-size:12px;line-height:1.6}
+.methodology-box .meth-label{color:var(--muted);min-width:100px;flex-shrink:0;font-weight:600}
+.methodology-box .meth-value{color:var(--dim)}
+.methodology-box .meth-warning{color:var(--orange);font-size:11px;margin-top:10px;padding:10px;background:rgba(249,115,22,.04);border:1px solid rgba(249,115,22,.12);border-radius:8px;line-height:1.6}
+
+/* Crosstab */
+.crosstab-wrapper{overflow-x:auto;margin-top:8px}
+.crosstab{font-size:12px;width:100%}
+.crosstab th{font-size:10px;padding:6px 8px;text-align:center;white-space:nowrap}
+.crosstab td{text-align:center;padding:6px 8px;font-size:12px}
+.crosstab td.row-label{text-align:left;font-weight:600;color:var(--text)}
+.crosstab .ct-heat-high{background:rgba(34,197,94,.12);color:var(--green);font-weight:700}
+.crosstab .ct-heat-mid{background:rgba(249,115,22,.08);color:var(--orange)}
+.crosstab .ct-heat-low{background:rgba(239,68,68,.08);color:var(--red)}
+
+.footer{text-align:center;padding:40px 24px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);margin-top:40px}
+
+@media(max-width:768px){
+  .result-kpi{grid-template-columns:1fr 1fr}
+  .quality-checks{grid-template-columns:1fr 1fr}
+  .bar-label{min-width:120px;font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <a class="logo" href="index.html" id="nav-logo">SG Digital Twin</a>
+  <div class="nav-links">
+    <a href="index.html" id="nav-home">Home</a>
+    <a href="dashboard.html" id="nav-dash">Data Explorer</a>
+    <a href="survey.html" class="active" id="nav-survey">Survey</a>
+    <a href="conjoint.html" id="nav-conjoint">Conjoint</a>
+    <a href="abtest.html" id="nav-abtest">A/B Test</a>
+    <a href="backtest.html" id="nav-backtest">Backtest</a>
+    <div class="sep"></div>
+    <a href="evidence.html" id="nav-evidence">Evidence</a>
+    <a href="methodology.html" id="nav-method">Methodology</a>
+    <a href="architecture.html" id="nav-arch">Architecture</a>
+    <a href="project.html" id="nav-proj">Project</a>
+    <div class="sep"></div>
+    <div class="lang-switch">
+      <button class="active" onclick="setLang('zh')">ZH</button>
+      <button onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+<!-- PHASE INDICATOR -->
+<div class="phases">
+  <div class="phase active" id="ph1"><div class="phase-dot">1</div><span id="ph1-t">Research Design</span></div>
+  <span class="phase-arrow">&rarr;</span>
+  <div class="phase" id="ph2"><div class="phase-dot">2</div><span id="ph2-t">Running</span></div>
+  <span class="phase-arrow">&rarr;</span>
+  <div class="phase" id="ph3"><div class="phase-dot">3</div><span id="ph3-t">Analysis</span></div>
+</div>
+
+<!-- ==================== PHASE 1: DESIGN AGENT CHAT ==================== -->
+<div id="page-design">
+  <div class="chat-container">
+    <div class="chat-header">
+      <div class="agent-avatar" style="background:linear-gradient(135deg,var(--accent),var(--purple))">D</div>
+      <div class="agent-info">
+        <h3 id="design-agent-name">Research Design Agent</h3>
+        <p id="design-agent-desc">I'll help you structure your survey</p>
+      </div>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-bar" id="chat-input-bar">
+      <textarea id="chat-input" rows="1" placeholder="Type your answer..." onkeydown="handleInputKey(event)"></textarea>
+      <button class="chat-send" onclick="sendChat()" id="chat-send-btn">&#10148;</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PHASE 2: RUNNING ==================== -->
+<div id="page-running" class="hidden">
+  <div class="card">
+    <div class="progress-section">
+      <div class="progress-ring">
+        <svg width="120" height="120"><circle class="bg" cx="60" cy="60" r="52"></circle><circle class="fg" id="prog-circle" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7"></circle></svg>
+        <div class="progress-pct" id="prog-pct">0%</div>
+      </div>
+      <div class="progress-text" id="prog-text">Sampling...</div>
+      <div class="progress-text" id="prog-detail"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PHASE 3: ANALYSIS AGENT ==================== -->
+<div id="page-results" class="hidden">
+  <!-- Analysis Agent Report -->
+  <div id="analysis-report"></div>
+  <!-- KPIs -->
+  <div class="result-kpi" id="res-kpis"></div>
+  <!-- Funnel -->
+  <div class="card" id="res-funnel"></div>
+  <!-- Charts -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+    <div class="card"><h3 id="h-dist">Response Distribution</h3><div id="res-bars"></div></div>
+    <div class="card"><h3 id="h-age">By Age</h3><div id="res-age-table"></div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+    <div class="card"><h3 id="h-income">By Income</h3><div id="res-income-table"></div></div>
+    <div class="card"><h3 id="h-concerns">Key Concerns</h3><div id="res-concerns"></div></div>
+  </div>
+  <!-- Quality Gate (Nemotron Reward) -->
+  <div class="card" id="res-quality-card" class="hidden"><h3 id="h-quality">Response Quality (Nemotron Reward)</h3><div id="res-quality"></div></div>
+  <!-- Crosstab -->
+  <div class="card"><h3 id="h-crosstab">Cross-Tabulation</h3><div id="res-crosstab"></div></div>
+  <!-- Agent log -->
+  <div class="card"><h3 id="h-log">Agent Response Log</h3><div class="log-table" id="res-log"></div></div>
+  <!-- Methodology -->
+  <div id="res-methodology"></div>
+  <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
+    <button class="btn btn-secondary" onclick="downloadResult()" id="btn-download">Download JSON</button>
+    <button class="btn btn-primary" onclick="resetAll()" id="btn-new">New Survey</button>
+  </div>
+</div>
+
+</div>
+
+<div class="footer">
+  <p id="footer-text">Singapore Digital Twin &mdash; Research Studio &mdash; GHS 2025 Calibrated</p>
+</div>
+
+<script>
+// ============================================================
+// I18N
+// ============================================================
+const I18N = {
+  zh: {
+    'nav-logo':'新加坡数字孪生','nav-home':'首页','nav-dash':'数据探索','nav-survey':'调研工作室',
+    'nav-conjoint':'联合分析','nav-abtest':'A/B测试','nav-backtest':'回测',
+    'nav-evidence':'科学依据','nav-method':'方法论','nav-arch':'系统架构','nav-proj':'项目管理',
+    'ph1-t':'调研设计','ph2-t':'执行中','ph3-t':'分析报告',
+    'design-agent-name':'调研设计 Agent','design-agent-desc':'我来帮你梳理调研方案',
+    'footer-text':'新加坡数字孪生 — 调研工作室 — GHS 2025 校准',
+    'btn-download':'下载JSON报告','btn-new':'发起新调研',
+    'h-dist':'选项分布','h-age':'按年龄分层','h-income':'按收入分层','h-concerns':'核心顾虑','h-crosstab':'交叉分析','h-log':'Agent逐条回答',
+  },
+  en: {}
+};
+let currentLang = 'zh';
+function setLang(l) {
+  currentLang = l;
+  document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.lang-switch button[onclick="setLang('${l}')"]`).classList.add('active');
+  const dict = I18N[l] || {};
+  for (const [id, text] of Object.entries(dict)) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = text;
+  }
+}
+
+// ============================================================
+// CHAT STATE MACHINE
+// ============================================================
+let chatStep = 0;
+const survey = { client: '', topic: '', question: '', context: '', options: [], filters: {}, sampleSize: 1000 };
+let currentJobId = null, currentResult = null, pollTimer = null;
+const zh = () => currentLang === 'zh';
+const chatBox = () => document.getElementById('chat-messages');
+
+function addMsg(type, html, delay=0) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      const d = document.createElement('div');
+      d.className = 'msg msg-' + type;
+      d.innerHTML = html;
+      chatBox().appendChild(d);
+      chatBox().scrollTop = chatBox().scrollHeight;
+      resolve(d);
+    }, delay);
+  });
+}
+
+function addQuickReplies(options) {
+  const wrap = document.createElement('div');
+  wrap.className = 'quick-replies';
+  wrap.id = 'qr-active';
+  options.forEach(opt => {
+    const btn = document.createElement('div');
+    btn.className = 'quick-reply';
+    btn.textContent = opt;
+    btn.onclick = () => { document.getElementById('chat-input').value = opt; sendChat(); };
+    wrap.appendChild(btn);
+  });
+  chatBox().appendChild(wrap);
+  chatBox().scrollTop = chatBox().scrollHeight;
+}
+
+function removeQuickReplies() {
+  const qr = document.getElementById('qr-active');
+  if (qr) qr.remove();
+}
+
+function disableInput() {
+  const inp = document.getElementById('chat-input');
+  inp.disabled = true;
+  inp.style.height = 'auto';
+  document.getElementById('chat-send-btn').disabled = true;
+}
+function enableInput(placeholder) {
+  const inp = document.getElementById('chat-input');
+  inp.disabled = false;
+  inp.placeholder = placeholder || (zh() ? '输入你的回答...' : 'Type your answer...');
+  inp.value = '';
+  inp.style.height = 'auto';
+  inp.focus();
+  document.getElementById('chat-send-btn').disabled = false;
+}
+
+// ============================================================
+// CONVERSATION FLOW
+// ============================================================
+const TEMPLATES = {
+  insurance: { client:'AIA Singapore', topic:'insurance',
+    q_zh:'一家保险公司推出新重疾险，覆盖37种重大疾病，月保费$200，保额$200,000。你会考虑购买吗？',
+    q_en:'New CI insurance: 37 diseases, $200/mo premium, $200K coverage. Would you consider purchasing?',
+    ctx_zh:'新加坡医疗费用持续上涨。重疾平均治疗费用$100K-$300K。', ctx_en:'Healthcare costs rising. Avg CI treatment: $100K-$300K.',
+    opts_zh:['肯定会买——需要保障','可能会买——先比价','看预算再说','太贵了','不需要保险','不确定/没想法'],
+    opts_en:['Definitely yes','Probably yes - compare first','Depends on budget','Too expensive','Not interested','Not sure / No opinion'],
+    filters:{age_min:21,age_max:65,has_income:true}
+  },
+  hdb: { client:'HDB', topic:'housing',
+    q_zh:'HDB在榜鹅推出新BTO，3房($250K)、4房($380K)、5房($520K)，2030交付。你会申请吗？',
+    q_en:'New BTO in Punggol: 3-room $250K, 4-room $380K, 5-room $520K. Completion 2030. Would you apply?',
+    ctx_zh:'榜鹅成熟市镇，有MRT。首次购屋者优先。', ctx_en:'Punggol mature estate with MRT. First-timers prioritized.',
+    opts_zh:['肯定申请','可能申请','更喜欢其他区','已有住房','不符资格','不确定/没想法'],
+    opts_en:['Definitely apply','Probably apply','Prefer other areas','Already have home','Not eligible','Not sure / No opinion'],
+    filters:{age_min:21,age_max:40,has_income:true}
+  },
+  fmcg: { client:'FairPrice', topic:'fmcg',
+    q_zh:'新款植物基蛋白饮(500ml)$4.50，比豆奶贵50%但蛋白质2倍。你会买吗？',
+    q_en:'Plant protein drink (500ml) at $4.50, 50% pricier than soy milk, 2x protein. Would you buy?',
+    ctx_zh:'健康饮食趋势上升，植物基市场年增长15%。', ctx_en:'Health trends rising, plant-based +15%/yr.',
+    opts_zh:['经常买','偶尔买','等促销','太贵','不感兴趣','不确定/没想法'],
+    opts_en:['Buy regularly','Buy sometimes','Wait for promo','Too pricey','Not interested','Not sure / No opinion'],
+    filters:{age_min:18,age_max:70,has_income:true}
+  },
+  transport: { client:'LTA', topic:'transport',
+    q_zh:'高峰时段扩大ERP($2-$5)，同时增加20%公交班次。你支持吗？',
+    q_en:'Expand peak ERP charges ($2-$5) while increasing bus frequency 20%. Support?',
+    ctx_zh:'交通拥堵加剧，平均通勤45分钟。', ctx_en:'Traffic worsening, avg commute 45 mins.',
+    opts_zh:['完全支持','基本支持','中立','不太支持','强烈反对','不确定/没想法'],
+    opts_en:['Fully support','Mostly support','Neutral','Mostly oppose','Strongly oppose','Not sure / No opinion'],
+    filters:{age_min:18}
+  },
+};
+
+async function startChat() {
+  chatStep = 0;
+  await addMsg('agent', zh()
+    ? '你好！我是<strong>调研设计 Agent</strong>。我来帮你把调研方案理清楚，确保问题精准、选项完整、目标人群明确。<br><br>你想调研什么方向？可以直接告诉我，或者选一个快速模板开始：'
+    : "Hi! I'm the <strong>Research Design Agent</strong>. I'll help you structure a precise survey — clear question, complete options, well-defined target audience.<br><br>What would you like to research? Tell me directly, or pick a quick template:", 300);
+  addQuickReplies(zh()
+    ? ['保险产品测试','HDB住房需求','快消品定价','交通出行政策','我有自己的话题']
+    : ['Insurance product','HDB housing','FMCG pricing','Transport policy','I have my own topic']);
+  chatStep = 1;
+  enableInput(zh() ? '描述你的调研方向...' : 'Describe your research topic...');
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.style.height = 'auto';
+  removeQuickReplies();
+  await addMsg('user', text);
+
+  if (chatStep === 1) await handleTopicInput(text);
+  else if (chatStep === 2) await handleQuestionEdit(text);
+  else if (chatStep === 3) await handleOptionsEdit(text);
+  else if (chatStep === 4) await handleSampleSizeStep(text);
+  else if (chatStep === 5) await handleScreeningStep(text);
+  else if (chatStep === 6) await handleFilterAdjust(text);
+}
+
+async function handleTopicInput(text) {
+  disableInput();
+  const lower = text.toLowerCase();
+  let tmpl = null;
+  if (lower.includes('保险') || lower.includes('insurance') || lower.includes('保障')) tmpl = TEMPLATES.insurance;
+  else if (lower.includes('hdb') || lower.includes('住房') || lower.includes('bto') || lower.includes('housing')) tmpl = TEMPLATES.hdb;
+  else if (lower.includes('快消') || lower.includes('fmcg') || lower.includes('饮料') || lower.includes('food') || lower.includes('定价') || lower.includes('pricing')) tmpl = TEMPLATES.fmcg;
+  else if (lower.includes('交通') || lower.includes('transport') || lower.includes('erp') || lower.includes('出行')) tmpl = TEMPLATES.transport;
+
+  if (tmpl) {
+    survey.client = tmpl.client;
+    survey.question = zh() ? tmpl.q_zh : tmpl.q_en;
+    survey.context = zh() ? tmpl.ctx_zh : tmpl.ctx_en;
+    survey.options = zh() ? [...tmpl.opts_zh] : [...tmpl.opts_en];
+    survey.filters = {...tmpl.filters};
+
+    await addMsg('agent', zh()
+      ? `好的，我根据<strong>${text}</strong>方向帮你设计了初步方案。<br><br>请看以下调研问题，如果需要修改可以直接告诉我：`
+      : `Great, I've drafted a survey based on <strong>${text}</strong>.<br><br>Review the question below — tell me if you'd like to change anything:`, 500);
+  } else {
+    survey.question = text;
+    survey.options = zh()
+      ? ['非常感兴趣','比较感兴趣','一般','不太感兴趣','完全不感兴趣','不确定/没想法']
+      : ['Very interested','Somewhat interested','Neutral','Not very interested','Not interested at all','Not sure / No opinion'];
+    survey.filters = {age_min:18, has_income:true};
+
+    await addMsg('agent', zh()
+      ? `明白。我帮你初步整理了调研问题和通用选项。你可以直接确认，或告诉我怎么修改：`
+      : `Got it. I've structured your topic into a survey with generic options. Confirm or tell me what to change:`, 500);
+  }
+
+  await showConfirmCard();
+  chatStep = 2;
+  enableInput(zh() ? '确认 / 或告诉我怎么修改问题...' : 'Confirm / or tell me how to edit...');
+  addQuickReplies(zh() ? ['问题OK','我想修改问题','换个问法'] : ['Question looks good','I want to edit','Rephrase it']);
+}
+
+async function showConfirmCard() {
+  const optList = survey.options.map(o => `<li>${o}</li>`).join('');
+  const filterDesc = describeFilters(survey.filters);
+  const html = `<div class="confirm-card">
+    <h4>${zh()?'调研方案草案':'Draft Research Plan'}</h4>
+    ${survey.client ? `<div class="confirm-row"><span class="cl">${zh()?'客户':'Client'}</span><span class="cv">${survey.client}</span></div>` : ''}
+    <div class="confirm-row"><span class="cl">${zh()?'问题':'Question'}</span><span class="cv">${survey.question}</span></div>
+    ${survey.context ? `<div class="confirm-row"><span class="cl">${zh()?'背景':'Context'}</span><span class="cv">${survey.context}</span></div>` : ''}
+    <div class="confirm-row"><span class="cl">${zh()?'选项':'Options'}</span></div>
+    <ol class="confirm-options">${optList}</ol>
+    <div class="confirm-row"><span class="cl">${zh()?'人群筛选':'Target'}</span><span class="cv">${filterDesc}</span></div>
+    <div class="confirm-row"><span class="cl">${zh()?'样本量':'Sample'}</span><span class="cv">${survey.sampleSize} agents</span></div>
+  </div>`;
+  await addMsg('agent', html, 200);
+}
+
+function describeFilters(f) {
+  const parts = [];
+  if (f.age_min || f.age_max) parts.push(`${zh()?'年龄':'Age'} ${f.age_min||0}-${f.age_max||100}`);
+  if (f.gender && f.gender !== 'all') parts.push(f.gender === 'M' ? (zh()?'男性':'Male') : (zh()?'女性':'Female'));
+  if (f.housing && f.housing !== 'all') parts.push(f.housing);
+  if (f.has_income) parts.push(zh()?'有收入者':'With income');
+  return parts.length > 0 ? parts.join(' | ') : (zh()?'全人口':'Full population');
+}
+
+async function handleQuestionEdit(text) {
+  const lower = text.toLowerCase();
+  if (lower.includes('ok') || lower.includes('确认') || lower.includes('good') || lower.includes('没问题') || lower.includes('可以')) {
+    await addMsg('agent', zh()
+      ? '问题确认。现在看看选项 —— 这些选项覆盖了从最积极到最消极的态度谱。需要调整吗？'
+      : 'Question confirmed. Now check the options — they cover the attitude spectrum from most positive to most negative. Need changes?', 300);
+    chatStep = 3;
+    enableInput(zh() ? '确认选项 / 或修改...' : 'Confirm options / or edit...');
+    addQuickReplies(zh() ? ['选项OK，继续','我要修改选项','增加一个选项'] : ['Options OK, proceed','Edit options','Add an option']);
+  } else {
+    survey.question = text;
+    await addMsg('agent', zh() ? '已更新调研问题。现在的方案：' : 'Updated. Current plan:', 300);
+    await showConfirmCard();
+    enableInput(zh() ? '确认 / 或继续修改...' : 'Confirm / or keep editing...');
+    addQuickReplies(zh() ? ['问题OK','继续修改'] : ['Looks good','Keep editing']);
+  }
+}
+
+async function handleOptionsEdit(text) {
+  const lower = text.toLowerCase();
+  if (lower.includes('ok') || lower.includes('确认') || lower.includes('good') || lower.includes('继续') || lower.includes('proceed')) {
+    await addMsg('agent', zh()
+      ? '选项确认。请选择<strong>样本量</strong> —— 调研将从20,000个数字居民中抽样：'
+      : 'Options confirmed. Choose <strong>sample size</strong> — the survey will sample from 20,000 digital residents:', 300);
+    chatStep = 4;
+    enableInput(zh() ? '输入样本量...' : 'Enter sample size...');
+    addQuickReplies(zh()
+      ? ['1,000人（标准调研）','2,000人（高精度）','20,000人（全量・付费）','100人（快速测试）']
+      : ['1,000 (standard)','2,000 (high precision)','20,000 (full census · paid)','100 (quick test)']);
+  } else {
+    survey.options = text.split(/[,，、\n]/).map(s => s.trim()).filter(s => s);
+    if (survey.options.length < 2) {
+      await addMsg('agent', zh() ? '至少需要2个选项，用逗号分隔。请重新输入：' : 'Need at least 2 options, comma-separated. Try again:', 200);
+      return;
+    }
+    await addMsg('agent', zh() ? `已更新为 ${survey.options.length} 个选项。现在的方案：` : `Updated to ${survey.options.length} options:`, 300);
+    await showConfirmCard();
+    enableInput(zh() ? '确认选项 / 或继续调整...' : 'Confirm / or keep editing...');
+    addQuickReplies(zh() ? ['选项OK，继续','再改'] : ['Options OK','Edit more']);
+  }
+}
+
+// ============================================================
+// STEP 4: SAMPLE SIZE
+// ============================================================
+async function handleSampleSizeStep(text) {
+  disableInput();
+  const lower = text.toLowerCase();
+  let size = 1000;
+  if (lower.includes('20,000') || lower.includes('20000') || lower.includes('全量') || lower.includes('full census')) size = 20000;
+  else if (lower.includes('2,000') || lower.includes('2000') || lower.includes('高精度') || lower.includes('high')) size = 2000;
+  else if (lower.includes('100') && (lower.includes('测试') || lower.includes('test') || lower.includes('快速') || lower.includes('quick'))) size = 100;
+  else if (lower.includes('1,000') || lower.includes('1000') || lower.includes('标准') || lower.includes('standard')) size = 1000;
+  else {
+    const num = parseInt(text.replace(/,/g, ''));
+    if (num > 0) size = Math.min(Math.max(num, 50), 5000);
+  }
+  survey.sampleSize = size;
+
+  const sizeLabel = size === 100 ? (zh()?'100人（快速测试模式）':'100 (quick test mode)')
+    : size === 20000 ? (zh()?'20,000人（全量调研・付费）':'20,000 (full census · paid)')
+    : `${size.toLocaleString()}${zh()?'人':''}`;
+  await addMsg('agent', zh()
+    ? `样本量设为 <strong>${sizeLabel}</strong>。<br><br>现在我来分析一下：根据你的调研问题，<strong>哪些群体应该纳入、哪些应该排除</strong>。请看以下筛选分析：`
+    : `Sample size set to <strong>${sizeLabel}</strong>.<br><br>Now let me analyze: based on your research question, <strong>which groups should be included or excluded</strong>. See the screening analysis below:`, 400);
+
+  // Auto-generate screening
+  const screening = generateScreening();
+  applyScreeningFilters(screening);
+  const cardHtml = renderScreeningCard(screening);
+  await addMsg('agent', cardHtml, 300);
+
+  chatStep = 5;
+  enableInput(zh() ? '确认启动 / 或调整筛选条件...' : 'Confirm to launch / or adjust filters...');
+  addQuickReplies(zh()
+    ? ['确认，启动调研', '我要调整筛选条件']
+    : ['Confirm & launch', 'Adjust filters']);
+}
+
+// ============================================================
+// SCREENING ANALYSIS
+// ============================================================
+function generateScreening() {
+  const q = (survey.question + ' ' + (survey.context || '')).toLowerCase();
+  const screening = [];
+
+  // --- Age analysis ---
+  if (q.match(/投票|vote|选举|election|总统|president|大选/)) {
+    screening.push({ dim:'age', rule:'≥ 21', reason_zh:'新加坡法定投票年龄21岁', reason_en:'Singapore legal voting age is 21', filter:{age_min:21} });
+    screening.push({ dim:'residency', rule:'Citizen', reason_zh:'仅公民有投票权，排除PR和外国人', reason_en:'Only citizens can vote, exclude PR & foreigners', filter:{residency:'Citizen'} });
+  } else if (q.match(/bto|组屋申请|新组屋|hdb.*申请|bto.*flat/)) {
+    screening.push({ dim:'age', rule:'21-45', reason_zh:'BTO主要面向21-45岁首次购房者', reason_en:'BTO targets first-time buyers aged 21-45', filter:{age_min:21, age_max:45} });
+    screening.push({ dim:'residency', rule:'Citizen', reason_zh:'BTO仅限公民申请', reason_en:'BTO restricted to citizens', filter:{residency:'Citizen'} });
+    screening.push({ dim:'income', rule_zh:'有收入', rule_en:'With income', reason_zh:'需有购房经济能力', reason_en:'Must have purchasing power', filter:{has_income:true} });
+  } else if (q.match(/退休|retire|retirement|re-employment/)) {
+    screening.push({ dim:'age', rule:'≥ 50', reason_zh:'退休政策主要影响50岁以上在职/近退休群体', reason_en:'Retirement policy mainly affects workers 50+', filter:{age_min:50} });
+    screening.push({ dim:'income', rule_zh:'有收入', rule_en:'With income', reason_zh:'需为在职劳动力', reason_en:'Must be currently employed', filter:{has_income:true} });
+  } else if (q.match(/化妆|cosmetic|beauty|美妆|护肤|skincare/)) {
+    screening.push({ dim:'gender', rule:'F', reason_zh:'化妆品/护肤品主要消费群体为女性', reason_en:'Cosmetics primarily targets female consumers', filter:{gender:'F'} });
+    screening.push({ dim:'age', rule:'18-60', reason_zh:'成年消费者', reason_en:'Adult consumers', filter:{age_min:18, age_max:60} });
+    screening.push({ dim:'income', rule_zh:'有收入', rule_en:'With income', reason_zh:'需有消费能力', reason_en:'Must have spending power', filter:{has_income:true} });
+  } else if (q.match(/消费券|voucher|sg60|cdc券/)) {
+    screening.push({ dim:'age', rule:'≥ 18', reason_zh:'成年公民可领取消费券', reason_en:'Adult citizens eligible for vouchers', filter:{age_min:18} });
+    screening.push({ dim:'residency', rule:'Citizen', reason_zh:'仅公民可领取政府消费券', reason_en:'Only citizens receive government vouchers', filter:{residency:'Citizen'} });
+  } else if (q.match(/碳税|carbon.*tax|电费|electricity|能源|energy|水电|utility/)) {
+    screening.push({ dim:'age', rule:'≥ 21', reason_zh:'家庭户主/水电费支付者', reason_en:'Household heads / utility bill payers', filter:{age_min:21} });
+  } else if (q.match(/平台工人|platform.*worker|骑手|grab|foodpanda|gig/)) {
+    screening.push({ dim:'age', rule:'18-55', reason_zh:'平台工人主要年龄段', reason_en:'Platform worker age range', filter:{age_min:18, age_max:55} });
+    screening.push({ dim:'income', rule_zh:'有收入', rule_en:'With income', reason_zh:'需为在职/有收入群体', reason_en:'Must be employed / have income', filter:{has_income:true} });
+  } else if (q.match(/erp|拥堵|congestion|驾车|driving|公交|bus|地铁|mrt|交通|transport/)) {
+    screening.push({ dim:'age', rule:'≥ 18', reason_zh:'成年通勤者', reason_en:'Adult commuters', filter:{age_min:18} });
+  } else if (q.match(/转售|resale.*hdb|resale.*flat|组屋转售/)) {
+    screening.push({ dim:'age', rule:'≥ 21', reason_zh:'需达到购房年龄', reason_en:'Must meet housing purchase age', filter:{age_min:21} });
+    screening.push({ dim:'income', rule_zh:'有收入', rule_en:'With income', reason_zh:'需有购买力', reason_en:'Must have purchasing power', filter:{has_income:true} });
+  } else if (q.match(/保险|insurance|保障|保费|premium/)) {
+    screening.push({ dim:'age', rule:'21-65', reason_zh:'保险产品目标年龄段', reason_en:'Insurance product target age range', filter:{age_min:21, age_max:65} });
+    screening.push({ dim:'income', rule_zh:'有收入', rule_en:'With income', reason_zh:'需有保费支付能力', reason_en:'Must afford premiums', filter:{has_income:true} });
+  } else {
+    // Default
+    screening.push({ dim:'age', rule:'≥ 18', reason_zh:'成年人群', reason_en:'Adult population', filter:{age_min:18} });
+  }
+
+  // Auto-detect spending/purchase → add income filter if not yet added
+  if (q.match(/购买|buy|消费|spend|花费|支出|价格|pricing|定价/) && !screening.find(s => s.dim === 'income')) {
+    screening.push({ dim:'income', rule_zh:'有收入', rule_en:'With income', reason_zh:'涉及消费/购买决策，排除无收入群体', reason_en:'Spending decision, exclude no-income group', filter:{has_income:true} });
+  }
+
+  return screening;
+}
+
+function applyScreeningFilters(screening) {
+  const merged = {};
+  screening.forEach(s => Object.assign(merged, s.filter));
+  survey.filters = merged;
+}
+
+function estimateEligible(filters) {
+  let ratio = 1.0;
+  // Age
+  if (filters.age_min >= 50) ratio *= 0.30;
+  else if (filters.age_min >= 21) ratio *= 0.75;
+  else if (filters.age_min >= 18) ratio *= 0.80;
+  if (filters.age_max) {
+    if (filters.age_max <= 45) ratio *= 0.58;
+    else if (filters.age_max <= 55) ratio *= 0.72;
+    else if (filters.age_max <= 60) ratio *= 0.82;
+    else if (filters.age_max <= 65) ratio *= 0.88;
+  }
+  // Gender
+  if (filters.gender === 'F') ratio *= 0.514;
+  else if (filters.gender === 'M') ratio *= 0.486;
+  // Income
+  if (filters.has_income) ratio *= 0.65;
+  // Residency
+  if (filters.residency === 'Citizen') ratio *= 0.82;
+  return Math.round(20000 * ratio);
+}
+
+function renderScreeningCard(screening) {
+  const allDims = ['age','gender','income','residency'];
+  const dimLabels = {
+    age:       { zh:'年龄', en:'Age' },
+    gender:    { zh:'性别', en:'Gender' },
+    income:    { zh:'收入', en:'Income' },
+    residency: { zh:'身份', en:'Residency' },
+  };
+  const screenedDims = screening.map(s => s.dim);
+
+  let rowsHtml = '';
+  // Active filters
+  screening.forEach(s => {
+    const dl = dimLabels[s.dim] || {zh:s.dim, en:s.dim};
+    const rule = s.rule_zh && zh() ? s.rule_zh : (s.rule_en && !zh() ? s.rule_en : s.rule);
+    rowsHtml += `<div class="screen-row">
+      <span class="screen-icon active">&#10003;</span>
+      <span class="screen-dim">${zh() ? dl.zh : dl.en}</span>
+      <span class="screen-rule">${rule}</span>
+      <span class="screen-reason">${zh() ? s.reason_zh : s.reason_en}</span>
+    </div>`;
+  });
+  // Unrestricted dims
+  allDims.forEach(dim => {
+    if (screenedDims.includes(dim)) return;
+    const dl = dimLabels[dim];
+    rowsHtml += `<div class="screen-row screen-open">
+      <span class="screen-icon open">&mdash;</span>
+      <span class="screen-dim">${zh() ? dl.zh : dl.en}</span>
+      <span class="screen-rule">${zh() ? '不限' : 'No filter'}</span>
+      <span class="screen-reason">${zh() ? '该维度全量纳入' : 'All included in this dimension'}</span>
+    </div>`;
+  });
+
+  const eligible = estimateEligible(survey.filters);
+  const eligPct = (eligible / 20000 * 100).toFixed(1);
+
+  return `<div class="screening-card">
+    <h4>${zh() ? '受众筛选分析' : 'Audience Screening Analysis'}</h4>
+    <div class="screen-rows">${rowsHtml}</div>
+    <div class="screen-summary">
+      <div class="screen-stat">
+        <span class="screen-stat-num">20,000</span>
+        <span class="screen-stat-label">${zh() ? '总人口' : 'Total Pop.'}</span>
+      </div>
+      <span class="screen-arrow">&rarr;</span>
+      <div class="screen-stat highlight">
+        <span class="screen-stat-num">~${eligible.toLocaleString()}</span>
+        <span class="screen-stat-label">${zh() ? '有效人群' : 'Eligible'} (${eligPct}%)</span>
+      </div>
+      <span class="screen-arrow">&rarr;</span>
+      <div class="screen-stat sample">
+        <span class="screen-stat-num">${survey.sampleSize.toLocaleString()}</span>
+        <span class="screen-stat-label">${zh() ? '抽样数' : 'Sample'}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// STEP 5: SCREENING CONFIRM / STEP 6: FILTER ADJUST
+// ============================================================
+async function handleScreeningStep(text) {
+  const lower = text.toLowerCase();
+  if (lower.match(/确认|启动|开始|launch|start|confirm|go/)) {
+    await launchSurvey();
+  } else if (lower.match(/调整|修改|change|adjust|edit/)) {
+    await addMsg('agent', zh()
+      ? '请告诉我要怎么调整筛选条件。例如：<br>- "年龄改为 25-55"<br>- "加上仅限女性"<br>- "去掉收入限制"<br>- "只限公民"'
+      : 'Tell me how to adjust. Examples:<br>- "Change age to 25-55"<br>- "Add female only"<br>- "Remove income filter"<br>- "Citizens only"', 300);
+    chatStep = 6;
+    enableInput(zh() ? '输入调整内容...' : 'Enter adjustment...');
+  } else {
+    await addMsg('agent', zh() ? '请确认启动调研，或者说"调整"来修改筛选条件。' : 'Please confirm to launch, or say "adjust" to modify filters.', 200);
+    addQuickReplies(zh() ? ['确认，启动调研','我要调整筛选条件'] : ['Confirm & launch','Adjust filters']);
+  }
+}
+
+async function handleFilterAdjust(text) {
+  const lower = text.toLowerCase();
+  let changed = false;
+
+  // Parse age range
+  const ageMatch = text.match(/(\d+)\s*[-–到]\s*(\d+)/);
+  if (ageMatch) {
+    survey.filters.age_min = parseInt(ageMatch[1]);
+    survey.filters.age_max = parseInt(ageMatch[2]);
+    changed = true;
+  }
+  // Gender
+  if (lower.match(/女性|female|仅.*女|only.*f/)) { survey.filters.gender = 'F'; changed = true; }
+  else if (lower.match(/男性|male|仅.*男|only.*m/)) { survey.filters.gender = 'M'; changed = true; }
+  else if (lower.match(/不限性别|all gender|去掉性别/)) { delete survey.filters.gender; changed = true; }
+  // Income
+  if (lower.match(/去掉收入|remove income|不限收入|无收入也可/)) { delete survey.filters.has_income; changed = true; }
+  else if (lower.match(/有收入|with income|仅.*收入/)) { survey.filters.has_income = true; changed = true; }
+  // Residency
+  if (lower.match(/公民|citizen/)) { survey.filters.residency = 'Citizen'; changed = true; }
+  else if (lower.match(/去掉.*身份|remove.*residency|不限身份|all resident/)) { delete survey.filters.residency; changed = true; }
+
+  if (changed) {
+    // Re-generate screening card based on updated filters
+    const screening = filtersToScreening(survey.filters);
+    const cardHtml = renderScreeningCard(screening);
+    await addMsg('agent', zh() ? '已更新筛选条件：' : 'Updated filters:', 200);
+    await addMsg('agent', cardHtml, 300);
+    chatStep = 5;
+    enableInput(zh() ? '确认启动 / 或继续调整...' : 'Confirm to launch / or adjust more...');
+    addQuickReplies(zh() ? ['确认，启动调研','继续调整'] : ['Confirm & launch','Adjust more']);
+  } else {
+    await addMsg('agent', zh()
+      ? '没有理解你的调整。可以试试：<br>- "年龄 25-55"<br>- "仅限女性"<br>- "去掉收入限制"<br>- "只限公民"'
+      : "Didn't understand. Try: 'age 25-55', 'female only', 'remove income filter', 'citizens only'", 200);
+  }
+}
+
+// Convert current filters back to screening display rows
+function filtersToScreening(filters) {
+  const screening = [];
+  if (filters.age_min || filters.age_max) {
+    const lo = filters.age_min || 0;
+    const hi = filters.age_max || 100;
+    const rule = hi >= 100 ? `≥ ${lo}` : `${lo}-${hi}`;
+    screening.push({ dim:'age', rule, reason_zh:'年龄筛选', reason_en:'Age filter', filter:{age_min:lo, age_max:hi>=100?undefined:hi} });
+  }
+  if (filters.gender) {
+    screening.push({ dim:'gender', rule:filters.gender, reason_zh:filters.gender==='F'?'仅限女性':'仅限男性', reason_en:filters.gender==='F'?'Female only':'Male only', filter:{gender:filters.gender} });
+  }
+  if (filters.has_income) {
+    screening.push({ dim:'income', rule_zh:'有收入', rule_en:'With income', rule:'Income>0', reason_zh:'排除无收入群体', reason_en:'Exclude no-income group', filter:{has_income:true} });
+  }
+  if (filters.residency) {
+    screening.push({ dim:'residency', rule:filters.residency, reason_zh:'仅限'+filters.residency, reason_en:filters.residency+' only', filter:{residency:filters.residency} });
+  }
+  return screening;
+}
+
+// ============================================================
+// LAUNCH SURVEY
+// ============================================================
+async function launchSurvey() {
+  disableInput();
+  await addMsg('system', zh() ? '调研方案确认，正在启动 Agent 推理...' : 'Research plan confirmed. Launching agent reasoning...', 200);
+  showPhase(2);
+
+  const payload = {
+    client_name: survey.client || 'Anonymous',
+    question: survey.question,
+    options: survey.options,
+    context: survey.context,
+    sample_size: survey.sampleSize,
+    ...survey.filters,
+  };
+
+  try {
+    const resp = await fetch('/api/survey', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    const data = await resp.json();
+    if (data.error) { await addMsg('agent', `Error: ${data.error}`, 200); return; }
+    currentJobId = data.job_id;
+    pollTimer = setInterval(async () => {
+      try {
+        const jr = await fetch(`/api/job/${currentJobId}`);
+        const job = await jr.json();
+        updateProgress(job);
+        if (job.status === 'done') {
+          clearInterval(pollTimer);
+          currentResult = job.result;
+          setTimeout(() => { showPhase(3); renderResults(job.result); }, 600);
+        } else if (job.status === 'error') {
+          clearInterval(pollTimer);
+          document.getElementById('prog-text').textContent = 'Error: ' + (job.error || 'Unknown');
+        }
+      } catch(e) {}
+    }, 1000);
+  } catch(e) {
+    await addMsg('agent', zh() ? `连接失败：${e.message}。请确保通过 http://localhost:3456 访问。` : `Connection failed: ${e.message}. Access via http://localhost:3456.`, 200);
+  }
+}
+
+function updateProgress(data) {
+  const pct = data.total > 0 ? Math.round(data.progress / data.total * 100) : 0;
+  document.getElementById('prog-circle').style.strokeDashoffset = 326.7 - (326.7 * pct / 100);
+  document.getElementById('prog-pct').textContent = pct + '%';
+  if (data.status === 'sampling') document.getElementById('prog-text').textContent = zh() ? '正在分层抽样...' : 'Stratified sampling...';
+  else if (data.status === 'running') {
+    document.getElementById('prog-text').textContent = zh() ? 'Agent 人格推理中...' : 'Agent persona reasoning...';
+    document.getElementById('prog-detail').textContent = `Agent ${data.progress} / ${data.total}`;
+  } else if (data.status === 'done') {
+    document.getElementById('prog-text').textContent = zh() ? '完成！' : 'Done!';
+    document.getElementById('prog-pct').textContent = '100%';
+    document.getElementById('prog-circle').style.strokeDashoffset = 0;
+  }
+}
+
+// ============================================================
+// PHASE NAVIGATION
+// ============================================================
+function showPhase(n) {
+  document.getElementById('page-design').classList.toggle('hidden', n !== 1);
+  document.getElementById('page-running').classList.toggle('hidden', n !== 2);
+  document.getElementById('page-results').classList.toggle('hidden', n !== 3);
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById('ph' + i);
+    el.classList.remove('active','done');
+    if (i < n) el.classList.add('done');
+    else if (i === n) el.classList.add('active');
+  }
+}
+
+// ============================================================
+// STATISTICAL FUNCTIONS
+// ============================================================
+
+// Wilson score confidence interval for a proportion (95% CI)
+function wilsonCI(successes, n) {
+  if (n === 0) return { lo: 0, hi: 0, pct: 0, moe: 0 };
+  const z = 1.96; // 95% CI
+  const p = successes / n;
+  const denom = 1 + z * z / n;
+  const center = (p + z * z / (2 * n)) / denom;
+  const spread = z * Math.sqrt((p * (1 - p) + z * z / (4 * n)) / n) / denom;
+  return {
+    pct: p * 100,
+    lo: Math.max(0, (center - spread) * 100),
+    hi: Math.min(100, (center + spread) * 100),
+    moe: spread * 100
+  };
+}
+
+// Overall margin of error for the survey (simple random sampling approximation)
+function overallMoE(n) {
+  // MoE = z * sqrt(0.25/n) * 100  (worst-case p=0.5)
+  return 1.96 * Math.sqrt(0.25 / n) * 100;
+}
+
+// Chi-square test of independence (observed vs expected under H0: uniform across groups)
+function chiSquareTest(contingencyRows) {
+  // contingencyRows: array of {label, counts: {opt1: n, opt2: n, ...}}
+  // Returns { chi2, df, pValue, significant }
+  if (contingencyRows.length < 2) return { chi2: 0, df: 0, pValue: 1, significant: false };
+
+  const allOpts = new Set();
+  contingencyRows.forEach(row => Object.keys(row.counts).forEach(k => allOpts.add(k)));
+  const opts = [...allOpts];
+  if (opts.length < 2) return { chi2: 0, df: 0, pValue: 1, significant: false };
+
+  const nRows = contingencyRows.length;
+  const nCols = opts.length;
+
+  // Build matrix
+  const obs = contingencyRows.map(row => opts.map(o => row.counts[o] || 0));
+  const rowTotals = obs.map(r => r.reduce((a, b) => a + b, 0));
+  const colTotals = opts.map((_, ci) => obs.reduce((a, r) => a + r[ci], 0));
+  const grand = rowTotals.reduce((a, b) => a + b, 0);
+
+  if (grand === 0) return { chi2: 0, df: 0, pValue: 1, significant: false };
+
+  let chi2 = 0;
+  for (let ri = 0; ri < nRows; ri++) {
+    for (let ci = 0; ci < nCols; ci++) {
+      const expected = (rowTotals[ri] * colTotals[ci]) / grand;
+      if (expected > 0) {
+        chi2 += Math.pow(obs[ri][ci] - expected, 2) / expected;
+      }
+    }
+  }
+
+  const df = (nRows - 1) * (nCols - 1);
+  // Approximate p-value using chi-square survival function (regularized gamma)
+  const pValue = chi2Survival(chi2, df);
+  return { chi2: Math.round(chi2 * 100) / 100, df, pValue, significant: pValue < 0.05 };
+}
+
+// Chi-square survival function approximation (Wilson-Hilferty)
+function chi2Survival(x, df) {
+  if (df <= 0 || x <= 0) return 1;
+  const z = Math.pow(x / df, 1 / 3) - (1 - 2 / (9 * df));
+  const se = Math.sqrt(2 / (9 * df));
+  const zScore = z / se;
+  // Standard normal CDF approximation
+  return 1 - normalCDF(zScore);
+}
+
+function normalCDF(z) {
+  const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429;
+  const p = 0.3275911;
+  const sign = z < 0 ? -1 : 1;
+  z = Math.abs(z) / Math.SQRT2;
+  const t = 1.0 / (1.0 + p * z);
+  const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-z * z);
+  return 0.5 * (1.0 + sign * y);
+}
+
+// Format p-value for display
+function fmtP(p) {
+  if (p < 0.001) return 'p<0.001';
+  if (p < 0.01) return 'p<0.01';
+  if (p < 0.05) return `p=${p.toFixed(3)}`;
+  return `p=${p.toFixed(2)}`;
+}
+
+// ============================================================
+// RESULTS — ANALYSIS AGENT
+// ============================================================
+function renderResults(r) {
+  // Analysis Agent Report
+  const posRate = r.overall.positive_rate;
+  const avgW = r.overall.avg_willingness;
+  const n = r.n_respondents;
+  const totalPop = r.total_population || 20000;
+  const eligible = r.eligible_count || n;
+
+  // Data quality checks
+  const sampleOk = n >= 20;
+  const diversityOk = Object.keys(r.breakdowns.by_age || {}).length >= 2;
+  const spreadOk = Object.keys(r.overall.choice_distribution || {}).length >= 2;
+
+  let verdict, verdictColor;
+  if (sampleOk && diversityOk && spreadOk) { verdict = zh()?'数据质量：合格':'Data Quality: PASS'; verdictColor = 'var(--green)'; }
+  else { verdict = zh()?'数据质量：需注意':'Data Quality: CAUTION'; verdictColor = 'var(--orange)'; }
+
+  // Generate analysis summary
+  const topChoice = Object.entries(r.overall.choice_distribution).sort((a,b)=>b[1]-a[1])[0];
+  const topPct = Math.round(topChoice[1] / n * 100);
+
+  // Income insights
+  const byInc = r.breakdowns.by_income || {};
+  const incEntries = Object.entries(byInc).sort((a,b)=>b[1].positive_rate-a[1].positive_rate);
+  const bestInc = incEntries[0];
+  const worstInc = incEntries[incEntries.length - 1];
+
+  let summaryHtml = zh()
+    ? `<p><strong>总体结果：</strong>在 ${n} 个受访 Agent 中，正面意愿率 <strong style="color:${posRate>=0.3?'var(--green)':'var(--orange)'}">${Math.round(posRate*100)}%</strong>，平均意愿分 ${avgW}/10。</p>
+       <p><strong>最多选择：</strong>"${topChoice[0]}"占 ${topPct}%。</p>`
+    : `<p><strong>Overall:</strong> ${Math.round(posRate*100)}% positive intent across ${n} agents, avg willingness ${avgW}/10.</p>
+       <p><strong>Top choice:</strong> "${topChoice[0]}" at ${topPct}%.</p>`;
+
+  if (bestInc && worstInc && bestInc[0] !== worstInc[0]) {
+    summaryHtml += zh()
+      ? `<p><strong>收入洞察：</strong>${bestInc[0]} 人群正面率最高 (${Math.round(bestInc[1].positive_rate*100)}%)，${worstInc[0]} 最低 (${Math.round(worstInc[1].positive_rate*100)}%)。</p>`
+      : `<p><strong>Income insight:</strong> ${bestInc[0]} has highest positive rate (${Math.round(bestInc[1].positive_rate*100)}%), ${worstInc[0]} lowest (${Math.round(worstInc[1].positive_rate*100)}%).</p>`;
+  }
+
+  // Recommendations
+  let recoHtml = '';
+  if (posRate < 0.15) {
+    recoHtml = zh()
+      ? '<p><strong>建议：</strong>整体正面率偏低。建议：1) 调整产品定价/定位 2) 缩小目标人群至高意愿细分 3) 修改调研问题重新测试。</p>'
+      : '<p><strong>Recommendation:</strong> Low overall positive rate. Consider: 1) Adjust pricing/positioning 2) Narrow to high-intent segments 3) Retest with modified question.</p>';
+  } else if (posRate < 0.4) {
+    recoHtml = zh()
+      ? '<p><strong>建议：</strong>存在明显的细分市场。建议：1) 针对高意愿人群（如高收入段）重点营销 2) 针对中间态度群体设计转化策略。</p>'
+      : '<p><strong>Recommendation:</strong> Clear segment differentiation. Focus marketing on high-intent segments. Design conversion strategies for the middle group.</p>';
+  } else {
+    recoHtml = zh()
+      ? '<p><strong>建议：</strong>正面意愿率良好。建议：1) 验证定价弹性 2) 优先在高意愿细分市场启动 3) 关注核心顾虑做产品优化。</p>'
+      : '<p><strong>Recommendation:</strong> Strong positive signal. Validate price elasticity, prioritize high-intent segments, address top concerns for product refinement.</p>';
+  }
+
+  document.getElementById('analysis-report').innerHTML = `
+    <div class="report-box">
+      <h3>${zh()?'调研分析 Agent 报告':'Research Analysis Agent Report'}</h3>
+      <div class="quality-checks">
+        <div class="qc ${sampleOk?'pass':'warn'}"><div class="qc-status">${sampleOk?'PASS':'WARN'}</div><div class="qc-label">${zh()?'样本量':'Sample Size'} (n=${n})</div></div>
+        <div class="qc ${diversityOk?'pass':'warn'}"><div class="qc-status">${diversityOk?'PASS':'WARN'}</div><div class="qc-label">${zh()?'人群多样性':'Diversity'}</div></div>
+        <div class="qc ${spreadOk?'pass':'warn'}"><div class="qc-status">${spreadOk?'PASS':'WARN'}</div><div class="qc-label">${zh()?'选项分散度':'Response Spread'}</div></div>
+      </div>
+      <div class="verdict" style="color:${verdictColor}">${verdict}</div>
+      ${summaryHtml}
+      ${recoHtml}
+    </div>`;
+
+  // KPIs with MoE
+  const moe = overallMoE(n);
+  const posColor = posRate >= 0.3 ? 'var(--green)' : posRate >= 0.1 ? 'var(--orange)' : 'var(--red)';
+  document.getElementById('res-kpis').innerHTML = `
+    <div class="card"><div class="big" style="color:${posColor};">${Math.round(posRate*100)}%</div><div class="sub">${zh()?'正面意愿率':'Positive Rate'}</div></div>
+    <div class="card"><div class="big">&plusmn;${moe.toFixed(1)}%</div><div class="sub">${zh()?'误差范围 (95% CI)':'Margin of Error (95% CI)'}</div></div>
+    <div class="card"><div class="big">${n.toLocaleString()}</div><div class="sub">${zh()?'受访Agent':'Agents Surveyed'}</div></div>`;
+
+  // Funnel
+  const eligPct = (eligible/totalPop*100).toFixed(1);
+  document.getElementById('res-funnel').innerHTML = `
+    <h3 style="font-size:13px;color:var(--muted);margin-bottom:8px;">${zh()?'调研漏斗':'Survey Funnel'}</h3>
+    <div class="funnel">
+      <div class="funnel-step" style="background:rgba(71,85,105,.1);border:1px solid var(--border);border-radius:10px;"><div class="funnel-num" style="color:var(--dim);">${totalPop.toLocaleString()}</div><div class="funnel-label">${zh()?'总人口':'Total'}</div></div>
+      <div class="funnel-arrow">&rarr;</div>
+      <div class="funnel-step" style="border:2px solid var(--accent);background:rgba(59,130,246,.06);border-radius:10px;"><div class="funnel-num" style="color:var(--accent);">${eligible.toLocaleString()}</div><div class="funnel-label">${zh()?'有效对象':'Eligible'} (${eligPct}%)</div></div>
+      <div class="funnel-arrow">&rarr;</div>
+      <div class="funnel-step" style="background:rgba(34,197,94,.06);border:2px solid var(--green);border-radius:10px;"><div class="funnel-num" style="color:var(--green);">${n}</div><div class="funnel-label">${zh()?'抽样数':'Sample'}</div></div>
+    </div>`;
+
+  // Distribution bars with CI
+  const dist = r.overall.choice_distribution;
+  const total = Object.values(dist).reduce((a,b)=>a+b,0);
+  const colors = ['var(--green)','var(--cyan)','var(--orange)','var(--red)','rgba(239,68,68,.4)','var(--purple)'];
+  const orderedOpts = r.options || Object.keys(dist);
+  let barsHtml = `<div class="bar-group"><div style="text-align:right;font-size:10px;color:var(--muted);margin-bottom:6px;">95% CI | n=${total.toLocaleString()}</div>`;
+  orderedOpts.forEach((opt,ci) => {
+    const count = dist[opt]||0;
+    const ci95 = wilsonCI(count, total);
+    const short = opt.length > 35 ? opt.substring(0,35)+'...' : opt;
+    barsHtml += `<div class="bar-row"><span class="bar-label">${short}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.max(ci95.pct,3)}%;background:${colors[ci%colors.length]};">${Math.round(ci95.pct)}%</div></div><span class="ci-range">[${ci95.lo.toFixed(1)}-${ci95.hi.toFixed(1)}%]</span></div>`;
+  });
+  document.getElementById('res-bars').innerHTML = barsHtml + '</div>';
+
+  // Age table with CI + chi-square
+  const byAge = r.breakdowns.by_age || {};
+  const ageChiRows = [];
+  let ageHtml = `<table><tr><th>${zh()?'年龄段':'Age'}</th><th>${zh()?'正面率':'Pos%'}</th><th>95% CI</th><th>${zh()?'意愿分':'Will.'}</th><th>N</th></tr>`;
+  for (const [label,d] of Object.entries(byAge)) {
+    const posN = Math.round(d.positive_rate * d.n);
+    const ci95 = wilsonCI(posN, d.n);
+    const pc = Math.round(d.positive_rate*100);
+    const clr = pc >= 30 ? 'var(--green)' : pc >= 10 ? 'var(--orange)' : 'var(--red)';
+    ageHtml += `<tr><td>${label}</td><td style="color:${clr};font-weight:700;">${pc}%</td><td class="ci-range">[${ci95.lo.toFixed(1)}-${ci95.hi.toFixed(1)}]</td><td>${d.avg_willingness}/10</td><td>${d.n}</td></tr>`;
+    ageChiRows.push({ label, counts: d.choice_distribution || {} });
+  }
+  // Chi-square for age independence
+  if (ageChiRows.length >= 2 && ageChiRows.some(r => Object.keys(r.counts).length > 0)) {
+    const ageTest = chiSquareTest(ageChiRows);
+    ageHtml += `<tr><td colspan="5" style="border-top:1px solid var(--border);padding-top:8px;"><span class="stat-sig ${ageTest.significant?'sig':'not-sig'}">${ageTest.significant?(zh()?'显著差异':'Significant'):(zh()?'无显著差异':'Not significant')}</span> <span class="pvalue">${fmtP(ageTest.pValue)}, &chi;&sup2;=${ageTest.chi2}, df=${ageTest.df}</span></td></tr>`;
+  }
+  document.getElementById('res-age-table').innerHTML = ageHtml + '</table>';
+
+  // Income table with CI + chi-square
+  const incChiRows = [];
+  let incHtml = `<table><tr><th>${zh()?'收入段':'Income'}</th><th>${zh()?'正面率':'Pos%'}</th><th>95% CI</th><th>N</th></tr>`;
+  for (const [label,d] of Object.entries(byInc)) {
+    const posN = Math.round(d.positive_rate * d.n);
+    const ci95 = wilsonCI(posN, d.n);
+    const pc = Math.round(d.positive_rate*100);
+    const clr = pc >= 30 ? 'var(--green)' : pc >= 10 ? 'var(--orange)' : 'var(--red)';
+    incHtml += `<tr><td>${label}</td><td style="color:${clr};font-weight:700;">${pc}%</td><td class="ci-range">[${ci95.lo.toFixed(1)}-${ci95.hi.toFixed(1)}]</td><td>${d.n}</td></tr>`;
+    incChiRows.push({ label, counts: d.choice_distribution || {} });
+  }
+  if (incChiRows.length >= 2 && incChiRows.some(r => Object.keys(r.counts).length > 0)) {
+    const incTest = chiSquareTest(incChiRows);
+    incHtml += `<tr><td colspan="4" style="border-top:1px solid var(--border);padding-top:8px;"><span class="stat-sig ${incTest.significant?'sig':'not-sig'}">${incTest.significant?(zh()?'显著差异':'Significant'):(zh()?'无显著差异':'Not significant')}</span> <span class="pvalue">${fmtP(incTest.pValue)}, &chi;&sup2;=${incTest.chi2}, df=${incTest.df}</span></td></tr>`;
+  }
+  document.getElementById('res-income-table').innerHTML = incHtml + '</table>';
+
+  // Concerns
+  document.getElementById('res-concerns').innerHTML = (r.concerns || []).filter(c => c && c !== 'N/A').map(c => `<div class="concern-item">${c}</div>`).join('');
+
+  // ---- QUALITY GATE (Nemotron Reward) ----
+  renderQuality(r);
+
+  // ---- CROSSTAB: Age × Gender × Top Choice ----
+  renderCrosstab(r);
+
+  // Agent log
+  const log = r.agent_log || [];
+  let logHtml = '<table><tr><th>#</th><th>Age</th><th>G</th><th>Inc</th><th>Housing</th><th>Choice</th><th>W</th><th>R</th></tr>';
+  log.forEach((a,i) => {
+    const cls = a.willingness >= 7 ? 'log-pos' : a.willingness <= 3 ? 'log-neg' : 'log-neu';
+    const short = a.choice.length > 28 ? a.choice.substring(0,28)+'...' : a.choice;
+    const rw = a.reward != null ? a.reward.toFixed(1) : '—';
+    const rwCls = a.reward != null ? (a.reward > -5 ? 'log-pos' : a.reward > -15 ? 'log-neu' : 'log-neg') : '';
+    logHtml += `<tr><td>${i+1}</td><td>${a.age}</td><td>${a.gender}</td><td>$${(a.income||0).toLocaleString()}</td><td>${a.housing}</td><td class="${cls}">${short}</td><td class="${cls}">${a.willingness}/10</td><td class="${rwCls}">${rw}</td></tr>`;
+  });
+  document.getElementById('res-log').innerHTML = logHtml + '</table>';
+
+  // ---- METHODOLOGY STATEMENT ----
+  renderMethodology(r, n, moe, eligible, totalPop);
+}
+
+// ============================================================
+// QUALITY GATE (NEMOTRON REWARD)
+// ============================================================
+function renderQuality(r) {
+  const q = r.quality;
+  const card = document.getElementById('res-quality-card');
+  if (!q || !q.available) {
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = '';
+
+  const total = q.n_scored;
+  const hPct = q.high_quality_pct;
+  const aPct = q.acceptable_pct;
+  const lPct = q.low_quality_pct;
+
+  // Overall verdict
+  let verdict, verdictColor;
+  if (hPct >= 50) { verdict = zh()?'高质量':'High Quality'; verdictColor = 'var(--green)'; }
+  else if (lPct <= 20) { verdict = zh()?'质量合格':'Acceptable'; verdictColor = 'var(--cyan)'; }
+  else { verdict = zh()?'质量偏低，结果需谨慎':'Low Quality — Interpret with Caution'; verdictColor = 'var(--orange)'; }
+
+  const html = `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:14px">
+      <div style="text-align:center;padding:12px;background:var(--bg);border-radius:8px">
+        <div style="font-size:22px;font-weight:700;color:${verdictColor}">${verdict}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">OVERALL</div>
+      </div>
+      <div style="text-align:center;padding:12px;background:var(--bg);border-radius:8px">
+        <div style="font-size:22px;font-weight:700;color:var(--green)">${q.high_quality}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">${zh()?'高质量':'HIGH'} (${hPct}%)</div>
+      </div>
+      <div style="text-align:center;padding:12px;background:var(--bg);border-radius:8px">
+        <div style="font-size:22px;font-weight:700;color:var(--cyan)">${q.acceptable}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">${zh()?'合格':'OK'} (${aPct}%)</div>
+      </div>
+      <div style="text-align:center;padding:12px;background:var(--bg);border-radius:8px">
+        <div style="font-size:22px;font-weight:700;color:${lPct>20?'var(--red)':'var(--orange)'}">${q.low_quality}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">${zh()?'低质量':'LOW'} (${lPct}%)</div>
+      </div>
+    </div>
+    <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;margin-bottom:10px">
+      <div style="width:${hPct}%;background:var(--green)"></div>
+      <div style="width:${aPct}%;background:var(--cyan)"></div>
+      <div style="width:${lPct}%;background:var(--orange)"></div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.6">
+      ${zh()?'评分模型':'Model'}: ${q.model} | ${zh()?'平均分':'Mean'}: ${q.mean_reward} | ${zh()?'中位数':'Median'}: ${q.median_reward} | ${zh()?'范围':'Range'}: [${q.min_reward}, ${q.max_reward}]<br>
+      ${zh()
+        ?'<strong>评分标准：</strong> > -5 高质量（有思考、角色一致）| -5~-15 合格（正确但泛泛）| < -15 低质量（敷衍/矛盾）'
+        :'<strong>Thresholds:</strong> > -5 High (thoughtful, persona-consistent) | -5~-15 OK (correct but generic) | < -15 Low (lazy/contradictory)'}
+    </div>`;
+  document.getElementById('res-quality').innerHTML = html;
+}
+
+// ============================================================
+// CROSSTAB RENDERING
+// ============================================================
+function renderCrosstab(r) {
+  const log = r.agent_log || [];
+  if (log.length === 0) { document.getElementById('res-crosstab').innerHTML = ''; return; }
+
+  const opts = r.options || Object.keys(r.overall.choice_distribution);
+  // Shorten option labels for crosstab headers
+  const shortOpts = opts.map(o => o.length > 20 ? o.substring(0,18)+'..' : o);
+
+  // Define row dimensions
+  const ageBins = [
+    { label: '18-29', test: a => a.age >= 18 && a.age <= 29 },
+    { label: '30-44', test: a => a.age >= 30 && a.age <= 44 },
+    { label: '45-59', test: a => a.age >= 45 && a.age <= 59 },
+    { label: '60+', test: a => a.age >= 60 },
+  ];
+  const genders = [
+    { label: zh()?'男':'M', test: a => a.gender === 'M' },
+    { label: zh()?'女':'F', test: a => a.gender === 'F' },
+  ];
+  const incBins = [
+    { label: '<$3K', test: a => (a.income||0) < 3000 },
+    { label: '$3-7K', test: a => (a.income||0) >= 3000 && (a.income||0) < 7000 },
+    { label: '$7K+', test: a => (a.income||0) >= 7000 },
+  ];
+  const housingBins = [
+    { label: 'HDB', test: a => (a.housing||'').startsWith('HDB') },
+    { label: 'Condo', test: a => a.housing === 'Condo' },
+    { label: 'Landed', test: a => a.housing === 'Landed' },
+  ];
+
+  // Build crosstab sections
+  const sections = [
+    { title: zh()?'年龄':'Age', bins: ageBins },
+    { title: zh()?'性别':'Gender', bins: genders },
+    { title: zh()?'收入':'Income', bins: incBins },
+    { title: zh()?'住房':'Housing', bins: housingBins },
+  ];
+
+  let html = '<div class="crosstab-wrapper"><table class="crosstab">';
+  // Header
+  html += `<tr><th></th>`;
+  shortOpts.forEach(o => { html += `<th>${o}</th>`; });
+  html += `<th>N</th><th>MoE</th></tr>`;
+
+  sections.forEach(sec => {
+    html += `<tr><td colspan="${opts.length+3}" style="padding-top:12px;font-weight:700;font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;border-bottom:none;">${sec.title}</td></tr>`;
+
+    const chiRows = [];
+    sec.bins.forEach(bin => {
+      const group = log.filter(bin.test);
+      const gn = group.length;
+      if (gn === 0) return;
+
+      const counts = {};
+      opts.forEach(o => { counts[o] = group.filter(a => a.choice === o).length; });
+      chiRows.push({ label: bin.label, counts });
+
+      const rowMoe = overallMoE(gn);
+      html += `<tr><td class="row-label">${bin.label}</td>`;
+      opts.forEach(o => {
+        const cnt = counts[o] || 0;
+        const pct = Math.round(cnt / gn * 100);
+        const heatCls = pct >= 40 ? 'ct-heat-high' : pct >= 20 ? 'ct-heat-mid' : pct >= 10 ? 'ct-heat-low' : '';
+        html += `<td class="${heatCls}">${pct}%</td>`;
+      });
+      html += `<td style="color:var(--muted)">${gn}</td><td style="color:var(--muted);font-size:10px">&plusmn;${rowMoe.toFixed(1)}%</td></tr>`;
+    });
+
+    // Chi-square for this section
+    if (chiRows.length >= 2) {
+      const test = chiSquareTest(chiRows);
+      html += `<tr><td colspan="${opts.length+3}" style="padding:4px 8px;border-bottom:none;"><span class="stat-sig ${test.significant?'sig':'not-sig'}">${test.significant?(zh()?'显著差异':'Significant'):(zh()?'无显著差异':'Not significant')}</span> <span class="pvalue">${fmtP(test.pValue)}, &chi;&sup2;=${test.chi2}</span></td></tr>`;
+    }
+  });
+
+  html += '</table></div>';
+  document.getElementById('res-crosstab').innerHTML = html;
+}
+
+// ============================================================
+// METHODOLOGY STATEMENT
+// ============================================================
+function renderMethodology(r, n, moe, eligible, totalPop) {
+  const filterDesc = describeFilters(survey.filters);
+  const samplingRate = (n / eligible * 100).toFixed(1);
+  const now = new Date().toISOString().split('T')[0];
+
+  const html = `<div class="methodology-box">
+    <h4>${zh()?'方法论声明':'Methodology Statement'}</h4>
+    <div class="meth-row"><span class="meth-label">${zh()?'数据基座':'Population'}</span><span class="meth-value">${zh()?'新加坡数字孪生合成人口 20,000人，基于 GHS 2025 (General Household Survey) 校准':'Singapore Digital Twin synthetic population of 20,000 agents, calibrated to GHS 2025 (General Household Survey)'}</span></div>
+    <div class="meth-row"><span class="meth-label">${zh()?'抽样方法':'Sampling'}</span><span class="meth-value">${zh()?'分层随机抽样（年龄 × 性别），抽样率':'Stratified random sampling (age × gender), sampling rate'} ${samplingRate}%</span></div>
+    <div class="meth-row"><span class="meth-label">${zh()?'人群筛选':'Filters'}</span><span class="meth-value">${filterDesc}</span></div>
+    <div class="meth-row"><span class="meth-label">${zh()?'有效样本':'Sample'}</span><span class="meth-value">n = ${n.toLocaleString()} / ${eligible.toLocaleString()} ${zh()?'有效人群':'eligible'} / ${totalPop.toLocaleString()} ${zh()?'总人口':'total'}</span></div>
+    <div class="meth-row"><span class="meth-label">${zh()?'误差范围':'MoE'}</span><span class="meth-value">&plusmn;${moe.toFixed(1)}% ${zh()?'（95%置信区间，简单随机抽样近似）':'(95% CI, simple random sampling approximation)'}</span></div>
+    <div class="meth-row"><span class="meth-label">${zh()?'统计检验':'Tests'}</span><span class="meth-value">${zh()?'Wilson Score 置信区间；Pearson 卡方独立性检验（α=0.05）':'Wilson Score CI; Pearson chi-square test of independence (α=0.05)'}</span></div>
+    <div class="meth-row"><span class="meth-label">${zh()?'推理引擎':'Reasoning'}</span><span class="meth-value">${zh()?'LLM 人格推理（temperature=0.7），每Agent独立生成':'LLM persona reasoning (temperature=0.7), independent per agent'}</span></div>
+    <div class="meth-row"><span class="meth-label">${zh()?'执行日期':'Date'}</span><span class="meth-value">${now}</span></div>
+    <div class="meth-warning">
+      <strong>${zh()?'局限性声明':'Limitations'}:</strong> ${zh()
+        ?'本调研基于 LLM 合成受访者，非真实人类受访。已知局限：(1) LLM 可能偏向"平均受访者"，少数群体意见可能被低估；(2) "不确定/不知道"类回答可能偏少；(3) 子群体（n<50）的结果误差较大，仅供参考；(4) 合成数据适合趋势判断和假设检验，不宜作为精确定量决策的唯一依据。建议重要决策前用真人小样本验证。'
+        :'This survey uses LLM-generated synthetic respondents, not real humans. Known limitations: (1) LLMs may bias toward "average respondent", underrepresenting minority views; (2) "Don\'t know" responses may be underrepresented; (3) Subgroup results (n<50) have large error margins — treat as directional only; (4) Synthetic data is suitable for trend identification and hypothesis testing, not as the sole basis for precise quantitative decisions. Recommend real-respondent validation before major decisions.'}
+    </div>
+  </div>`;
+  document.getElementById('res-methodology').innerHTML = html;
+}
+
+function downloadResult() {
+  if (!currentResult) return;
+  const blob = new Blob([JSON.stringify(currentResult, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `survey_${currentJobId}.json`; a.click();
+}
+
+function resetAll() {
+  currentJobId = null; currentResult = null;
+  survey.client = ''; survey.topic = ''; survey.question = ''; survey.context = ''; survey.options = []; survey.filters = {}; survey.sampleSize = 1000;
+  chatStep = 0;
+  chatBox().innerHTML = '';
+  showPhase(1);
+  startChat();
+}
+
+// ============================================================
+// INPUT HANDLING
+// ============================================================
+function handleInputKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChat();
+  }
+}
+
+// Auto-resize textarea
+document.addEventListener('DOMContentLoaded', () => {
+  const ta = document.getElementById('chat-input');
+  if (ta) {
+    ta.addEventListener('input', () => {
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, 150) + 'px';
+    });
+  }
+});
+
+// ============================================================
+// INIT
+// ============================================================
+setLang('zh');
+startChat();
+</script>
+</body>
+</html>

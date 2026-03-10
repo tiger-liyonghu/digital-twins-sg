@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- 统一组件CSS -->
+    <link rel="stylesheet" href="css/components.css">
+    <!-- 懒加载系统CSS -->
+    <link rel="stylesheet" href="css/lazy-loading.css">
+    
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Twin Simulation | 数字孪生模拟</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e1a;--card:#111827;--border:#1e293b;--text:#e2e8f0;
+  --dim:#94a3b8;--muted:#475569;--accent:#3b82f6;--green:#22c55e;
+  --red:#ef4444;--orange:#f97316;--purple:#a855f7;--cyan:#06b6d4;
+  --yellow:#eab308;--card-hover:#1a2332;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,system-ui,sans-serif;font-size:14px;min-height:100vh}
+
+/* NAV */
+.site-nav{background:var(--card);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.nav-left{display:flex;align-items:center;gap:16px}
+.site-nav .logo{font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.site-nav .tag{font-size:10px;color:var(--muted);border:1px solid var(--border);padding:2px 8px;border-radius:4px}
+.lang-switch{display:flex;gap:2px;background:var(--bg);border-radius:6px;padding:2px}
+.lang-switch button{background:transparent;border:none;color:var(--dim);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;transition:all .2s}
+.lang-switch button.active{background:var(--accent);color:#fff}
+
+/* MAIN */
+.main{max-width:1000px;margin:0 auto;padding:24px}
+.hidden{display:none!important}
+
+/* PHASE 1: Design */
+.quickstart{display:flex;gap:8px;margin-bottom:20px;overflow-x:auto;padding-bottom:4px}
+.qs-card{flex:0 0 auto;padding:10px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px}
+.qs-card:hover{border-color:var(--accent);background:var(--card-hover)}
+.qs-tag{font-size:9px;font-weight:800;padding:3px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:.5px;flex-shrink:0}
+.qs-tag.election{background:rgba(59,130,246,.15);color:var(--accent)}
+.qs-tag.economy{background:rgba(234,179,8,.15);color:#eab308}
+.qs-tag.tech{background:rgba(6,182,212,.15);color:var(--cyan)}
+.qs-tag.gov{background:rgba(34,197,94,.15);color:var(--green)}
+.qs-name{font-size:12px;font-weight:600;white-space:nowrap}
+
+/* Design layout */
+.design-layout{display:grid;grid-template-columns:1fr 320px;gap:20px;min-height:calc(100vh - 200px)}
+
+/* Chat */
+.chat-panel{background:var(--card);border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
+.chat-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.chat-avatar{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.chat-name{font-size:13px;font-weight:700}
+.chat-desc{font-size:10px;color:var(--muted)}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;min-height:300px;max-height:calc(100vh - 380px)}
+.msg{padding:10px 14px;border-radius:12px;font-size:12px;line-height:1.6;max-width:88%;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.msg.user{background:var(--accent);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.msg.agent{background:var(--bg);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.system{background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.15);color:var(--purple);align-self:center;font-size:11px;text-align:center}
+.chat-bar{padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end}
+.chat-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:12px;resize:none;outline:none;font-family:inherit;max-height:100px}
+.chat-input:focus{border-color:var(--accent)}
+.chat-send{width:36px;height:36px;border-radius:10px;background:var(--accent);border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chat-send:hover{opacity:.85}
+.chat-send:disabled{opacity:.4;cursor:default}
+.typing{display:flex;gap:4px;padding:10px 14px;align-self:flex-start}
+.typing span{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:typePulse .8s ease-in-out infinite}
+.typing span:nth-child(2){animation-delay:.15s}
+.typing span:nth-child(3){animation-delay:.3s}
+@keyframes typePulse{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* Brief panel */
+.brief-panel{display:flex;flex-direction:column;gap:12px}
+.brief-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px}
+.brief-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.brief-empty{font-size:11px;color:var(--muted);font-style:italic}
+.q-item{padding:8px 0}
+.q-label{font-size:9px;font-weight:800;color:var(--accent);margin-bottom:4px}
+.q-text{font-size:12px;font-weight:600;margin-bottom:6px;line-height:1.5}
+.q-options{display:flex;flex-wrap:wrap;gap:4px}
+.q-opt{font-size:10px;padding:3px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--dim)}
+.audience-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.aud-tag{font-size:9px;padding:2px 8px;border-radius:4px;font-weight:600}
+.aud-tag.include{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+.aud-tag.exclude{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.aud-count{font-size:20px;font-weight:800;color:var(--accent)}
+.aud-count-label{font-size:10px;color:var(--muted)}
+
+/* Sample options */
+.sample-options{display:flex;gap:6px;margin-top:4px}
+.sample-opt{flex:1;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;text-align:center;transition:all .2s}
+.sample-opt:hover{border-color:var(--accent)}
+.sample-opt.selected{border-color:var(--accent);background:rgba(59,130,246,.08)}
+.sample-opt .so-n{font-size:14px;font-weight:800}
+.sample-opt .so-info{font-size:9px;color:var(--muted);margin-top:2px}
+
+/* Run button */
+.run-btn{width:100%;padding:12px;background:linear-gradient(135deg,var(--accent),var(--purple));border:none;color:#fff;font-size:13px;font-weight:700;border-radius:10px;cursor:pointer;margin-top:8px;transition:opacity .2s}
+.run-btn:hover{opacity:.9}
+.run-btn:disabled{opacity:.3;cursor:default}
+
+/* PHASE 2: Running */
+.running-panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:32px;text-align:center;max-width:600px;margin:60px auto}
+.run-title{font-size:16px;font-weight:800;margin-bottom:6px}
+.run-sub{font-size:12px;color:var(--dim);margin-bottom:24px}
+.progress-outer{height:24px;background:var(--bg);border-radius:12px;overflow:hidden;margin-bottom:24px;border:1px solid var(--border)}
+.progress-inner{height:100%;background:linear-gradient(90deg,var(--accent),var(--purple));border-radius:12px;transition:width .5s;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;min-width:40px}
+.run-stats{display:flex;justify-content:center;gap:32px;margin-bottom:24px}
+.run-stat{text-align:center}
+.rs-val{font-size:18px;font-weight:800}
+.rs-label{font-size:10px;color:var(--muted);margin-top:2px}
+.stop-btn{padding:8px 28px;background:transparent;border:1px solid var(--red);color:var(--red);font-size:12px;font-weight:600;border-radius:8px;cursor:pointer}
+.stop-btn:hover{background:rgba(239,68,68,.1)}
+
+/* PHASE 3: Report */
+.report{max-width:800px;margin:0 auto}
+.report-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.report-section h3{font-size:14px;font-weight:800;margin-bottom:4px}
+.report-section .sub{font-size:11px;color:var(--muted);margin-bottom:16px}
+.chart-wrap{height:260px;position:relative}
+.report-meta{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:16px}
+.report-meta .rm-item{text-align:center}
+.report-meta .rm-val{font-size:20px;font-weight:800;color:var(--accent)}
+.report-meta .rm-label{font-size:10px;color:var(--muted)}
+
+.md-content h3{font-size:13px;font-weight:700;margin:14px 0 6px;color:var(--accent)}
+.md-content p{font-size:12px;line-height:1.7;margin-bottom:8px}
+.md-content ul{margin:6px 0 10px 18px;font-size:12px;line-height:1.7}
+.md-content li{margin-bottom:4px}
+.md-content strong{color:var(--text)}
+
+.bt-panel{margin-top:16px;padding:16px;background:var(--bg);border:1px solid rgba(168,85,247,.2);border-radius:10px}
+.bt-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.bt-title{font-size:13px;font-weight:800;color:var(--purple)}
+.bt-mae{font-size:18px;font-weight:800}
+.bt-grade{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700;margin-left:6px}
+.bt-table{width:100%;border-collapse:collapse}
+.bt-table th{padding:4px 10px;text-align:left;font-size:10px;color:var(--dim);text-transform:uppercase}
+.bt-table td{padding:6px 10px;font-size:11px;border-bottom:1px solid var(--border)}
+
+.new-btn{display:inline-block;padding:10px 28px;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;border-radius:8px;cursor:pointer;margin-top:12px}
+.new-btn:hover{opacity:.85}
+/* Suitability badge */
+.suit-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;margin-bottom:10px}
+.suit-badge.high{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+.suit-badge.medium{background:rgba(234,179,8,.1);color:var(--yellow);border:1px solid rgba(234,179,8,.2)}
+.suit-badge.low{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2)}
+.suit-score{font-size:14px;font-weight:800}
+.suit-criteria{display:flex;flex-wrap:wrap;gap:3px;margin-top:6px}
+.suit-tag{font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(59,130,246,.08);color:var(--accent)}
+
+.detail-btn{display:inline-block;padding:10px 28px;background:transparent;border:1px solid var(--purple);color:var(--purple);font-size:13px;font-weight:600;border-radius:8px;cursor:pointer;margin-top:12px;text-decoration:none;margin-left:12px}
+.detail-btn:hover{background:rgba(168,85,247,.1)}
+
+/* Mode Toggle */
+.mode-toggle{display:flex;gap:4px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:20px;width:fit-content}
+.mode-btn{padding:8px 20px;border:none;background:transparent;color:var(--dim);font-size:12px;font-weight:700;border-radius:8px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
+.mode-btn.active{background:var(--accent);color:#fff}
+.mode-btn .mode-icon{font-size:14px}
+
+/* Campaign Config */
+.campaign-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+.campaign-card .brief-label{margin-bottom:10px}
+.camp-field{margin-bottom:10px}
+.camp-field label{display:block;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.camp-field input,.camp-field textarea,.camp-field select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:11px;font-family:inherit;outline:none}
+.camp-field input:focus,.camp-field textarea:focus{border-color:var(--accent)}
+.camp-field textarea{resize:vertical;min-height:60px}
+.channel-pills{display:flex;flex-wrap:wrap;gap:4px}
+.ch-pill{font-size:9px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--dim);cursor:pointer;transition:all .2s}
+.ch-pill.selected{border-color:var(--accent);background:rgba(59,130,246,.1);color:var(--accent)}
+.ch-pill:hover{border-color:var(--accent)}
+
+/* Society Report extras */
+.daily-chart-wrap{height:300px;position:relative;margin-bottom:16px}
+.group-compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.group-box{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px}
+.group-box h4{font-size:12px;font-weight:700;margin-bottom:8px}
+.group-box .gb-pct{font-size:11px;margin:4px 0;display:flex;justify-content:space-between}
+.reach-bar{display:flex;align-items:center;gap:12px;padding:12px 0}
+.reach-val{font-size:28px;font-weight:800;color:var(--green)}
+.reach-label{font-size:11px;color:var(--dim)}
+
+/* Consultant Panel */
+.consultant-panel{background:var(--card);border:1px solid rgba(234,179,8,.3);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.consultant-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:rgba(234,179,8,.04)}
+.consultant-avatar{width:36px;height:36px;border-radius:10px;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#0a0e1a;flex-shrink:0}
+.consultant-info h4{font-size:13px;font-weight:700}
+.consultant-info .sub{font-size:10px;color:var(--muted);margin:0}
+.consultant-tabs{display:flex;gap:0;border-bottom:1px solid var(--border)}
+.consultant-tab{flex:1;padding:10px;text-align:center;font-size:11px;font-weight:600;cursor:pointer;color:var(--dim);border-bottom:2px solid transparent;transition:all .2s}
+.consultant-tab.active{color:var(--yellow);border-bottom-color:var(--yellow);background:rgba(234,179,8,.04)}
+.consultant-tab:hover{color:var(--text)}
+.consultant-tab .tab-count{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;font-size:9px;font-weight:800;border-radius:8px;background:rgba(234,179,8,.15);color:var(--yellow);margin-left:4px;padding:0 4px}
+.consultant-body{min-height:200px}
+/* Tab: Comparison */
+.comp-summary{padding:16px 20px}
+.comp-verdict{padding:12px 16px;border-radius:8px;font-size:12px;line-height:1.7;margin-bottom:12px}
+.comp-verdict.good{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15)}
+.comp-verdict.warning{background:rgba(234,179,8,.06);border:1px solid rgba(234,179,8,.15)}
+.comp-verdict.bad{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15)}
+.comp-items{display:flex;flex-direction:column;gap:6px}
+.comp-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg);border-radius:6px;font-size:11px}
+.comp-item .ci-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.comp-item .ci-label{flex:1;color:var(--dim)}
+.comp-item .ci-val{font-weight:700}
+/* Tab: Chat */
+.consultant-chat{display:flex;flex-direction:column;height:340px}
+.consultant-msgs{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.consultant-msgs .msg{padding:10px 14px;border-radius:12px;font-size:12px;line-height:1.6;max-width:85%;white-space:pre-wrap}
+.consultant-msgs .msg.consultant{background:var(--bg);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:4px}
+.consultant-msgs .msg.user{background:var(--yellow);color:#0a0e1a;align-self:flex-end;border-bottom-right-radius:4px}
+.consultant-msgs .typing{display:flex;gap:4px;padding:10px 14px;align-self:flex-start}
+.consultant-msgs .typing span{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:typePulse .8s ease-in-out infinite}
+.consultant-msgs .typing span:nth-child(2){animation-delay:.15s}
+.consultant-msgs .typing span:nth-child(3){animation-delay:.3s}
+.consultant-input-bar{padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px}
+.consultant-input-bar textarea{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:11px;resize:none;outline:none;font-family:inherit;max-height:60px}
+.consultant-input-bar textarea:focus{border-color:var(--yellow)}
+.consultant-input-bar button{width:32px;height:32px;border-radius:8px;background:var(--yellow);border:none;color:#0a0e1a;font-size:14px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.consultant-input-bar button:disabled{opacity:.4;cursor:default}
+/* Tab: Follow-ups */
+.followup-list{padding:12px 16px;display:flex;flex-direction:column;gap:6px}
+.followup-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--bg);border-radius:8px;font-size:11px;border:1px solid var(--border)}
+.followup-item .fu-priority{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;flex-shrink:0;margin-top:1px}
+.fu-priority.high{background:rgba(239,68,68,.1);color:var(--red)}
+.fu-priority.medium{background:rgba(234,179,8,.1);color:var(--yellow)}
+.fu-priority.low{background:rgba(34,197,94,.1);color:var(--green)}
+.followup-item .fu-text{flex:1;line-height:1.5}
+.followup-item .fu-text strong{color:var(--text);display:block;margin-bottom:2px}
+.followup-item .fu-text span{color:var(--dim)}
+.followup-empty{padding:30px;text-align:center;color:var(--muted);font-size:12px}
+.fu-add-btn{margin:8px 16px;padding:8px;text-align:center;border:1px dashed var(--border);border-radius:6px;font-size:11px;color:var(--dim);cursor:pointer;transition:all .2s}
+.fu-add-btn:hover{border-color:var(--yellow);color:var(--yellow)}
+
+/* History */
+.history-section{margin-top:24px}
+.history-section h3{font-size:13px;font-weight:700;color:var(--dim);margin-bottom:12px}
+.hist-list{display:flex;flex-direction:column;gap:6px}
+.hist-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;transition:all .2s;text-decoration:none;color:var(--text)}
+.hist-item:hover{border-color:var(--accent);background:var(--card-hover)}
+.hi-status{font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px;text-transform:uppercase;flex-shrink:0}
+.hi-status.completed{background:rgba(34,197,94,.12);color:var(--green)}
+.hi-status.failed{background:rgba(239,68,68,.12);color:var(--red)}
+.hi-status.running{background:rgba(59,130,246,.12);color:var(--accent)}
+.hi-status.pending{background:rgba(234,179,8,.12);color:var(--yellow)}
+.hi-status.cancelled{background:rgba(148,163,184,.12);color:var(--muted)}
+.hi-q{flex:1;font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hi-meta{font-size:10px;color:var(--muted);display:flex;gap:12px;flex-shrink:0}
+</style>
+</head>
+<body>
+<!-- 统一导航组件 -->
+<div id="unified-navigation-container"></div>
+<script>
+// 动态加载统一导航组件
+fetch("components/unified-navigation.html")
+    .then(response => response.text())
+    .then(html => {
+        document.getElementById("unified-navigation-container").innerHTML = html;
+        console.log("✅ 统一导航组件加载完成");
+    })
+    .catch(error => console.error("❌ 导航组件加载失败:", error));
+</script>
+
+
+<!-- NAV -->
+
+
+<!-- ===== PHASE 1: DESIGN ===== -->
+
+    ${criteriaHtml ? `<div class="suit-criteria">${criteriaHtml}</div>` : ''}
+    ${limitHtml}`;
+  }
+
+  if (surveyBrief.questions.length > 0) {
+    qHtml += surveyBrief.questions.map((q, i) => `
+      <div class="q-item">
+        <div class="q-label">Q${i + 1}</div>
+        <div class="q-text">${esc(q.question)}</div>
+        <div class="q-options">${q.options.map(o => `<span class="q-opt">${esc(o)}</span>`).join('')}</div>
+      </div>`).join('');
+  }
+  qDiv.innerHTML = qHtml || `<div class="brief-empty">${T('brief_q_empty')}</div>`;
+
+  const aDiv = document.getElementById('briefAudience');
+  const aud = surveyBrief.audience;
+  let tagsHtml = '';
+  if (aud.include_tags) tagsHtml += aud.include_tags.map(t => `<span class="aud-tag include">${esc(t)}</span>`).join('');
+  if (aud.exclude_tags) tagsHtml += aud.exclude_tags.map(t => `<span class="aud-tag exclude">${esc(t)}</span>`).join('');
+
+  aDiv.innerHTML = `
+    <div class="audience-tags">${tagsHtml}</div>
+    <div class="aud-count">${(aud.estimated_pool || 0).toLocaleString()}</div>
+    <div class="aud-count-label">${T('brief_aud_label')}</div>
+    <p style="font-size:11px;color:var(--dim);margin-top:8px">${esc(aud.description || '')}</p>`;
+
+  if (brief.recommended_sample) {
+    document.querySelectorAll('.sample-opt').forEach(o => o.classList.remove('selected'));
+    const sizes = [2, 50, 1000, 5000];
+    let best = sizes.reduce((a, b) => Math.abs(b - brief.recommended_sample) < Math.abs(a - brief.recommended_sample) ? b : a);
+    const target = document.querySelector(`.sample-opt[data-n="${best}"]`);
+    if (target) target.classList.add('selected');
+    surveyBrief.sampleSize = best;
+  }
+  document.getElementById('runBtn').disabled = false;
+}
+
+function selectSample(el) {
+  document.querySelectorAll('.sample-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  surveyBrief.sampleSize = parseInt(el.dataset.n);
+}
+
+// ===== BACKTEST =====
+const BACKTEST_CASES = [
+  {
+    name: { en: 'PE2023 Presidential', zh: '2023总统选举' }, tag: 'election',
+    keywords: ['presidential', 'president', '总统', 'tharman', 'pe2023', '2023 election'],
+    question: { en: 'The 2023 Singapore Presidential Election has three candidates: Tharman Shanmugaratnam, Ng Kok Song, and Tan Kin Lian. Who would you vote for?', zh: '2023年新加坡总统选举有三位候选人：尚达曼、黄国松和陈清木。你会投票给谁？' },
+    options: { en: ['Tharman Shanmugaratnam', 'Ng Kok Song', 'Tan Kin Lian', 'Would not vote'], zh: ['尚达曼', '黄国松', '陈清木', '不投票'] },
+    filters: { age_min: 21 },
+    audience: { description: { en: 'Citizens 21+ (eligible voters)', zh: '21岁以上公民（合格选民）' }, include_tags: { en: ['Citizens 21+'], zh: ['21岁以上公民'] }, exclude_tags: { en: ['Non-citizens', 'Under 21'], zh: ['非公民', '21岁以下'] }, estimated_pool: 148000 },
+    truth: { en: { 'Tharman Shanmugaratnam': 70.4, 'Ng Kok Song': 15.7, 'Tan Kin Lian': 13.9, 'Would not vote': 0 }, zh: { '尚达曼': 70.4, '黄国松': 15.7, '陈清木': 13.9, '不投票': 0 } },
+    source: 'ELD Official Results, Sep 2023', recommended_sample: 1000,
+    status: 'completed', prev_mae: 9.3, prev_n: 100,
+  },
+  {
+    name: { en: 'GST 2024 Impact', zh: '2024 GST消费影响' }, tag: 'economy',
+    keywords: ['gst', '消费税', 'goods and services tax', '9%', 'gst 2024', 'spending cut'],
+    question: { en: 'With GST rising from 8% to 9% in January 2024, how will you adjust your spending?', zh: 'GST从8%上调至9%，你会如何调整消费？' },
+    options: { en: ['Significantly cut spending', 'Moderately reduce spending', 'Minor impact on spending', 'No impact at all'], zh: ['大幅削减消费', '适度减少消费', '影响不大', '完全没有影响'] },
+    filters: { age_min: 18 },
+    audience: { description: { en: 'Adults 18+ with income', zh: '18岁以上有收入居民' }, include_tags: { en: ['Adults 18+', 'Has income'], zh: ['18岁以上', '有收入'] }, exclude_tags: { en: ['Children'], zh: ['儿童'] }, estimated_pool: 148000 },
+    truth: { en: { 'Significantly cut spending': 15, 'Moderately reduce spending': 45, 'Minor impact on spending': 30, 'No impact at all': 10 }, zh: { '大幅削减消费': 15, '适度减少消费': 45, '影响不大': 30, '完全没有影响': 10 } },
+    source: 'CASE Survey 2024 (~60% reduce)', recommended_sample: 1000,
+    status: 'completed', prev_mae: 13.0, prev_n: 100,
+  },
+  {
+    name: { en: 'GE2025 Voting', zh: 'GE2025大选投票' }, tag: 'election',
+    keywords: ['ge2025', 'general election', '大选', '2025 election', 'pap', 'wp', 'workers party'],
+    question: { en: 'If a general election were held tomorrow, which party would you vote for?', zh: '如果明天举行大选，你会投票给哪个政党？' },
+    options: { en: ["People's Action Party (PAP)", "Workers' Party (WP)", "Progress Singapore Party (PSP)", "Other opposition party", "Undecided"], zh: ['人民行动党 (PAP)', '工人党 (WP)', '前进党 (PSP)', '其他反对党', '未决定'] },
+    filters: { age_min: 21 },
+    audience: { description: { en: 'Citizens 21+ (eligible voters)', zh: '21岁以上公民（合格选民）' }, include_tags: { en: ['Citizens 21+'], zh: ['21岁以上公民'] }, exclude_tags: { en: ['Non-citizens', 'Under 21'], zh: ['非公民', '21岁以下'] }, estimated_pool: 148000 },
+    truth: { en: { "People's Action Party (PAP)": 65.57, "Workers' Party (WP)": 14.99, "Progress Singapore Party (PSP)": 3.5, "Other opposition party": 5.94, "Undecided": 10.0 }, zh: { '人民行动党 (PAP)': 65.57, '工人党 (WP)': 14.99, '前进党 (PSP)': 3.5, '其他反对党': 5.94, '未决定': 10.0 } },
+    source: 'ELD Official Results, May 2025', recommended_sample: 1000,
+  },
+  {
+    name: { en: 'Cost of Living', zh: '生活成本担忧' }, tag: 'economy',
+    keywords: ['cost of living', '生活成本', 'living cost', '物价', 'inflation', '通胀'],
+    question: { en: 'Are you worried about the rising cost of living in Singapore over the next 6 months?', zh: '你是否担心未来6个月新加坡生活成本上涨？' },
+    options: { en: ['Very worried', 'Somewhat worried', 'Not very worried', 'Not worried at all'], zh: ['非常担心', '比较担心', '不太担心', '完全不担心'] },
+    filters: { age_min: 18 },
+    audience: { description: { en: 'All adults 18+', zh: '所有18岁以上居民' }, include_tags: { en: ['Adults 18+'], zh: ['18岁以上'] }, exclude_tags: { en: ['Children'], zh: ['儿童'] }, estimated_pool: 148000 },
+    truth: { en: { 'Very worried': 45, 'Somewhat worried': 38, 'Not very worried': 13, 'Not worried at all': 4 }, zh: { '非常担心': 45, '比较担心': 38, '不太担心': 13, '完全不担心': 4 } },
+    source: 'YouGov Jun 2025 (n=4,035)', recommended_sample: 1000,
+  },
+  {
+    name: { en: 'Recession Fear', zh: '衰退预期' }, tag: 'economy',
+    keywords: ['recession', '衰退', 'economic downturn', '经济危机'],
+    question: { en: 'Do you think the global economy will enter a recession in the next 6 months?', zh: '你认为全球经济在未来6个月内会进入衰退吗？' },
+    options: { en: ['Very likely', 'Somewhat likely', 'Unlikely', 'Very unlikely', 'Not sure'], zh: ['非常可能', '比较可能', '不太可能', '非常不可能', '不确定'] },
+    filters: { age_min: 18 },
+    audience: { description: { en: 'All adults 18+', zh: '所有18岁以上居民' }, include_tags: { en: ['Adults 18+'], zh: ['18岁以上'] }, exclude_tags: { en: ['Children'], zh: ['儿童'] }, estimated_pool: 148000 },
+    truth: { en: { 'Very likely': 15, 'Somewhat likely': 30, 'Unlikely': 30, 'Very unlikely': 10, 'Not sure': 15 }, zh: { '非常可能': 15, '比较可能': 30, '不太可能': 30, '非常不可能': 10, '不确定': 15 } },
+    source: 'YouGov Jun 2025', recommended_sample: 1000,
+  },
+  {
+    name: { en: 'AI Sentiment', zh: 'AI态度' }, tag: 'tech',
+    keywords: ['ai', '人工智能', 'artificial intelligence', 'ai sentiment'],
+    question: { en: 'How do you feel about the increasing use of AI in daily life and work?', zh: '你对AI在日常生活和工作中越来越广泛的应用有什么看法？' },
+    options: { en: ['Very excited', 'Cautiously optimistic', 'Neutral', 'Somewhat concerned', 'Very worried'], zh: ['非常期待', '谨慎乐观', '中立', '有些担忧', '非常担心'] },
+    filters: { age_min: 18 },
+    audience: { description: { en: 'All adults 18+', zh: '所有18岁以上居民' }, include_tags: { en: ['Adults 18+'], zh: ['18岁以上'] }, exclude_tags: { en: ['Children'], zh: ['儿童'] }, estimated_pool: 148000 },
+    truth: { en: { 'Very excited': 25, 'Cautiously optimistic': 33, 'Neutral': 15, 'Somewhat concerned': 19, 'Very worried': 8 }, zh: { '非常期待': 25, '谨慎乐观': 33, '中立': 15, '有些担忧': 19, '非常担心': 8 } },
+    source: 'RSIS 2025', recommended_sample: 1000,
+  },
+  {
+    name: { en: 'Gov Satisfaction', zh: '政府满意度' }, tag: 'gov',
+    keywords: ['government satisfaction', '政府满意', 'gov performance', '施政满意度'],
+    question: { en: "Overall, how satisfied are you with the Singapore government's performance?", zh: '总体而言，你对新加坡政府的表现满意吗？' },
+    options: { en: ['Very satisfied', 'Somewhat satisfied', 'Neutral', 'Somewhat dissatisfied', 'Very dissatisfied'], zh: ['非常满意', '比较满意', '一般', '不太满意', '非常不满意'] },
+    filters: { age_min: 18 },
+    audience: { description: { en: 'All adults 18+', zh: '所有18岁以上居民' }, include_tags: { en: ['Adults 18+'], zh: ['18岁以上'] }, exclude_tags: { en: ['Children'], zh: ['儿童'] }, estimated_pool: 148000 },
+    truth: { en: { 'Very satisfied': 22, 'Somewhat satisfied': 44, 'Neutral': 6, 'Somewhat dissatisfied': 20, 'Very dissatisfied': 8 }, zh: { '非常满意': 22, '比较满意': 44, '一般': 6, '不太满意': 20, '非常不满意': 8 } },
+    source: 'YouGov Jan 2026 (n=1,093)', recommended_sample: 1000,
+  },
+];
+
+function renderQuickstart() {
+  const tagLabels = { election: { en: 'Election', zh: '选举' }, economy: { en: 'Economy', zh: '经济' }, tech: { en: 'Tech', zh: '科技' }, gov: { en: 'Gov', zh: '政府' } };
+  document.getElementById('quickstart').innerHTML = BACKTEST_CASES.map((c, i) => {
+    const tl = tagLabels[c.tag] || { en: c.tag, zh: c.tag };
+    const prevBadge = c.prev_mae ? `<span style="font-size:8px;padding:1px 5px;border-radius:3px;background:rgba(34,197,94,.1);color:var(--green);font-weight:700;margin-left:4px">MAE ${c.prev_mae}pp</span>` : '';
+    return `<div class="qs-card" onclick="loadBacktest(${i})"><span class="qs-tag ${c.tag}">${tl[currentLang]}</span><span class="qs-name">${c.name[currentLang]}${prevBadge}</span></div>`;
+  }).join('');
+}
+
+function L(obj) { return obj[currentLang] || obj.en; }
+
+// Robust backtest matching: keywords + question text + Sophie's chat context
+function matchBacktestCase(brief) {
+  const questionText = (brief?.questions?.[0]?.question || '').toLowerCase();
+  // Also check the full Sophie chat history for topic keywords
+  const chatContext = sophieHistory.map(m => m.content).join(' ').toLowerCase();
+  const searchText = questionText + ' ' + chatContext;
+
+  let bestMatch = null;
+  let bestScore = 0;
+
+  for (const c of BACKTEST_CASES) {
+    let score = 0;
+
+    // Keyword matching (strongest signal)
+    if (c.keywords) {
+      for (const kw of c.keywords) {
+        if (searchText.includes(kw.toLowerCase())) score += 3;
+      }
+    }
+
+    // Question text similarity
+    const cq = (c.question.en || '').toLowerCase();
+    const cqZh = (c.question.zh || '').toLowerCase();
+    if (questionText && cq && (questionText.includes(cq.slice(0, 20)) || cq.includes(questionText.slice(0, 20)))) score += 5;
+    if (questionText && cqZh && (questionText.includes(cqZh.slice(0, 10)) || cqZh.includes(questionText.slice(0, 10)))) score += 5;
+
+    // Name matching
+    const nameEn = (c.name.en || '').toLowerCase();
+    const nameZh = (c.name.zh || '').toLowerCase();
+    if (searchText.includes(nameEn)) score += 4;
+    if (searchText.includes(nameZh)) score += 4;
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestMatch = c;
+    }
+  }
+
+  // Require minimum score of 3 (at least one keyword match)
+  return bestScore >= 3 ? bestMatch : null;
+}
+
+function loadBacktest(idx) {
+  const c = BACKTEST_CASES[idx];
+  const brief = {
+    questions: [{ question: L(c.question), options: L(c.options) }],
+    audience: { description: L(c.audience.description), include_tags: L(c.audience.include_tags), exclude_tags: L(c.audience.exclude_tags), estimated_pool: c.audience.estimated_pool, filters: c.filters },
+    recommended_sample: c.recommended_sample, ready: true,
+  };
+  updateBrief(brief);
+  window._backtestTruth = L(c.truth);
+  window._backtestSource = c.source;
+  const name = L(c.name);
+  const prevInfo = c.prev_mae ? (currentLang === 'zh'
+    ? `\n前次回测：n=${c.prev_n}，MAE=${c.prev_mae}pp${c.prev_mae > 10 ? ' ⚠️ 偏差较大，建议扩大样本量' : ''}`
+    : `\nPrevious run: n=${c.prev_n}, MAE=${c.prev_mae}pp${c.prev_mae > 10 ? ' — consider larger sample' : ''}`) : '';
+  const msg = currentLang === 'zh'
+    ? `已加载回测案例：**${name}**\n来源：${c.source}${prevInfo}\n\n选择样本量后点击"确认并运行"。`
+    : `Loaded backtest: **${name}**\nSource: ${c.source}${prevInfo}\n\nSelect sample size and click "Confirm & Run".`;
+  addMessage('sophieChat', msg, 'agent');
+}
+
+// ===== SIMULATION =====
+async function startSimulation() {
+  if (!surveyBrief.questions.length) return;
+  const q = surveyBrief.questions[0];
+  const n = surveyBrief.sampleSize ?? 50;
+  const rawFilters = surveyBrief.audience.filters || {};
+  const filters = {};
+  for (const [k, v] of Object.entries(rawFilters)) {
+    if (v != null && !(typeof v === 'string' && (v.toLowerCase() === 'all' || v === ''))) filters[k] = v;
+  }
+  const jobData = {
+    question: q.question, options: q.options,
+    sample_size: n, filter: filters,
+    strata: ['age_group', 'gender', 'ethnicity'],
+    sim_mode: currentSimMode,
+  };
+  if (currentSimMode === 'society') {
+    jobData.campaign = {
+      message: document.getElementById('campMessage').value.trim() || q.question,
+      brand: document.getElementById('campBrand').value.trim() || '',
+      type: document.getElementById('campType').value,
+      channels: [...selectedChannels],
+      base_exposure_rate: parseFloat(document.getElementById('campExposure').value),
+      target_filter: filters,
+    };
+    jobData.num_days = 7;
+  }
+  try {
+    const result = await sbFetch('simulation_jobs', { method: 'POST', body: JSON.stringify(jobData), prefer: 'return=representation' });
+    if (Array.isArray(result) && result.length > 0) {
+      currentJobId = result[0].id;
+      setPhase(2);
+      const modeLabel = currentSimMode === 'society' ? `[${T('mode_society')}] ` : '';
+      document.getElementById('runQuestion').textContent = modeLabel + q.question;
+      document.getElementById('statAgents').textContent = n.toLocaleString();
+      pollJob();
+    } else {
+      addMessage('sophieChat', T('err_create'), 'system');
+    }
+  } catch (e) {
+    addMessage('sophieChat', T('err_conn') + ` (${e.message})`, 'system');
+  }
+}
+
+async function stopSimulation() {
+  if (!currentJobId) return;
+  if (!confirm(T('confirm_stop'))) return;
+  if (pollTimerId) { clearTimeout(pollTimerId); pollTimerId = null; }
+  try {
+    const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' };
+    await fetch(`${SUPABASE_URL}/rest/v1/simulation_jobs?id=eq.${currentJobId}`, {
+      method: 'PATCH', headers, body: JSON.stringify({ status: 'cancelled' }),
+    });
+  } catch(e) { console.error('Stop error:', e); }
+  currentJobId = null;
+  setPhase(1);
+}
+
+async function pollJob() {
+  if (!currentJobId) return;
+  try {
+    const data = await sbFetch(`simulation_jobs?id=eq.${currentJobId}&select=*`);
+    if (!data || !data.length) { pollTimerId = setTimeout(pollJob, 2000); return; }
+    const job = data[0];
+    const progress = job.progress || 0;
+    document.getElementById('progressBar').style.width = `${progress}%`;
+    document.getElementById('progressBar').textContent = `${Math.round(progress)}%`;
+    document.getElementById('statDone').textContent = Math.round(progress / 100 * job.sample_size).toLocaleString();
+    document.getElementById('statTokens').textContent = (job.total_tokens || 0).toLocaleString();
+    document.getElementById('statCost').textContent = `$${(job.total_cost_usd || 0).toFixed(2)}`;
+    if (job.status === 'completed') {
+      simulationResult = typeof job.result === 'string' ? JSON.parse(job.result) : job.result;
+      setTimeout(() => showReport(job), 500);
+    } else if (job.status === 'failed' || job.status === 'cancelled') {
+      addMessage('sophieChat', T('err_failed'), 'system');
+      setPhase(1);
+    } else {
+      pollTimerId = setTimeout(pollJob, 2000);
+    }
+  } catch { pollTimerId = setTimeout(pollJob, 3000); }
+}
+
+// ===== REPORT =====
+async function showReport(job) {
+  setPhase(3);
+  const result = simulationResult;
+  if (!result) return;
+
+  const topChoice = Object.entries(result.percentages || {}).sort((a, b) => b[1] - a[1]);
+  document.getElementById('reportMeta').innerHTML = `
+    <div class="rm-item"><div class="rm-val">${result.total?.toLocaleString() || 0}</div><div class="rm-label">${T('stat_agents')}</div></div>
+    <div class="rm-item"><div class="rm-val">${(job.total_tokens || 0).toLocaleString()}</div><div class="rm-label">Tokens</div></div>
+    <div class="rm-item"><div class="rm-val">$${(job.total_cost_usd || 0).toFixed(2)}</div><div class="rm-label">${T('stat_cost')}</div></div>
+    <div class="rm-item"><div class="rm-val" style="color:var(--green)">${topChoice[0]?.[1] || 0}%</div><div class="rm-label">${esc(topChoice[0]?.[0] || '')}</div></div>`;
+  document.getElementById('reportQuestion').textContent = job.question;
+  document.getElementById('detailLink').href = `detail.html?id=${job.id}`;
+
+  // Save truth data before backtest comparison clears it
+  window._consultantTruth = window._backtestTruth ? { ...window._backtestTruth } : null;
+  window._consultantSource = window._backtestSource || '';
+
+  renderDistributionChart(result);
+  renderBacktestComparison(result);
+  generateAnalysis(job, result);
+  initConsultant(job, result);
+  loadHistory();
+
+  // Society Mode specific sections
+  const isSociety = result.mode === 'society';
+  document.getElementById('societyDaily').classList.toggle('hidden', !isSociety);
+  document.getElementById('societyGroups').classList.toggle('hidden', !isSociety);
+  document.getElementById('societyGraph').classList.toggle('hidden', !isSociety);
+  if (isSociety) {
+    renderDailyChart(result);
+    renderGroupCompare(result);
+    renderGraphStats(result);
+  }
+}
+
+function renderDistributionChart(result) {
+  const ctx = document.getElementById('chartDistribution').getContext('2d');
+  const existing = Chart.getChart(ctx.canvas); if (existing) existing.destroy();
+  const labels = Object.keys(result.distribution || {});
+  const values = Object.values(result.distribution || {});
+  const pcts = labels.map(l => result.percentages?.[l] || 0);
+  new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data: values, backgroundColor: COLORS.slice(0, labels.length).map(c => c + '33'), borderColor: COLORS.slice(0, labels.length), borderWidth: 2, borderRadius: 6 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.raw} (${pcts[c.dataIndex]}%)` } } },
+      scales: { x: { ticks: { color: '#94a3b8', font: { size: 10 }, maxRotation: 45 }, grid: { display: false } }, y: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } } },
+    },
+  });
+}
+
+function renderBacktestComparison(result) {
+  const panel = document.getElementById('backtestCompare');
+  const truth = window._backtestTruth;
+  if (!truth) { panel.innerHTML = ''; return; }
+  const simPcts = result.percentages || {};
+  const adjPcts = result.adjusted_percentages || null;
+
+  // Use adjusted if available, otherwise raw
+  const displayPcts = adjPcts || simPcts;
+  // Only compare keys that exist in truth (exclude abstention options from MAE)
+  const truthKeys = Object.keys(truth).filter(k => truth[k] > 0 || displayPcts[k] > 0);
+  const allKeys = [...new Set([...Object.keys(truth), ...Object.keys(simPcts)])];
+
+  let totalAbsErr = 0;
+  let maeCount = 0;
+  let rows = allKeys.map(key => {
+    const real = truth[key] ?? 0;
+    const sim = simPcts[key] ?? 0;
+    const adj = adjPcts ? (adjPcts[key] ?? null) : null;
+    const useVal = adj !== null ? adj : sim;
+    const diff = useVal - real;
+    // Only count real candidates in MAE (not abstention)
+    if (real > 0 || (adj !== null ? adj > 0 : sim > 0)) {
+      if (adj === null || adj > 0) { // skip redistributed-away options from MAE
+        totalAbsErr += Math.abs(diff);
+        maeCount++;
+      }
+    }
+    const diffColor = Math.abs(diff) <= 5 ? 'var(--green)' : Math.abs(diff) <= 15 ? '#eab308' : 'var(--red)';
+    const isAbstain = adj === undefined && adjPcts;
+    const adjNote = adj !== null && adj !== sim ? ` <span style="font-size:8px;color:var(--muted)">(raw ${sim.toFixed(1)}%)</span>` : '';
+    const strikeStyle = isAbstain ? 'text-decoration:line-through;opacity:.5;' : '';
+    return `<tr style="${strikeStyle}">
+      <td style="padding:6px 10px;font-size:11px;border-bottom:1px solid var(--border)">${esc(key)}</td>
+      <td style="padding:6px 10px;text-align:center;font-weight:700;border-bottom:1px solid var(--border)">${real.toFixed(1)}%</td>
+      <td style="padding:6px 10px;text-align:center;font-weight:700;border-bottom:1px solid var(--border)">${useVal.toFixed(1)}%${adjNote}</td>
+      <td style="padding:6px 10px;text-align:center;font-weight:800;color:${diffColor};border-bottom:1px solid var(--border)">${diff > 0 ? '+' : ''}${diff.toFixed(1)}pp</td>
+    </tr>`;
+  }).join('');
+  const mae = maeCount > 0 ? (totalAbsErr / maeCount).toFixed(1) : '—';
+  const maeNum = parseFloat(mae) || 99;
+  const maeColor = maeNum <= 5 ? 'var(--green)' : maeNum <= 10 ? '#eab308' : 'var(--red)';
+  const maeLabel = maeNum <= 5 ? T('bt_excellent') : maeNum <= 10 ? T('bt_good') : T('bt_needs_work');
+  const adjBadge = adjPcts ? ' <span style="font-size:8px;padding:2px 5px;border-radius:3px;background:rgba(59,130,246,.1);color:#3b82f6;font-weight:700">adjusted</span>' : '';
+  panel.innerHTML = `
+    <div class="bt-panel">
+      <div class="bt-header">
+        <span class="bt-title">${T('bt_backtest')}${adjBadge}</span>
+        <div><span class="bt-mae" style="color:${maeColor}">${mae}pp</span> <span style="font-size:10px;color:var(--dim)">MAE</span> <span class="bt-grade" style="background:${maeColor}22;color:${maeColor}">${maeLabel}</span></div>
+      </div>
+      <table class="bt-table"><thead><tr>
+        <th>${T('bt_option')}</th><th style="text-align:center">${T('bt_real')}</th><th style="text-align:center">${T('bt_sim')}</th><th style="text-align:center">${T('bt_diff')}</th>
+      </tr></thead><tbody>${rows}</tbody></table>
+      <p style="font-size:9px;color:var(--muted);margin-top:8px">${esc(window._backtestSource || '')}</p>
+    </div>`;
+  window._backtestTruth = null;
+}
+
+// ===== ANALYSIS =====
+async function generateAnalysis(job, result) {
+  const report = document.getElementById('analysisReport');
+  report.innerHTML = `<p style="color:var(--muted)">${T('analyzing')}</p>`;
+  const system = `You are Marcus, a senior McKinsey-style strategy analyst. ${T('marcus_lang')}
+Write a structured analysis report with these sections:
+## Executive Summary (3-4 key findings)
+## Detailed Analysis (patterns by demographics)
+## Recommendations (3 actionable items)
+Use bold for key numbers. Be concise and data-driven.`;
+  const prompt = `Survey: "${job.question}"
+Sample: ${result.total} agents from 172K Singapore population
+Distribution: ${JSON.stringify(result.percentages)}
+Demographics: ${JSON.stringify(Object.fromEntries(Object.entries(result.breakdowns || {}).slice(0, 3).map(([k, v]) => [k, Object.fromEntries(Object.entries(v).slice(0, 5).map(([g, d]) => [g, d.percentages]))])))}`;
+  try {
+    const text = await llmCall(system, prompt, { temperature: 0.4, max_tokens: 2000 });
+    report.innerHTML = formatMd(text);
+  } catch (e) {
+    report.innerHTML = '<p style="color:var(--red)">Analysis failed.</p>';
+  }
+}
+
+// ===== SOCIETY REPORT =====
+function renderDailyChart(result) {
+  const daily = result.daily || [];
+  if (!daily.length) return;
+  const ctx = document.getElementById('chartDaily').getContext('2d');
+  const existing = Chart.getChart(ctx.canvas); if (existing) existing.destroy();
+  const days = daily.map(d => `Day ${d.day}`);
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: days,
+      datasets: [
+        { label: 'Cumulative Exposed', data: daily.map(d => d.cumulative_exposed), borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,.1)', fill: true, tension: 0.3 },
+        { label: 'New Exposed', data: daily.map(d => d.new_exposed), borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,.1)', fill: true, tension: 0.3 },
+        { label: 'Social Spread', data: daily.map(d => d.social_spread), borderColor: '#a855f7', backgroundColor: 'rgba(168,85,247,.1)', fill: true, tension: 0.3 },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#94a3b8', font: { size: 10 } } } },
+      scales: {
+        x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
+        y: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } },
+      },
+    },
+  });
+
+  // Add sentiment mini-table below
+  const sentTable = daily.map(d => {
+    const s = d.sentiment || {};
+    return `<tr><td style="padding:4px 8px;font-size:11px">Day ${d.day}</td>
+      <td style="color:var(--green);font-size:11px;text-align:center">${s.positive||0}</td>
+      <td style="color:var(--dim);font-size:11px;text-align:center">${s.neutral||0}</td>
+      <td style="color:var(--red);font-size:11px;text-align:center">${s.negative||0}</td>
+      <td style="font-size:11px;text-align:center">${d.avg_intensity || 0}/10</td></tr>`;
+  }).join('');
+  const tableHtml = `<table style="width:100%;border-collapse:collapse;margin-top:12px"><thead><tr>
+    <th style="text-align:left;font-size:10px;color:var(--muted);padding:4px 8px">Day</th>
+    <th style="text-align:center;font-size:10px;color:var(--green)">+</th>
+    <th style="text-align:center;font-size:10px;color:var(--dim)">~</th>
+    <th style="text-align:center;font-size:10px;color:var(--red)">-</th>
+    <th style="text-align:center;font-size:10px;color:var(--muted)">Intensity</th>
+  </tr></thead><tbody>${sentTable}</tbody></table>`;
+  document.getElementById('chartDaily').parentNode.insertAdjacentHTML('afterend', tableHtml);
+}
+
+function renderGroupCompare(result) {
+  const reach = result.campaign_reach || {};
+  const exposed = result.exposed_group || {};
+  const control = result.control_group || {};
+
+  document.getElementById('reachBar').innerHTML = `
+    <div class="reach-val">${reach.reach_rate || 0}%</div>
+    <div><div style="font-size:14px;font-weight:700">${T('society_reach')}</div>
+    <div style="font-size:11px;color:var(--dim)">${(reach.total_exposed||0).toLocaleString()} / ${(reach.total_agents||0).toLocaleString()} ${T('society_agents')}</div></div>`;
+
+  const ePcts = exposed.percentages || {};
+  const cPcts = control.percentages || {};
+  const allKeys = [...new Set([...Object.keys(ePcts), ...Object.keys(cPcts)])];
+
+  const makeRows = (pcts) => allKeys.map(k => {
+    const v = pcts[k] || 0;
+    return `<div class="gb-pct"><span style="font-size:11px">${esc(k)}</span><span style="font-weight:700;color:var(--accent)">${v}%</span></div>`;
+  }).join('');
+
+  document.getElementById('groupCompare').innerHTML = `
+    <div class="group-box">
+      <h4 style="color:var(--accent)">${T('society_exposed')} (n=${exposed.total || 0})</h4>
+      ${makeRows(ePcts)}
+    </div>
+    <div class="group-box">
+      <h4 style="color:var(--dim)">${T('society_control')} (n=${control.total || 0})</h4>
+      ${makeRows(cPcts)}
+    </div>`;
+}
+
+function renderGraphStats(result) {
+  const gs = result.graph_stats || {};
+  const bt = gs.by_type || {};
+  document.getElementById('graphStats').innerHTML = `
+    <div style="display:flex;gap:20px;flex-wrap:wrap">
+      <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--accent)">${gs.nodes||0}</div><div style="font-size:10px;color:var(--muted)">Nodes</div></div>
+      <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--purple)">${(gs.total_edges||0).toLocaleString()}</div><div style="font-size:10px;color:var(--muted)">Edges</div></div>
+      <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--green)">${gs.avg_degree||0}</div><div style="font-size:10px;color:var(--muted)">Avg Degree</div></div>
+      <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--orange)">${gs.max_degree||0}</div><div style="font-size:10px;color:var(--muted)">Max Degree</div></div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+      ${Object.entries(bt).map(([k,v]) => `<span style="font-size:10px;padding:4px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px">${k}: ${v.toLocaleString()}</span>`).join('')}
+    </div>`;
+}
+
+// ===== CONSULTANT =====
+let consultantHistory = [];
+let consultantBusy = false;
+let followupItems = [];
+let currentCaseType = 'new'; // 'backtest' | 'new' | 'rerun'
+let consultantContext = {};  // stores comparison data for LLM context
+
+function switchConsTab(idx) {
+  for (let i = 0; i < 4; i++) {
+    document.getElementById(`consTab${i}`).classList.toggle('active', i === idx);
+    document.getElementById(`consContent${i}`).classList.toggle('hidden', i !== idx);
+  }
+}
+
+function initConsultant(job, result) {
+  const panel = document.getElementById('consultantPanel');
+  panel.classList.remove('hidden');
+  consultantHistory = [];
+  followupItems = [];
+
+  // Update consultant labels for current lang
+  document.getElementById('consultantName').textContent = T('cons_name');
+  document.getElementById('consultantRole').textContent = T('cons_role');
+  // Update tab labels (can't use data-i18n because tabs have child spans)
+  document.getElementById('consTab0').innerHTML = `${T('cons_tab_compare')}<span class="tab-count" id="compCount">0</span>`;
+  document.getElementById('consTab1').textContent = T('cons_tab_chat');
+  document.getElementById('consTab2').innerHTML = `${T('cons_tab_followup')}<span class="tab-count" id="fuCount">0</span>`;
+  document.getElementById('consTab3').innerHTML = `${T('cons_tab_cases')}<span class="tab-count" id="caseCount">0</span>`;
+
+  // Determine case type
+  const truth = window._consultantTruth;
+  const isBacktest = truth && Object.keys(truth).length > 0;
+  currentCaseType = isBacktest ? 'backtest' : 'new';
+
+  const badge = document.getElementById('caseTypeBadge');
+  const label = document.getElementById('caseTypeLabel');
+  if (isBacktest) {
+    badge.className = 'suit-badge medium'; badge.style.margin = '0';
+    label.textContent = T('case_backtest');
+  } else {
+    badge.className = 'suit-badge high'; badge.style.margin = '0';
+    label.textContent = T('case_new');
+  }
+
+  // Build comparison tab
+  if (isBacktest) {
+    buildComparison(result, truth);
+  } else {
+    document.getElementById('compSummary').innerHTML = `<div style="padding:30px;text-align:center;color:var(--muted);font-size:12px">${T('cons_no_truth')}</div>`;
+    document.getElementById('compCount').textContent = '0';
+  }
+
+  // Init chat with greeting
+  const chatMsgs = document.getElementById('consChatMsgs');
+  chatMsgs.innerHTML = '';
+  const greeting = isBacktest ? T('cons_greeting') : T('cons_no_truth');
+  addConsMsg('consultant', greeting);
+
+  // Auto-generate follow-ups
+  autoGenerateFollowups(job, result, isBacktest);
+
+  // Load case management
+  loadCaseManagement();
+
+  // Store context for LLM — use adjusted percentages if available
+  const displayPcts = result.adjusted_percentages || result.percentages;
+  consultantContext = {
+    question: job.question,
+    sampleSize: result.total,
+    distribution: displayPcts,
+    rawDistribution: result.percentages,
+    truth: truth,
+    source: window._consultantSource || '',
+    isBacktest,
+    mae: isBacktest ? calcMAE(displayPcts, truth) : null,
+  };
+
+  switchConsTab(0);
+}
+
+function calcMAE(sim, truth) {
+  if (!sim || !truth) return null;
+  let total = 0, count = 0;
+  for (const [k, v] of Object.entries(truth)) {
+    if (sim[k] !== undefined) { total += Math.abs(sim[k] - v); count++; }
+  }
+  return count > 0 ? (total / count).toFixed(1) : null;
+}
+
+function buildComparison(result, truth) {
+  const sim = result.adjusted_percentages || result.percentages || {};
+  const allKeys = [...new Set([...Object.keys(truth), ...Object.keys(sim)])];
+  let totalErr = 0, count = 0;
+  let itemsHtml = '';
+
+  allKeys.forEach(key => {
+    const real = truth[key] ?? 0, predicted = sim[key] ?? 0;
+    const diff = predicted - real;
+    totalErr += Math.abs(diff); count++;
+    const color = Math.abs(diff) <= 5 ? 'var(--green)' : Math.abs(diff) <= 15 ? 'var(--yellow)' : 'var(--red)';
+    const dotColor = Math.abs(diff) <= 5 ? '#22c55e' : Math.abs(diff) <= 15 ? '#eab308' : '#ef4444';
+    itemsHtml += `<div class="comp-item">
+      <div class="ci-dot" style="background:${dotColor}"></div>
+      <span class="ci-label">${esc(key)}</span>
+      <span class="ci-val" style="color:var(--green)">${real.toFixed(1)}%</span>
+      <span style="color:var(--dim)">vs</span>
+      <span class="ci-val">${predicted.toFixed(1)}%</span>
+      <span class="ci-val" style="color:${color}">${diff > 0 ? '+' : ''}${diff.toFixed(1)}pp</span>
+    </div>`;
+  });
+
+  const mae = count > 0 ? (totalErr / count).toFixed(1) : 0;
+  const grade = mae <= 5 ? 'good' : mae <= 15 ? 'warning' : 'bad';
+  const gradeText = mae <= 5 ? (currentLang === 'zh' ? '优秀 — 模拟结果与真实数据高度一致' : 'Excellent — simulation closely matches real-world data')
+    : mae <= 15 ? (currentLang === 'zh' ? '可接受 — 方向正确但存在系统性偏差，需分析偏差来源' : 'Acceptable — direction correct but systematic bias detected, analysis needed')
+    : (currentLang === 'zh' ? '需改进 — 偏差较大，建议扩大样本量或调整模型参数' : 'Needs improvement — large deviation, consider larger sample or model adjustments');
+
+  document.getElementById('compVerdict').className = `comp-verdict ${grade}`;
+  document.getElementById('compVerdict').innerHTML = `<strong>MAE: ${mae}pp</strong> — ${gradeText}`;
+  document.getElementById('compItems').innerHTML = itemsHtml;
+  document.getElementById('compCount').textContent = allKeys.length;
+}
+
+function addConsMsg(type, text) {
+  const msgs = document.getElementById('consChatMsgs');
+  const div = document.createElement('div');
+  div.className = `msg ${type}`;
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+async function sendConsultantMsg() {
+  if (consultantBusy) return;
+  const input = document.getElementById('consInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  addConsMsg('user', text);
+  consultantHistory.push({ role: 'user', content: text });
+
+  consultantBusy = true;
+  document.getElementById('consSendBtn').disabled = true;
+
+  // Show typing
+  const msgs = document.getElementById('consChatMsgs');
+  msgs.insertAdjacentHTML('beforeend', '<div class="typing" id="consTyping"><span></span><span></span><span></span></div>');
+  msgs.scrollTop = msgs.scrollHeight;
+
+  try {
+    const systemPrompt = buildConsultantPrompt();
+    const reply = await llmCall(systemPrompt, text, {
+      history: consultantHistory.slice(0, -1),
+      temperature: 0.5, max_tokens: 1000,
+    });
+    document.getElementById('consTyping')?.remove();
+    addConsMsg('consultant', reply);
+    consultantHistory.push({ role: 'assistant', content: reply });
+
+    // Check if consultant mentioned follow-up items
+    if (reply.includes('ACTION:') || reply.includes('行动项:') || reply.includes('跟进:')) {
+      extractFollowups(reply);
+    }
+  } catch (err) {
+    document.getElementById('consTyping')?.remove();
+    addConsMsg('consultant', `Error: ${err.message}`);
+  }
+
+  consultantBusy = false;
+  document.getElementById('consSendBtn').disabled = false;
+  document.getElementById('consInput').focus();
+}
+
+function buildConsultantPrompt() {
+  const c = consultantContext;
+  const isZh = currentLang === 'zh';
+  return `You are Marcus Chen, a senior engagement consultant for the Singapore Digital Twin simulation platform.
+${isZh ? 'Respond in Chinese (简体中文).' : 'Respond in English.'}
+
+## YOUR ROLE
+- Analyze simulation results vs real-world benchmarks
+- Identify actionable insights and biases
+- Track client requirements and follow-up items
+- Recommend whether to rerun, expand sample, or adjust methodology
+
+## CURRENT SIMULATION CONTEXT
+Question: "${c.question}"
+Sample: ${c.sampleSize} agents
+Results: ${JSON.stringify(c.distribution)}
+${c.isBacktest ? `
+## BACKTEST DATA
+Real-world truth: ${JSON.stringify(c.truth)}
+Source: ${c.source}
+MAE: ${c.mae}pp
+Case type: BACKTEST — this simulation is being compared against known real-world results.
+` : `
+Case type: NEW CASE — no real-world baseline available.
+`}
+
+## KNOWN SYSTEM BIASES (from previous backtests)
+- Popularity bias: LLM over-concentrates on "safe" popular choices
+- Moderation bias: Agents avoid extreme responses, cluster in moderate options
+- Small sample noise: n<200 has ±10pp inherent sampling noise
+- Income-occupation incoherence: ~27% agents have contradictory attributes
+
+## GUIDELINES
+- Be direct and data-driven. Cite specific numbers.
+- When suggesting follow-up actions, prefix with "ACTION:" on a new line
+- If user asks about specific demographics, reference the 6-dimension breakdown (age/gender/ethnicity/income/housing/education)
+- Recommend sample size increases, A/B model testing, or methodology fixes when appropriate`;
+}
+
+function autoGenerateFollowups(job, result, isBacktest) {
+  followupItems = [];
+  const total = result.total || 0;
+  const isZh = currentLang === 'zh';
+
+  if (isBacktest) {
+    const mae = consultantContext.mae;
+    if (mae && parseFloat(mae) > 10) {
+      followupItems.push({
+        priority: 'high',
+        title: isZh ? '偏差较大 — 扩大样本量' : 'High deviation — increase sample size',
+        desc: isZh ? `MAE ${mae}pp 超过10pp阈值。建议将样本量从${total}扩大到${Math.max(total * 5, 1000)}进行重跑。`
+          : `MAE ${mae}pp exceeds 10pp threshold. Recommend rerun with n=${Math.max(total * 5, 1000)} (current: ${total}).`,
+      });
+    }
+    if (mae && parseFloat(mae) <= 10) {
+      followupItems.push({
+        priority: 'low',
+        title: isZh ? '结果可接受 — 记录到回测库' : 'Results acceptable — archive to backtest library',
+        desc: isZh ? `MAE ${mae}pp 在可接受范围内。建议存档并添加到about页回测仪表盘。` : `MAE ${mae}pp within acceptable range. Archive and add to about page backtest dashboard.`,
+      });
+    }
+    followupItems.push({
+      priority: 'medium',
+      title: isZh ? '人口分组分析' : 'Demographic breakdown analysis',
+      desc: isZh ? '检查预测偏差是否集中在特定人群（年龄段/种族/收入段），识别模型系统性偏差。' : 'Check if prediction errors concentrate in specific demographics (age/ethnicity/income). Identify systematic model biases.',
+    });
+  }
+
+  if (total < 200) {
+    followupItems.push({
+      priority: 'medium',
+      title: isZh ? '样本量不足' : 'Insufficient sample size',
+      desc: isZh ? `当前${total}个智能体，抽样噪声约±${Math.round(100/Math.sqrt(total))}pp。建议≥500获得稳定结果。`
+        : `Current ${total} agents, sampling noise ~±${Math.round(100/Math.sqrt(total))}pp. Recommend ≥500 for stable results.`,
+    });
+  }
+
+  followupItems.push({
+    priority: 'low',
+    title: isZh ? 'A/B模型对比' : 'A/B model comparison',
+    desc: isZh ? '同问题用DeepSeek和SEA-LION分别跑一次，对比两个模型的预测差异。' : 'Run same question with both DeepSeek and SEA-LION, compare prediction differences across models.',
+  });
+
+  renderFollowups();
+}
+
+function renderFollowups() {
+  const list = document.getElementById('followupList');
+  document.getElementById('fuCount').textContent = followupItems.length;
+  if (!followupItems.length) {
+    list.innerHTML = `<div class="followup-empty">${currentLang === 'zh' ? '暂无跟进事项' : 'No follow-up items'}</div>`;
+    return;
+  }
+  list.innerHTML = followupItems.map((f, i) => `
+    <div class="followup-item">
+      <span class="fu-priority ${f.priority}">${f.priority.toUpperCase()}</span>
+      <div class="fu-text"><strong>${esc(f.title)}</strong><span>${esc(f.desc)}</span></div>
+      <button onclick="removeFollowup(${i})" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:4px" title="Remove">&times;</button>
+    </div>`).join('');
+}
+
+function addFollowup() {
+  const title = prompt(currentLang === 'zh' ? '跟进事项标题：' : 'Follow-up item title:');
+  if (!title) return;
+  const desc = prompt(currentLang === 'zh' ? '详细描述（可选）：' : 'Description (optional):') || '';
+  followupItems.push({ priority: 'medium', title, desc });
+  renderFollowups();
+}
+
+function removeFollowup(idx) {
+  followupItems.splice(idx, 1);
+  renderFollowups();
+}
+
+function extractFollowups(reply) {
+  const lines = reply.split('\n');
+  lines.forEach(line => {
+    const match = line.match(/^ACTION:\s*(.+)/i) || line.match(/^行动项:\s*(.+)/) || line.match(/^跟进:\s*(.+)/);
+    if (match) {
+      followupItems.push({ priority: 'medium', title: match[1].trim(), desc: T('fu_auto_title') });
+    }
+  });
+  renderFollowups();
+}
+
+async function loadCaseManagement() {
+  const list = document.getElementById('caseList');
+  const isZh = currentLang === 'zh';
+  list.innerHTML = `<div class="followup-empty">${isZh ? '加载中...' : 'Loading...'}</div>`;
+
+  try {
+    const jobs = await sbFetch('simulation_jobs?select=id,question,sample_size,status,created_at,total_agents,total_cost_usd,sim_mode&order=created_at.desc&limit=20');
+    document.getElementById('caseCount').textContent = jobs.length;
+
+    if (!jobs.length) {
+      list.innerHTML = `<div class="followup-empty">${isZh ? '暂无案例' : 'No cases'}</div>`;
+      return;
+    }
+
+    list.innerHTML = jobs.map(j => {
+      const d = new Date(j.created_at);
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      const statusColors = { completed: 'var(--green)', failed: 'var(--red)', running: 'var(--accent)', pending: 'var(--yellow)', cancelled: 'var(--muted)' };
+      const statusLabel = T(`case_${j.status}`) || j.status;
+      const color = statusColors[j.status] || 'var(--dim)';
+
+      // Detect if this is a backtest case via keyword matching
+      const jqLower = (j.question || '').toLowerCase();
+      const isBacktestCase = BACKTEST_CASES.some(c => {
+        if (c.keywords) { for (const kw of c.keywords) { if (jqLower.includes(kw.toLowerCase())) return true; } }
+        const q = (c.question.en || '').toLowerCase();
+        return q && jqLower && (jqLower.includes(q.slice(0, 25)) || q.includes(jqLower.slice(0, 25)));
+      });
+      const caseTag = isBacktestCase
+        ? `<span style="font-size:8px;padding:2px 5px;background:rgba(234,179,8,.12);color:var(--yellow);border-radius:3px;font-weight:700">${T('case_backtest')}</span>`
+        : `<span style="font-size:8px;padding:2px 5px;background:rgba(34,197,94,.12);color:var(--green);border-radius:3px;font-weight:700">${T('case_new')}</span>`;
+
+      const needsRerun = j.status === 'failed' || j.status === 'cancelled' || (j.status === 'completed' && (j.total_agents || 0) < 100);
+      const rerunTag = needsRerun ? `<span style="font-size:8px;padding:2px 5px;background:rgba(239,68,68,.12);color:var(--red);border-radius:3px;font-weight:700;margin-left:4px">${T('case_needs_rerun')}</span>` : '';
+
+      const href = j.status === 'completed' ? `detail.html?id=${j.id}` : '#';
+      const clickable = j.status === 'completed' ? '' : 'pointer-events:none;opacity:.6';
+
+      return `<a class="followup-item" href="${href}" target="_blank" style="text-decoration:none;${clickable}">
+        <span style="font-size:10px;font-weight:700;color:${color};min-width:60px">${statusLabel}</span>
+        <div class="fu-text">
+          <strong>${caseTag}${rerunTag} ${esc(j.question?.slice(0, 60) || '—')}${(j.question?.length || 0) > 60 ? '...' : ''}</strong>
+          <span>n=${(j.sample_size || 0).toLocaleString()} · ${dateStr} · $${(j.total_cost_usd || 0).toFixed(3)}</span>
+        </div>
+      </a>`;
+    }).join('');
+  } catch (err) {
+    list.innerHTML = `<div class="followup-empty" style="color:var(--red)">Error: ${err.message}</div>`;
+  }
+}
+
+// ===== HELPERS =====
+function addMessage(chatId, text, type, markdown = false) {
+  const chat = document.getElementById(chatId);
+  const div = document.createElement('div');
+  div.className = `msg ${type}`;
+  div.innerHTML = markdown ? `<div class="md-content">${formatMd(text)}</div>` : escapeHtml(text);
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+function showTyping(chatId) { document.getElementById(chatId).insertAdjacentHTML('beforeend', '<div class="typing" id="typingDots"><span></span><span></span><span></span></div>'); }
+function hideTyping(chatId) { document.getElementById(chatId).querySelector('.typing')?.remove(); }
+
+function setPhase(n) {
+  document.getElementById('phase1').classList.toggle('hidden', n !== 1);
+  document.getElementById('phase2').classList.toggle('hidden', n !== 2);
+  document.getElementById('phase3').classList.toggle('hidden', n !== 3);
+}
+
+function esc(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escapeHtml(s) { return esc(s).replace(/\n/g, '<br>'); }
+
+function formatMd(text) {
+  return text
+    .replace(/###\s+(.+)/g, '<h3>$1</h3>')
+    .replace(/##\s+(.+)/g, '<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n- (.+)/g, '\n<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+    .replace(/\n{2,}/g, '</p><p>')
+    .replace(/^/, '<p>').replace(/$/, '</p>');
+}
+
+function resetAll() {
+  surveyBrief = { questions: [], audience: {}, sampleSize: 50 };
+  currentJobId = null; simulationResult = null;
+  if (pollTimerId) { clearTimeout(pollTimerId); pollTimerId = null; }
+  sophieHistory = [];
+  window._backtestTruth = null;
+  window._consultantTruth = null;
+  window._consultantSource = '';
+  consultantHistory = [];
+  followupItems = [];
+  document.getElementById('consultantPanel').classList.add('hidden');
+  // Reset society sections
+  document.getElementById('societyDaily').classList.add('hidden');
+  document.getElementById('societyGroups').classList.add('hidden');
+  document.getElementById('societyGraph').classList.add('hidden');
+  document.getElementById('briefQuestions').innerHTML = `<div class="brief-empty">${T('brief_q_empty')}</div>`;
+  document.getElementById('briefAudience').innerHTML = `<div class="brief-empty">${T('brief_aud_empty')}</div>`;
+  document.querySelectorAll('.sample-opt').forEach(o => o.classList.remove('selected'));
+  document.querySelector('.sample-opt[data-n="50"]').classList.add('selected');
+  document.getElementById('runBtn').disabled = true;
+  document.getElementById('progressBar').style.width = '0%';
+  document.getElementById('progressBar').textContent = '0%';
+  setPhase(1);
+  initSophie();
+}
+
+function initSophie() {
+  document.getElementById('sophieChat').innerHTML = '';
+  addMessage('sophieChat', T('sophie_greeting'), 'agent');
+}
+
+// ===== HISTORY =====
+async function loadHistory() {
+  try {
+    const jobs = await sbFetch('simulation_jobs?select=id,question,sample_size,status,created_at,total_agents,total_cost_usd,sim_mode&order=created_at.desc&limit=20');
+    const list = document.getElementById('histList');
+    if (!jobs.length) { list.innerHTML = `<p style="padding:12px;color:var(--muted);font-size:12px">${T('history_empty')}</p>`; return; }
+    list.innerHTML = jobs.map(j => {
+      const d = new Date(j.created_at);
+      const dateStr = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+      const href = j.status === 'completed' ? `detail.html?id=${j.id}` : '#';
+      const clickable = j.status === 'completed' ? '' : 'pointer-events:none;opacity:.6';
+      const modeBadge = j.sim_mode === 'society' ? '<span style="font-size:8px;padding:2px 5px;background:rgba(168,85,247,.12);color:var(--purple);border-radius:3px;font-weight:700;margin-right:4px">SOC</span>' : '';
+      return `<a class="hist-item" href="${href}" target="_blank" style="${clickable}">
+        <span class="hi-status ${j.status}">${j.status}</span>
+        <span class="hi-q">${modeBadge}${esc(j.question)}</span>
+        <div class="hi-meta">
+          <span>n=${(j.sample_size||0).toLocaleString()}</span>
+          <span>${dateStr}</span>
+          ${j.total_cost_usd ? `<span>$${j.total_cost_usd.toFixed(2)}</span>` : ''}
+        </div>
+      </a>`;
+    }).join('');
+  } catch (e) { console.error('Load history:', e); }
+}
+
+// ===== INIT =====
+document.getElementById('sophieSend').addEventListener('click', sophieSend);
+document.getElementById('sophieInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sophieSend(); }
+});
+document.getElementById('sophieInput').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+});
+
+setLang(currentLang);
+renderQuickstart();
+initSophie();
+loadHistory();
+</script>
+
+<!-- 懒加载系统 -->
+<script src="js/lazy-loading.js"></script>
+<script src="js/init-lazy-loading.js"></script>
+
+<!-- 统一页脚组件 (懒加载) -->
+<div id="unified-footer-container" data-lazy-component="components/unified-footer.html" 
+     data-offline-support="true" data-retryable="true" data-priority="low"></div>
+
+</body>
+</html>

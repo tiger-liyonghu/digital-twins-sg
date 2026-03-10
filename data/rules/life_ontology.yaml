@@ -1,0 +1,387 @@
+# ============================================================
+# Life Ontology — Singapore Digital Twin
+# 10 life phases with events, priorities, and transition rules
+# Theoretical basis: Elder's Life Course + Modigliani + Erikson
+# ============================================================
+
+phases:
+  dependence:
+    id: PHASE_DEPENDENCE
+    name_en: Dependence
+    name_zh: 依赖期
+    age_range: [0, 6]
+    agent_type: passive
+    decision_maker: parent
+    possible_events:
+      - childcare_enrollment
+      - vaccination
+      - parent_insurance_purchase
+      - childhood_illness
+      - developmental_milestone
+    decision_priorities:
+      - parent_childcare_arrangement
+      - parent_health_coverage
+    activation_probability: 0.005  # very low, parent-driven
+    sg_specific:
+      - childcare_queue_competition
+      - infant_care_subsidy
+      - medisave_for_child
+
+  growth:
+    id: PHASE_GROWTH
+    name_en: Growth
+    name_zh: 成长期
+    age_range: [7, 12]
+    agent_type: passive
+    decision_maker: parent
+    possible_events:
+      - psle_exam
+      - enrichment_enrollment
+      - childhood_illness
+      - talent_discovery
+    decision_priorities:
+      - education_quality
+      - enrichment_activities
+    activation_probability: 0.008
+    sg_specific:
+      - psle_streaming_anxiety
+      - tuition_culture
+      - school_selection
+
+  adolescence:
+    id: PHASE_ADOLESCENCE
+    name_en: Adolescence
+    name_zh: 青春期
+    age_range: [13, 16]
+    agent_type: semi_active
+    decision_maker: shared  # parent + self
+    possible_events:
+      - o_level_exam
+      - n_level_exam
+      - education_streaming  # JC / Poly / ITE
+      - first_part_time_job
+      - mental_health_issue
+      - peer_pressure_event
+    decision_priorities:
+      - education_path_choice
+      - identity_formation
+    activation_probability: 0.01
+    sg_specific:
+      - jc_poly_ite_streaming
+      - academic_pressure
+      - cca_activities
+
+  ns_service:
+    id: PHASE_NS
+    name_en: National Service
+    name_zh: 国民服役期
+    age_range: [16.5, 18.5]
+    agent_type: active
+    decision_maker: self
+    constraints:
+      gender: M
+      residency_status: [Citizen, PR_2nd_gen]
+    possible_events:
+      - ns_enlistment
+      - bmt_completion
+      - ns_vocation_assignment
+      - ns_injury
+      - ns_ord  # operationally ready date
+    blocked_events:
+      - job_change
+      - marriage
+      - housing_purchase
+      - overseas_move
+    decision_priorities:
+      - complete_service
+      - post_ns_planning
+    activation_probability: 0.02
+    sg_specific:
+      - 2_year_full_time_ns
+      - scdf_spf_saf_options
+      - ns_deferment_for_studies
+
+  establishment:
+    id: PHASE_ESTABLISHMENT
+    name_en: Establishment
+    name_zh: 建立期
+    age_range: [19, 35]
+    agent_type: active
+    decision_maker: self
+    possible_events:
+      - university_graduation
+      - polytechnic_graduation
+      - first_full_time_job
+      - job_change
+      - career_switch
+      - bto_application
+      - bto_key_collection
+      - dating
+      - marriage
+      - first_child
+      - investment_start
+      - insurance_first_purchase
+      - further_education
+      - overseas_opportunity
+    decision_priorities:
+      - career_advancement
+      - housing_acquisition
+      - relationship_formation
+      - savings_accumulation
+      - insurance_basic
+    financial_pattern: accumulation
+    activation_probability: 0.03
+    sg_specific:
+      - bto_queue_4_5_years
+      - cpf_oa_for_housing
+      - marriage_prerequisite_for_bto
+      - graduate_employment_survey
+
+  bearing:
+    id: PHASE_BEARING
+    name_en: Bearing
+    name_zh: 承载期
+    age_range: [36, 50]
+    agent_type: active
+    decision_maker: self
+    possible_events:
+      - additional_child
+      - child_psle
+      - child_o_level
+      - child_ns_enlistment
+      - career_promotion
+      - career_plateau
+      - mid_career_switch
+      - parent_health_decline
+      - parent_hospitalization
+      - sandwich_generation_stress
+      - mortgage_peak
+      - insurance_review
+      - critical_illness_diagnosis
+      - marital_stress
+      - divorce
+    decision_priorities:
+      - child_education
+      - mortgage_servicing
+      - parent_care
+      - insurance_comprehensive
+      - career_stability
+    financial_pattern: peak_earning_peak_expense
+    activation_probability: 0.025
+    sg_specific:
+      - sandwich_generation_acute
+      - tuition_heavy_spending
+      - cpf_sa_growing
+      - proximity_housing_grant
+
+  release:
+    id: PHASE_RELEASE
+    name_en: Release
+    name_zh: 释放期
+    age_range: [51, 62]
+    agent_type: active
+    decision_maker: self
+    possible_events:
+      - child_independence
+      - child_marriage
+      - grandchild_birth
+      - cpf_frs_check
+      - cpf_sa_shielding
+      - pre_retirement_planning
+      - downsizing_consideration
+      - parent_long_term_care
+      - parent_death
+      - chronic_disease_onset
+      - career_wind_down
+      - skills_future_reskill
+    decision_priorities:
+      - retirement_preparation
+      - health_maintenance
+      - debt_clearance
+      - child_support_reduce
+      - legacy_planning
+    financial_pattern: debt_reduction_savings_recovery
+    activation_probability: 0.02
+    sg_specific:
+      - cpf_frs_bhs_targets
+      - srs_contributions
+      - hdb_lease_concern_begins
+      - re_employment_preparation
+
+  retirement_early:
+    id: PHASE_RETIREMENT_EARLY
+    name_en: Early Retirement
+    name_zh: 退休初期
+    age_range: [63, 74]
+    agent_type: active
+    decision_maker: self
+    possible_events:
+      - formal_retirement
+      - re_employment
+      - re_employment_end
+      - cpf_life_start
+      - hdb_lease_buyback
+      - silver_support_scheme
+      - active_aging_activities
+      - chronic_disease_management
+      - first_hospitalization
+      - grandchild_care
+      - volunteer_work
+      - downsizing_execution
+    decision_priorities:
+      - income_replacement
+      - health_management
+      - social_engagement
+      - asset_preservation
+    financial_pattern: decumulation
+    activation_probability: 0.015
+    sg_specific:
+      - retirement_age_63_reemploy_68
+      - cpf_life_payout_from_65
+      - pioneer_merdeka_generation_benefits
+      - community_health_assist_scheme
+
+  decline:
+    id: PHASE_DECLINE
+    name_en: Decline
+    name_zh: 衰退期
+    age_range: [75, 84]
+    agent_type: active
+    decision_maker: self_or_caregiver
+    possible_events:
+      - adl_decline
+      - falls_and_fractures
+      - dementia_onset
+      - caregiver_needed
+      - fdw_hiring
+      - day_care_enrollment
+      - nursing_home_consideration
+      - careshield_life_claim
+      - hospitalization_frequent
+      - spouse_death
+      - financial_review_by_child
+    decision_priorities:
+      - care_arrangement
+      - health_stability
+      - financial_sustainability
+      - family_burden_minimization
+    financial_pattern: care_cost_escalation
+    activation_probability: 0.015
+    sg_specific:
+      - careshield_life_payout
+      - eldershield_legacy
+      - medifund_safety_net
+      - silver_generation_office
+
+  end_of_life:
+    id: PHASE_END_OF_LIFE
+    name_en: End of Life
+    name_zh: 终末期
+    age_range: [85, 100]
+    agent_type: active
+    decision_maker: caregiver_primary
+    possible_events:
+      - long_term_care_admission
+      - palliative_care_start
+      - cpf_nomination_review
+      - estate_planning_finalization
+      - advance_care_planning
+      - death
+    decision_priorities:
+      - dignity_and_comfort
+      - legacy_distribution
+      - family_closure
+    financial_pattern: asset_distribution
+    activation_probability: 0.01
+    sg_specific:
+      - cpf_nomination_distribution
+      - hdb_flat_inheritance_rules
+      - muslim_inheritance_faraid
+
+# ============================================================
+# Phase transition rules
+# ============================================================
+transitions:
+  dependence_to_growth:
+    from: PHASE_DEPENDENCE
+    to: PHASE_GROWTH
+    condition: "age >= 7"
+
+  growth_to_adolescence:
+    from: PHASE_GROWTH
+    to: PHASE_ADOLESCENCE
+    condition: "age >= 13"
+
+  adolescence_to_ns:
+    from: PHASE_ADOLESCENCE
+    to: PHASE_NS
+    condition: "age >= 16.5 and gender == 'M' and residency_status in ['Citizen', 'PR_2nd_gen']"
+
+  adolescence_to_establishment:
+    from: PHASE_ADOLESCENCE
+    to: PHASE_ESTABLISHMENT
+    condition: "age >= 17 and (gender == 'F' or ns_exempt)"
+
+  ns_to_establishment:
+    from: PHASE_NS
+    to: PHASE_ESTABLISHMENT
+    condition: "ns_completed == True"
+
+  establishment_to_bearing:
+    from: PHASE_ESTABLISHMENT
+    to: PHASE_BEARING
+    condition: "(age >= 36) or (has_child and age >= 30) or (has_mortgage and age >= 32)"
+
+  bearing_to_release:
+    from: PHASE_BEARING
+    to: PHASE_RELEASE
+    condition: "(age >= 51) or (youngest_child_age >= 18 and age >= 48)"
+
+  release_to_retirement:
+    from: PHASE_RELEASE
+    to: PHASE_RETIREMENT_EARLY
+    condition: "(age >= 63) or (voluntary_early_retirement)"
+
+  retirement_to_decline:
+    from: PHASE_RETIREMENT_EARLY
+    to: PHASE_DECLINE
+    condition: "(age >= 75) or (health_status == 'chronic_severe') or (adl_score < 4)"
+
+  decline_to_end:
+    from: PHASE_DECLINE
+    to: PHASE_END_OF_LIFE
+    condition: "(age >= 85) or (health_status == 'disabled') or (nursing_home_admission)"
+
+# ============================================================
+# Six-dimension impact definitions
+# ============================================================
+impact_dimensions:
+  - id: biological
+    name_en: Biological
+    name_zh: 生物维度
+    description: Physical health, body function, disease, mortality
+
+  - id: psychological
+    name_en: Psychological
+    name_zh: 心理维度
+    description: Mental health, emotions, self-esteem, stress
+
+  - id: social
+    name_en: Social
+    name_zh: 社会维度
+    description: Relationships, roles, networks, social status
+
+  - id: economic
+    name_en: Economic
+    name_zh: 经济维度
+    description: Income, wealth, debt, consumption, insurance
+
+  - id: cognitive
+    name_en: Cognitive
+    name_zh: 认知维度
+    description: Skills, knowledge, learning, decision capacity
+
+  - id: spiritual
+    name_en: Spiritual
+    name_zh: 精神维度
+    description: Meaning, purpose, legacy, fulfillment

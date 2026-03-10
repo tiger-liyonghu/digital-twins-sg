@@ -1,0 +1,28 @@
+{
+  "id": "3358f812-cd9e-453d-98ba-5bac5758e0d9",
+  "object": "chat.completion",
+  "created": 1772971746,
+  "model": "deepseek-chat",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Digital Twin SG是一个基于AI Agent技术的市场研究平台，通过模拟新加坡市场环境中的172,173个AI智能体，构建了一个动态的数字孪生系统。该项目旨在通过高度仿真的虚拟环境，帮助研究者、企业和政策制定者进行市场趋势分析、消费者行为预测和政策效果评估，从而为新加坡的经济与社会发展提供数据驱动的决策支持。"
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 41,
+    "completion_tokens": 75,
+    "total_tokens": 116,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "prompt_cache_hit_tokens": 0,
+    "prompt_cache_miss_tokens": 41
+  },
+  "system_fingerprint": "fp_eaab8d114b_prod0820_fp8_kvcache"
+}

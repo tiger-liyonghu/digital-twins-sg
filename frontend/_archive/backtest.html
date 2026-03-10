@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Backtest Dashboard | 数字孪生</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0e1a;--card:#111827;--border:#1e293b;--text:#e2e8f0;--dim:#94a3b8;--muted:#475569;--accent:#3b82f6;--green:#22c55e;--red:#ef4444;--orange:#f97316;--purple:#a855f7;--cyan:#06b6d4;--yellow:#eab308}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,system-ui,sans-serif;font-size:14px;min-height:100vh}
+
+.site-nav{background:var(--card);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.site-nav .logo{font-size:20px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-links a{color:var(--dim);text-decoration:none;font-size:12px;padding:6px 14px;border-radius:6px;transition:all .2s;font-weight:500}
+.nav-links a:hover{color:var(--accent);background:rgba(59,130,246,.08)}
+.nav-links a.active{color:var(--accent);background:rgba(59,130,246,.12);font-weight:600}
+.nav-links .sep{width:1px;height:16px;background:var(--border);margin:0 4px}
+.lang-switch{display:flex;gap:2px;background:var(--bg);border-radius:6px;padding:2px}
+.lang-switch button{background:transparent;border:none;color:var(--dim);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600}
+.lang-switch button.active{background:var(--accent);color:#fff}
+
+.container{max-width:1100px;margin:0 auto;padding:24px}
+.page-title{font-size:22px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.page-title .badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:6px;background:rgba(168,85,247,.1);color:var(--purple);border:1px solid rgba(168,85,247,.2)}
+.page-subtitle{font-size:13px;color:var(--dim);margin-bottom:24px}
+
+/* Summary KPIs */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center}
+.kpi .big{font-size:32px;font-weight:800;line-height:1}
+.kpi .sub{font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+
+/* Event cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px}
+.card h3{font-size:15px;font-weight:700;margin-bottom:6px}
+
+.event-card{position:relative;overflow:hidden}
+.event-card .status-badge{position:absolute;top:16px;right:16px;padding:4px 12px;border-radius:6px;font-size:11px;font-weight:700}
+.status-verified{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2)}
+.status-pending{background:rgba(249,115,22,.1);color:var(--orange);border:1px solid rgba(249,115,22,.2)}
+.status-upcoming{background:rgba(59,130,246,.1);color:var(--accent);border:1px solid rgba(59,130,246,.2)}
+
+.event-meta{display:flex;gap:16px;margin:8px 0 14px;font-size:12px;color:var(--muted)}
+.event-meta span{display:flex;align-items:center;gap:4px}
+
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.compare-col{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px}
+.compare-col h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.compare-col.predicted h4{color:var(--cyan)}
+.compare-col.actual h4{color:var(--green)}
+
+.compare-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px}
+.compare-row .label{color:var(--dim)}
+.compare-row .value{font-weight:600}
+
+.accuracy-meter{display:flex;align-items:center;gap:10px;margin-top:14px;padding:12px;background:var(--bg);border-radius:8px}
+.accuracy-meter .meter-bar{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.accuracy-meter .meter-fill{height:100%;border-radius:4px;transition:width .5s}
+.accuracy-meter .meter-label{font-size:13px;font-weight:700;min-width:50px;text-align:right}
+
+.tier-label{font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;display:inline-block;margin-left:8px}
+.tier-1{background:rgba(34,197,94,.1);color:var(--green)}
+.tier-2{background:rgba(249,115,22,.1);color:var(--orange)}
+.tier-3{background:rgba(59,130,246,.1);color:var(--accent)}
+
+.hidden{display:none!important}
+.footer{text-align:center;padding:40px 24px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);margin-top:40px}
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <a class="logo" href="index.html">SG Digital Twin</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Data Explorer</a>
+    <a href="survey.html">Survey</a>
+    <a href="conjoint.html">Conjoint</a>
+    <a href="abtest.html">A/B Test</a>
+    <a href="backtest.html" class="active">Backtest</a>
+    <div class="sep"></div>
+    <a href="evidence.html">Evidence</a>
+    <a href="methodology.html">Methodology</a>
+    <div class="sep"></div>
+    <div class="lang-switch">
+      <button class="active" onclick="setLang('zh')">ZH</button>
+      <button onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+<h1 class="page-title">Backtest Dashboard <span class="badge">P2</span></h1>
+<p class="page-subtitle">预测追踪仪表盘 — 数字孪生预测 vs 真实结果，持续验证模型准确性</p>
+
+<!-- Summary KPIs -->
+<div class="kpi-row" id="kpi-row"></div>
+
+<!-- Event cards -->
+<div id="events-container"></div>
+
+</div>
+
+<div class="footer">Singapore Digital Twin — Backtest Dashboard — GHS 2025 Calibrated</div>
+
+<script>
+let currentLang = 'zh';
+const zh = () => currentLang === 'zh';
+function setLang(l) {
+  currentLang = l;
+  document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.lang-switch button[onclick="setLang('${l}')"]`).classList.add('active');
+  renderAll();
+}
+
+// ============================================================
+// BACKTEST DATA — predictions vs actual results
+// ============================================================
+const EVENTS = [
+  {
+    id: 'pe2023',
+    title_zh: '2023 总统选举',
+    title_en: '2023 Presidential Election',
+    date: '2023-09-01',
+    result_date: '2023-09-01',
+    category: 'election',
+    tier: 1,
+    status: 'verified', // verified | pending | upcoming
+    description_zh: '新加坡2023年总统选举，三位候选人。',
+    description_en: 'Singapore 2023 Presidential Election with three candidates.',
+    sample_size: 100,
+    predicted: {
+      'Tharman Shanmugaratnam': 76.0,
+      'Ng Kok Song': 24.0,
+      'Tan Kin Lian': 0.0,
+      'Would not vote': 0.0,
+    },
+    actual: {
+      'Tharman Shanmugaratnam': 70.4,
+      'Ng Kok Song': 15.7,
+      'Tan Kin Lian': 13.9,
+    },
+    accuracy: null, // calculated
+  },
+  {
+    id: 'gst2024',
+    title_zh: '2024 GST 9% 消费影响',
+    title_en: '2024 GST 9% Consumer Impact',
+    date: '2024-01-01',
+    result_date: '2024-03-15',
+    category: 'policy',
+    tier: 1,
+    status: 'verified',
+    description_zh: 'GST从8%上调至9%，约60%消费者计划减少非必要消费（CASE调查）。',
+    description_en: 'GST raised from 8% to 9%. ~60% consumers planned to reduce non-essential spending (CASE survey).',
+    sample_size: 100,
+    predicted: {
+      'Will significantly cut': 4.0,
+      'Will moderately reduce': 69.0,
+      'Minor impact': 27.0,
+      'No impact': 0.0,
+    },
+    actual: {
+      'Will reduce (combined)': 60.0,
+    },
+    accuracy: null,
+  },
+  {
+    id: 'comfortdelgro2025',
+    title_zh: '2025 出租车/网约车费率调整',
+    title_en: '2025 Taxi/PHV Fare Revision',
+    date: '2025-04-01',
+    result_date: '2025-12-31',
+    category: 'transport',
+    tier: 2,
+    status: 'pending',
+    description_zh: 'ComfortDelGro提议调高起步价和里程费，预计影响日常出行选择。',
+    description_en: 'ComfortDelGro proposed higher flag-down and mileage rates.',
+    sample_size: 0,
+    predicted: {},
+    actual: {},
+  },
+  {
+    id: 'ge2025',
+    title_zh: '2025 大选 (GE2025)',
+    title_en: '2025 General Election',
+    date: '2025-05-03',
+    result_date: '2025-05-03',
+    category: 'election',
+    tier: 1,
+    status: 'verified',
+    description_zh: '新加坡2025年大选，PAP得票率65.57%。',
+    description_en: 'Singapore GE2025, PAP won 65.57% of popular vote.',
+    sample_size: 0,
+    predicted: {},
+    actual: { 'PAP': 65.57, 'WP': 14.99, 'PSP': 3.50, 'Others': 15.94 },
+  },
+  {
+    id: 'cpf2025',
+    title_zh: '2025 CPF利率调整意见',
+    title_en: '2025 CPF Interest Rate Review',
+    date: '2025-07-01',
+    result_date: '2026-01-01',
+    category: 'policy',
+    tier: 2,
+    status: 'upcoming',
+    description_zh: '政府拟调整CPF特别账户利率，公众反应预测。',
+    description_en: 'Government reviewing CPF Special Account interest rates.',
+    sample_size: 0,
+    predicted: {},
+    actual: {},
+  },
+  {
+    id: 'carbontax2025',
+    title_zh: '2025 碳税$25/吨影响',
+    title_en: '2025 Carbon Tax $25/ton Impact',
+    date: '2025-01-01',
+    result_date: '2025-12-31',
+    category: 'policy',
+    tier: 2,
+    status: 'pending',
+    description_zh: '碳税从$5/吨升至$25/吨，对家庭水电费和消费行为的影响。',
+    description_en: 'Carbon tax raised from $5/ton to $25/ton. Impact on utility bills and consumer behavior.',
+    sample_size: 0,
+    predicted: {},
+    actual: {},
+  },
+  {
+    id: 'hdbresale2025',
+    title_zh: '2025 H2 组屋转售价趋势',
+    title_en: '2025 H2 HDB Resale Price Trend',
+    date: '2025-07-01',
+    result_date: '2026-01-15',
+    category: 'housing',
+    tier: 2,
+    status: 'upcoming',
+    description_zh: '预测2025下半年组屋转售价格指数走势。',
+    description_en: 'Predict HDB Resale Price Index trend for 2025 H2.',
+    sample_size: 0,
+    predicted: {},
+    actual: {},
+  },
+  {
+    id: 'insurance2025',
+    title_zh: '2025 MediShield Life 保费调整',
+    title_en: '2025 MediShield Life Premium Review',
+    date: '2025-10-01',
+    result_date: '2026-04-01',
+    category: 'policy',
+    tier: 3,
+    status: 'upcoming',
+    description_zh: '卫生部拟调整MediShield Life保费，公众接受度预测。',
+    description_en: 'MOH reviewing MediShield Life premiums. Predict public acceptance.',
+    sample_size: 0,
+    predicted: {},
+    actual: {},
+  },
+];
+
+function calcAccuracy(predicted, actual) {
+  // Mean absolute percentage point error
+  if (Object.keys(predicted).length === 0 || Object.keys(actual).length === 0) return null;
+
+  // Try to match keys
+  let totalError = 0, count = 0;
+  for (const [key, actualVal] of Object.entries(actual)) {
+    // Find best matching predicted key
+    let predVal = predicted[key];
+    if (predVal === undefined) {
+      // Try partial match or combined
+      if (key.includes('combined') || key.includes('reduce')) {
+        // Sum first two predicted values
+        const vals = Object.values(predicted);
+        predVal = vals[0] + (vals[1] || 0);
+      }
+    }
+    if (predVal !== undefined) {
+      totalError += Math.abs(predVal - actualVal);
+      count++;
+    }
+  }
+  if (count === 0) return null;
+  const mape = totalError / count;
+  return Math.max(0, Math.round(100 - mape));
+}
+
+function renderAll() {
+  // Calculate accuracies
+  EVENTS.forEach(e => {
+    e.accuracy = calcAccuracy(e.predicted, e.actual);
+  });
+
+  const verified = EVENTS.filter(e => e.status === 'verified');
+  const withAccuracy = verified.filter(e => e.accuracy !== null);
+  const avgAccuracy = withAccuracy.length > 0 ? Math.round(withAccuracy.reduce((s,e) => s + e.accuracy, 0) / withAccuracy.length) : 0;
+  const pending = EVENTS.filter(e => e.status === 'pending').length;
+  const upcoming = EVENTS.filter(e => e.status === 'upcoming').length;
+
+  // KPIs
+  document.getElementById('kpi-row').innerHTML = `
+    <div class="kpi"><div class="big">${EVENTS.length}</div><div class="sub">${zh()?'追踪事件':'Events Tracked'}</div></div>
+    <div class="kpi"><div class="big" style="color:var(--green)">${withAccuracy.length}</div><div class="sub">${zh()?'已验证':'Verified'}</div></div>
+    <div class="kpi"><div class="big" style="color:var(--cyan)">${avgAccuracy}%</div><div class="sub">${zh()?'平均准确率':'Avg Accuracy'}</div></div>
+    <div class="kpi"><div class="big" style="color:var(--orange)">${pending + upcoming}</div><div class="sub">${zh()?'等待验证':'Pending'}</div></div>
+  `;
+
+  // Event cards
+  let evHtml = '';
+  EVENTS.forEach(e => {
+    const title = zh() ? e.title_zh : e.title_en;
+    const desc = zh() ? e.description_zh : e.description_en;
+    const statusLabel = e.status === 'verified' ? (zh()?'已验证':'Verified') : e.status === 'pending' ? (zh()?'待验证':'Pending') : (zh()?'待预测':'Upcoming');
+    const tierLabel = `T${e.tier}`;
+    const tierCls = `tier-${e.tier}`;
+
+    let contentHtml = '';
+
+    if (e.status === 'verified' && Object.keys(e.predicted).length > 0) {
+      // Show predicted vs actual
+      let predHtml = '';
+      for (const [k, v] of Object.entries(e.predicted)) {
+        predHtml += `<div class="compare-row"><span class="label">${k}</span><span class="value">${v}%</span></div>`;
+      }
+      let actHtml = '';
+      for (const [k, v] of Object.entries(e.actual)) {
+        actHtml += `<div class="compare-row"><span class="label">${k}</span><span class="value" style="color:var(--green)">${v}%</span></div>`;
+      }
+      const acc = e.accuracy || 0;
+      const accColor = acc >= 85 ? 'var(--green)' : acc >= 70 ? 'var(--orange)' : 'var(--red)';
+
+      contentHtml = `
+        <div class="compare-grid">
+          <div class="compare-col predicted"><h4>${zh()?'数字孪生预测':'DT Predicted'}</h4>${predHtml}</div>
+          <div class="compare-col actual"><h4>${zh()?'真实结果':'Actual Result'}</h4>${actHtml}</div>
+        </div>
+        <div class="accuracy-meter">
+          <span style="font-size:12px;color:var(--dim)">${zh()?'准确率':'Accuracy'}</span>
+          <div class="meter-bar"><div class="meter-fill" style="width:${acc}%;background:${accColor}"></div></div>
+          <span class="meter-label" style="color:${accColor}">${acc}%</span>
+        </div>`;
+    } else if (e.status === 'verified' && Object.keys(e.predicted).length === 0) {
+      // Verified but no prediction run yet
+      let actHtml = '';
+      for (const [k, v] of Object.entries(e.actual)) {
+        actHtml += `<div class="compare-row"><span class="label">${k}</span><span class="value" style="color:var(--green)">${v}%</span></div>`;
+      }
+      contentHtml = `
+        <div class="compare-grid">
+          <div class="compare-col predicted"><h4>${zh()?'数字孪生预测':'DT Predicted'}</h4><div style="color:var(--muted);font-size:12px;padding:8px 0">${zh()?'尚未运行预测':'Prediction not yet run'}</div></div>
+          <div class="compare-col actual"><h4>${zh()?'真实结果':'Actual Result'}</h4>${actHtml}</div>
+        </div>`;
+    } else {
+      contentHtml = `<div style="padding:16px 0;text-align:center;color:var(--muted);font-size:12px">${zh()?'等待结果揭晓后验证':'Awaiting result for verification'}<br><span style="font-size:11px;color:var(--dim)">${zh()?'预计':'Expected'}: ${e.result_date}</span></div>`;
+    }
+
+    evHtml += `
+      <div class="card event-card">
+        <span class="status-badge status-${e.status}">${statusLabel}</span>
+        <h3>${title} <span class="tier-label ${tierCls}">${tierLabel}</span></h3>
+        <div class="event-meta">
+          <span>${e.date}</span>
+          <span>${e.category}</span>
+          ${e.sample_size > 0 ? `<span>n=${e.sample_size}</span>` : ''}
+        </div>
+        <p style="font-size:12px;color:var(--dim);margin-bottom:4px">${desc}</p>
+        ${contentHtml}
+      </div>`;
+  });
+  document.getElementById('events-container').innerHTML = evHtml;
+}
+
+renderAll();
+</script>
+</body>
+</html>

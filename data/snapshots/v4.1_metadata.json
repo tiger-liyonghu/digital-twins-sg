@@ -1,0 +1,71 @@
+{
+  "version": "4.1",
+  "timestamp": "2026-03-10T11:43:45.599508",
+  "total_agents": 172173,
+  "columns": [
+    "agent_id",
+    "age",
+    "age_group",
+    "gender",
+    "ethnicity",
+    "residency_status",
+    "planning_area",
+    "education_level",
+    "occupation",
+    "industry",
+    "monthly_income",
+    "income_band",
+    "housing_type",
+    "health_status",
+    "marital_status",
+    "household_id",
+    "num_children",
+    "big5_o",
+    "big5_c",
+    "big5_e",
+    "big5_a",
+    "big5_n",
+    "risk_appetite",
+    "political_leaning",
+    "social_trust",
+    "religious_devotion",
+    "life_phase",
+    "is_alive",
+    "media_diet",
+    "social_media_usage",
+    "dialect_group",
+    "data_source",
+    "created_at",
+    "updated_at"
+  ],
+  "changes_since_4.0": [
+    "Script 33: CPT recalibration — marital_status, housing_type, education_level resampled",
+    "CPT v2: Marital scaled S×1.228 M×1.125 D×1.421 W×0.430",
+    "CPT v2: Housing optimized to match GHS 2025 marginals",
+    "CPT v2: Education scaled NF×1.19 PS×2.10 Uni+PG×0.82"
+  ],
+  "quality_metrics": {
+    "marital": {
+      "Single": 0.389,
+      "Married": 0.512,
+      "Divorced": 0.052,
+      "Widowed": 0.047
+    },
+    "housing": {
+      "HDB_1_2": 0.076,
+      "HDB_3": 0.17,
+      "HDB_4": 0.312,
+      "HDB_5_EC": 0.219,
+      "Condo": 0.176,
+      "Landed": 0.047
+    },
+    "education": {
+      "No_Formal": 0.094,
+      "Polytechnic": 0.113,
+      "Post_Secondary": 0.204,
+      "Primary": 0.132,
+      "Secondary": 0.183,
+      "University": 0.275
+    }
+  }
+}

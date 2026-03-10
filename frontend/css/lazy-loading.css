@@ -1,0 +1,567 @@
+/**
+ * 懒加载系统样式 - Digital Twin SG
+ * 国际定价前端设计大师 + 顶级用户体验专家设计
+ * 生成时间: 2026-03-08
+ */
+
+/* 加载状态样式 */
+.lazy-loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.05) 0%, rgba(6, 182, 212, 0.1) 100%);
+    border: 1px solid rgba(6, 182, 212, 0.2);
+    border-radius: 1rem;
+    min-height: 200px;
+    animation: fadeIn 0.3s ease;
+}
+
+.loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid rgba(6, 182, 212, 0.2);
+    border-top-color: #06b6d4;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+.loading-text {
+    color: #94a3b8;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-align: center;
+    max-width: 200px;
+    line-height: 1.4;
+}
+
+/* 离线状态样式 */
+.lazy-offline-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(245, 158, 11, 0.1) 100%);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: 1rem;
+    min-height: 200px;
+    animation: fadeIn 0.3s ease;
+}
+
+.offline-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.offline-text {
+    color: #f59e0b;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-align: center;
+    max-width: 250px;
+    line-height: 1.4;
+}
+
+/* 错误状态样式 */
+.lazy-error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(239, 68, 68, 0.1) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 1rem;
+    min-height: 200px;
+    animation: fadeIn 0.3s ease;
+}
+
+.error-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.error-title {
+    color: #ef4444;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.error-message {
+    color: #94a3b8;
+    font-size: 0.75rem;
+    text-align: center;
+    max-width: 300px;
+    line-height: 1.4;
+    margin-bottom: 1.5rem;
+}
+
+.retry-button {
+    background: #06b6d4;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.retry-button:hover {
+    background: #0891b2;
+    transform: translateY(-1px);
+}
+
+.retry-button:active {
+    transform: translateY(0);
+}
+
+.retry-button::before {
+    content: '🔄';
+    font-size: 1rem;
+}
+
+/* 性能指标面板 */
+.lazy-performance-panel {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid #334155;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    font-family: 'SF Mono', Monaco, 'Cascadia Mono', monospace;
+    font-size: 0.75rem;
+    color: #94a3b8;
+    z-index: 9999;
+    max-width: 300px;
+    backdrop-filter: blur(10px);
+    animation: slideInUp 0.3s ease;
+}
+
+.lazy-performance-panel.hidden {
+    display: none;
+}
+
+.performance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #334155;
+}
+
+.performance-title {
+    color: #e2e8f0;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.performance-toggle {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.performance-toggle:hover {
+    background: #334155;
+    color: #e2e8f0;
+}
+
+.performance-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.metric-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.metric-label {
+    font-size: 0.625rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.125rem;
+}
+
+.metric-value {
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+.metric-value.success {
+    color: #22c55e;
+}
+
+.metric-value.warning {
+    color: #f59e0b;
+}
+
+.metric-value.error {
+    color: #ef4444;
+}
+
+.performance-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.performance-btn {
+    background: #334155;
+    color: #cbd5e1;
+    border: none;
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.625rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.performance-btn:hover {
+    background: #475569;
+    color: #e2e8f0;
+}
+
+/* 骨架屏样式 */
+.lazy-skeleton {
+    background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+    background-size: 200% 100%;
+    animation: skeletonLoading 1.5s ease-in-out infinite;
+    border-radius: 0.5rem;
+}
+
+.skeleton-card {
+    height: 200px;
+    margin-bottom: 1rem;
+}
+
+.skeleton-text {
+    height: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-text.short {
+    width: 60%;
+}
+
+.skeleton-text.medium {
+    width: 80%;
+}
+
+.skeleton-text.long {
+    width: 100%;
+}
+
+.skeleton-button {
+    height: 2rem;
+    width: 100px;
+    margin-top: 1rem;
+}
+
+/* 渐进式加载动画 */
+.component-fade-in {
+    animation: fadeIn 0.5s ease;
+}
+
+.component-slide-up {
+    animation: slideUp 0.5s ease;
+}
+
+.component-scale-in {
+    animation: scaleIn 0.4s ease;
+}
+
+/* 动画定义 */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes skeletonLoading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .lazy-performance-panel {
+        left: 1rem;
+        right: 1rem;
+        bottom: 1rem;
+        max-width: none;
+    }
+    
+    .performance-metrics {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .lazy-loading-state,
+    .lazy-offline-state,
+    .lazy-error-state {
+        padding: 2rem 1rem;
+        min-height: 150px;
+    }
+    
+    .loading-spinner,
+    .offline-icon,
+    .error-icon {
+        font-size: 2rem;
+        width: 36px;
+        height: 36px;
+    }
+}
+
+/* 打印样式 */
+@media print {
+    .lazy-loading-state,
+    .lazy-offline-state,
+    .lazy-error-state,
+    .lazy-performance-panel {
+        display: none !important;
+    }
+}
+
+/* 深色/浅色主题支持 */
+@media (prefers-color-scheme: light) {
+    .lazy-loading-state {
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.05) 0%, rgba(6, 182, 212, 0.1) 100%);
+        border-color: rgba(6, 182, 212, 0.3);
+    }
+    
+    .lazy-offline-state {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(245, 158, 11, 0.1) 100%);
+        border-color: rgba(245, 158, 11, 0.3);
+    }
+    
+    .lazy-error-state {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(239, 68, 68, 0.1) 100%);
+        border-color: rgba(239, 68, 68, 0.3);
+    }
+    
+    .lazy-performance-panel {
+        background: rgba(255, 255, 255, 0.95);
+        border-color: #e2e8f0;
+        color: #475569;
+    }
+    
+    .performance-title {
+        color: #1e293b;
+    }
+    
+    .metric-value {
+        color: #1e293b;
+    }
+    
+    .lazy-skeleton {
+        background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+    }
+}
+
+/* 可访问性增强 */
+@media (prefers-reduced-motion: reduce) {
+    .loading-spinner,
+    .offline-icon,
+    .component-fade-in,
+    .component-slide-up,
+    .component-scale-in,
+    .lazy-skeleton,
+    .lazy-performance-panel {
+        animation: none !important;
+        transition: none !important;
+    }
+    
+    .retry-button:hover,
+    .performance-toggle:hover,
+    .performance-btn:hover {
+        transform: none !important;
+    }
+}
+
+/* 高对比度模式 */
+@media (prefers-contrast: high) {
+    .lazy-loading-state {
+        border-width: 2px;
+    }
+    
+    .lazy-offline-state {
+        border-width: 2px;
+    }
+    
+    .lazy-error-state {
+        border-width: 2px;
+    }
+    
+    .retry-button {
+        border: 2px solid currentColor;
+    }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+    .retry-button,
+    .performance-toggle,
+    .performance-btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    .performance-metrics {
+        gap: 0.75rem;
+    }
+}
+
+/* 性能优化提示 */
+.lazy-performance-hint {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(6, 182, 212, 0.1);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+    color: #06b6d4;
+    z-index: 9998;
+    max-width: 250px;
+    animation: slideInUp 0.3s ease;
+    display: none;
+}
+
+.lazy-performance-hint.show {
+    display: block;
+}
+
+.hint-icon {
+    font-size: 1rem;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+}
+
+.hint-text {
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1.4;
+}
+
+/* 组件加载优先级指示器 */
+.component-priority-indicator {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.priority-high {
+    background: #ef4444;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+.priority-medium {
+    background: #f59e0b;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+}
+
+.priority-low {
+    background: #22c55e;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
+/* 加载进度条 */
+.lazy-progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, #06b6d4 0%, #22d3ee 50%, #06b6d4 100%);
+    background-size: 200% 100%;
+    animation: progressLoading 2s linear infinite;
+    z-index: 10000;
+    transform-origin: left;
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.lazy-progress-bar.loading {
+    transform: scaleX(0.3);
+}
+
+.lazy-progress-bar.complete {
+    transform: scaleX(1);
+    animation: none;
+    background: #22c55e;
+}
+
+@keyframes progressLoading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}

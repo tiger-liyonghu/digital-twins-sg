@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Twin Singapore — 产品演示 | Product Demo</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:#0a0e1a; --card:#111827; --border:#1e293b; --text:#e2e8f0;
+  --dim:#94a3b8; --accent:#3b82f6; --green:#22c55e; --red:#ef4444;
+  --purple:#a855f7; --orange:#f97316; --cyan:#06b6d4;
+}
+body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-system,system-ui,sans-serif; font-size:14px; }
+
+nav { background:var(--card); border-bottom:1px solid var(--border); padding:16px 32px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+nav .logo { font-size:22px; font-weight:700; background:linear-gradient(135deg,var(--accent),var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+nav .lang-btn { background:rgba(59,130,246,.15); border:1px solid var(--accent); color:var(--accent); padding:6px 14px; border-radius:6px; cursor:pointer; font-size:12px; }
+
+.container { max-width:1200px; margin:0 auto; padding:24px; }
+
+/* FLOW DIAGRAM */
+.flow { display:flex; align-items:center; gap:12px; margin:32px 0; flex-wrap:wrap; justify-content:center; }
+.flow-step { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; text-align:center; min-width:160px; position:relative; }
+.flow-step .num { background:var(--accent); color:white; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; margin:0 auto 8px; }
+.flow-step .title { font-weight:600; font-size:14px; margin-bottom:4px; }
+.flow-step .desc { font-size:11px; color:var(--dim); }
+.flow-arrow { font-size:24px; color:var(--accent); }
+
+/* CARDS */
+.card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:24px; margin-bottom:20px; }
+.card h2 { font-size:18px; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+.card h3 { font-size:15px; color:var(--accent); margin:16px 0 8px; }
+
+/* RESULTS */
+.result-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:16px 0; }
+@media(max-width:768px) { .result-grid { grid-template-columns:1fr; } }
+
+.metric { background:rgba(59,130,246,.05); border:1px solid rgba(59,130,246,.2); border-radius:8px; padding:16px; text-align:center; }
+.metric .value { font-size:28px; font-weight:700; color:var(--accent); }
+.metric .label { font-size:12px; color:var(--dim); margin-top:4px; }
+
+.bar-row { display:flex; align-items:center; gap:8px; margin:6px 0; }
+.bar-label { width:200px; font-size:12px; color:var(--dim); text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bar-track { flex:1; height:20px; background:rgba(255,255,255,.05); border-radius:4px; overflow:hidden; position:relative; }
+.bar-fill { height:100%; border-radius:4px; transition:width .5s; display:flex; align-items:center; padding-left:6px; font-size:11px; font-weight:600; }
+.bar-pct { margin-left:8px; font-size:12px; color:var(--dim); min-width:40px; }
+
+.concern-list { list-style:none; }
+.concern-list li { padding:8px 12px; margin:4px 0; background:rgba(255,255,255,.03); border-radius:6px; font-size:13px; border-left:3px solid var(--orange); }
+
+.agent-log { max-height:300px; overflow-y:auto; background:rgba(0,0,0,.3); border-radius:8px; padding:12px; font-family:monospace; font-size:12px; line-height:1.8; }
+.agent-log .pos { color:var(--green); }
+.agent-log .neg { color:var(--red); }
+.agent-log .neu { color:var(--orange); }
+
+table { width:100%; border-collapse:collapse; margin:12px 0; }
+th, td { padding:8px 12px; border-bottom:1px solid var(--border); text-align:left; font-size:13px; }
+th { color:var(--dim); font-weight:500; font-size:11px; text-transform:uppercase; }
+td.num { text-align:right; font-variant-numeric:tabular-nums; }
+
+.tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; }
+.tag.pass { background:rgba(34,197,94,.15); color:var(--green); }
+.tag.fail { background:rgba(239,68,68,.15); color:var(--red); }
+.tag.warn { background:rgba(249,115,22,.15); color:var(--orange); }
+
+.section { margin:40px 0; }
+.section-title { font-size:20px; font-weight:700; margin-bottom:16px; padding-bottom:8px; border-bottom:2px solid var(--accent); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <span id="logoMain">新加坡数字孪生</span>
+    <span style="font-size:12px;font-weight:400;-webkit-text-fill-color:var(--dim);margin-left:8px;" id="logoSub">产品演示</span>
+  </div>
+  <button class="lang-btn" onclick="toggleLang()">EN / 中</button>
+</nav>
+
+<div class="container">
+
+  <!-- PRODUCT INTRO -->
+  <div class="section">
+    <h1 style="font-size:28px;margin-bottom:8px;" data-zh="新加坡数字孪生 — 社会模拟平台" data-en="Singapore Digital Twin — Social Simulation Platform" class="i18n">新加坡数字孪生 — 社会模拟平台</h1>
+    <p style="color:var(--dim);font-size:15px;line-height:1.6;" data-zh="20,000 个合成居民 × LLM 人格推理 × GHS 2025 数学一致性保障" data-en="20,000 synthetic residents × LLM persona reasoning × GHS 2025 mathematical consistency guarantee" class="i18n">20,000 个合成居民 × LLM 人格推理 × GHS 2025 数学一致性保障</p>
+  </div>
+
+  <!-- FLOW DIAGRAM -->
+  <div class="section">
+    <div class="section-title" data-zh="产品使用流程" data-en="Product Flow" class="i18n">产品使用流程</div>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="num">1</div>
+        <div class="title" data-zh="客户提交问题" data-en="Client Submits Query" class="i18n">客户提交问题</div>
+        <div class="desc" data-zh="定义调研问题、目标人群、选项" data-en="Define research question, target audience, options" class="i18n">定义调研问题、目标人群、选项</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="num">2</div>
+        <div class="title" data-zh="分层抽样" data-en="Stratified Sampling" class="i18n">分层抽样</div>
+        <div class="desc" data-zh="按人口学特征抽取代表性样本" data-en="Select representative sample by demographics" class="i18n">按人口学特征抽取代表性样本</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="num">3</div>
+        <div class="title" data-zh="Agent 人格推理" data-en="Agent Persona Reasoning" class="i18n">Agent 人格推理</div>
+        <div class="desc" data-zh="LLM 基于人格画像做出决策" data-en="LLM makes decisions based on persona profile" class="i18n">LLM 基于人格画像做出决策</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="num">4</div>
+        <div class="title" data-zh="聚合分析" data-en="Aggregate Analysis" class="i18n">聚合分析</div>
+        <div class="desc" data-zh="按人群维度交叉分析结果" data-en="Cross-analyze results by demographic dimensions" class="i18n">按人群维度交叉分析结果</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="num">5</div>
+        <div class="title" data-zh="洞察报告" data-en="Insight Report" class="i18n">洞察报告</div>
+        <div class="desc" data-zh="结构化报告 + 人群画像 + 关键顾虑" data-en="Structured report + persona insights + key concerns" class="i18n">结构化报告 + 人群画像 + 关键顾虑</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIENT A: INSURANCE -->
+  <div class="section" id="clientA">
+    <div class="section-title" data-zh="客户 A：友邦保险 — 重疾险市场测试" data-en="Client A: AIA Insurance — CI Product Market Test" class="i18n">客户 A：友邦保险 — 重疾险市场测试</div>
+
+    <div class="card">
+      <h2 data-zh="📋 调研问题" data-en="📋 Research Question" class="i18n">📋 调研问题</h2>
+      <p style="font-size:14px;line-height:1.6;color:var(--dim);" data-zh="一家保险公司推出了新的重疾险计划，覆盖37种重大疾病（含癌症、心脏病、中风等），月保费$200，保额$200,000。你会考虑购买吗？" data-en="A major insurance company is offering a new Critical Illness insurance plan covering 37 diseases including cancer, heart attack, and stroke. Premium: $200/month for $200,000 coverage. Would you consider purchasing?" class="i18n">一家保险公司推出了新的重疾险计划，覆盖37种重大疾病（含癌症、心脏病、中风等），月保费$200，保额$200,000。你会考虑购买吗？</p>
+    </div>
+
+    <div class="result-grid">
+      <div class="metric">
+        <div class="value">20%</div>
+        <div class="label" data-zh="正面意愿率（可能购买）" data-en="Positive Intent Rate" class="i18n">正面意愿率（可能购买）</div>
+      </div>
+      <div class="metric">
+        <div class="value">3.8<span style="font-size:14px;color:var(--dim)">/10</span></div>
+        <div class="label" data-zh="平均购买意愿分" data-en="Avg Willingness Score" class="i18n">平均购买意愿分</div>
+      </div>
+      <div class="metric">
+        <div class="value">50</div>
+        <div class="label" data-zh="受访Agent数" data-en="Agents Surveyed" class="i18n">受访Agent数</div>
+      </div>
+      <div class="metric">
+        <div class="value">$0.03</div>
+        <div class="label" data-zh="LLM调用成本" data-en="LLM Cost" class="i18n">LLM调用成本</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 data-zh="选项分布" data-en="Response Distribution" class="i18n">选项分布</h3>
+      <div class="bar-row">
+        <div class="bar-label" data-zh="可能会买，但需比价" data-en="Probably yes, need to compare" class="i18n">可能会买，但需比价</div>
+        <div class="bar-track"><div class="bar-fill" style="width:20%;background:var(--green)">20%</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label" data-zh="看情况，取决于预算" data-en="Maybe, depends on budget" class="i18n">看情况，取决于预算</div>
+        <div class="bar-track"><div class="bar-fill" style="width:38%;background:var(--orange)">38%</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label" data-zh="可能不买，太贵了" data-en="Probably no, too expensive" class="i18n">可能不买，太贵了</div>
+        <div class="bar-track"><div class="bar-fill" style="width:28%;background:var(--red)">28%</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label" data-zh="完全不感兴趣" data-en="Definitely no" class="i18n">完全不感兴趣</div>
+        <div class="bar-track"><div class="bar-fill" style="width:14%;background:rgba(239,68,68,.5)">14%</div></div>
+      </div>
+
+      <h3 data-zh="按收入分层" data-en="By Income Level" class="i18n">按收入分层</h3>
+      <table>
+        <tr><th data-zh="收入段" data-en="Income Band" class="i18n">收入段</th><th data-zh="正面率" data-en="Positive %" class="i18n">正面率</th><th data-zh="人数" data-en="Count" class="i18n">人数</th><th data-zh="洞察" data-en="Insight" class="i18n">洞察</th></tr>
+        <tr><td>$15K+</td><td class="num" style="color:var(--green)">100%</td><td class="num">1</td><td data-zh="核心目标客群" data-en="Core target segment" class="i18n">核心目标客群</td></tr>
+        <tr><td>$7K-$15K</td><td class="num" style="color:var(--green)">71%</td><td class="num">7</td><td data-zh="高转化潜力" data-en="High conversion potential" class="i18n">高转化潜力</td></tr>
+        <tr><td>$3K-$7K</td><td class="num" style="color:var(--orange)">24%</td><td class="num">17</td><td data-zh="价格敏感，需降价版" data-en="Price sensitive, need budget version" class="i18n">价格敏感，需降价版</td></tr>
+        <tr><td>&lt;$3K</td><td class="num" style="color:var(--red)">0%</td><td class="num">25</td><td data-zh="无购买力" data-en="No purchasing power" class="i18n">无购买力</td></tr>
+      </table>
+
+      <h3 data-zh="按年龄分层" data-en="By Age Group" class="i18n">按年龄分层</h3>
+      <table>
+        <tr><th data-zh="年龄段" data-en="Age Group" class="i18n">年龄段</th><th data-zh="正面率" data-en="Positive %" class="i18n">正面率</th><th data-zh="意愿分" data-en="Willingness" class="i18n">意愿分</th><th data-zh="人数" data-en="Count" class="i18n">人数</th></tr>
+        <tr><td>18-29</td><td class="num" style="color:var(--green)">38%</td><td class="num">4.9/10</td><td class="num">8</td></tr>
+        <tr><td>30-44</td><td class="num" style="color:var(--orange)">29%</td><td class="num">4.8/10</td><td class="num">14</td></tr>
+        <tr><td>45-59</td><td class="num" style="color:var(--orange)">22%</td><td class="num">4.6/10</td><td class="num">9</td></tr>
+        <tr><td>60+</td><td class="num" style="color:var(--red)">9%</td><td class="num">2.9/10</td><td class="num">11</td></tr>
+      </table>
+
+      <h3 data-zh="Agent 主要顾虑" data-en="Key Agent Concerns" class="i18n">Agent 主要顾虑</h3>
+      <ul class="concern-list">
+        <li data-zh="月保费$200对我的固定收入来说负担太重" data-en="$200/month premium is too heavy for my fixed income" class="i18n">月保费$200对我的固定收入来说负担太重</li>
+        <li data-zh="需要和其他保险公司的产品比价再决定" data-en="Need to compare with other insurers before deciding" class="i18n">需要和其他保险公司的产品比价再决定</li>
+        <li data-zh="快退休了，不确定这个年龄买重疾险是否划算" data-en="Near retirement, unsure if CI insurance is worth it at my age" class="i18n">快退休了，不确定这个年龄买重疾险是否划算</li>
+        <li data-zh="已经有MediShield Life，不确定是否需要额外保障" data-en="Already have MediShield Life, not sure if extra coverage is needed" class="i18n">已经有MediShield Life，不确定是否需要额外保障</li>
+        <li data-zh="收入不稳定，每月$200的固定支出压力大" data-en="Unstable income, $200/month fixed expense is stressful" class="i18n">收入不稳定，每月$200的固定支出压力大</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- CLIENT B: HDB -->
+  <div class="section" id="clientB">
+    <div class="section-title" data-zh="客户 B：HDB — 榜鹅 BTO 需求评估" data-en="Client B: HDB — Punggol BTO Demand Assessment" class="i18n">客户 B：HDB — 榜鹅 BTO 需求评估</div>
+
+    <div class="card">
+      <h2 data-zh="📋 调研问题" data-en="📋 Research Question" class="i18n">📋 调研问题</h2>
+      <p style="font-size:14px;line-height:1.6;color:var(--dim);" data-zh="HDB在榜鹅推出新BTO项目，3房式（$250K）、4房式（$380K）、5房式（$520K），预计2030年交付。你会考虑申请吗？" data-en="HDB is launching a new BTO project in Punggol with 3-room ($250K), 4-room ($380K), and 5-room ($520K) flats. Estimated completion: 2030. Would you consider applying?" class="i18n">HDB在榜鹅推出新BTO项目，3房式（$250K）、4房式（$380K）、5房式（$520K），预计2030年交付。你会考虑申请吗？</p>
+    </div>
+
+    <div class="result-grid">
+      <div class="metric">
+        <div class="value" style="color:var(--red)">0%</div>
+        <div class="label" data-zh="正面意愿率" data-en="Positive Intent Rate" class="i18n">正面意愿率</div>
+      </div>
+      <div class="metric">
+        <div class="value" style="color:var(--red)">1.9<span style="font-size:14px;color:var(--dim)">/10</span></div>
+        <div class="label" data-zh="平均申请意愿分" data-en="Avg Willingness Score" class="i18n">平均申请意愿分</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 data-zh="选项分布" data-en="Response Distribution" class="i18n">选项分布</h3>
+      <div class="bar-row">
+        <div class="bar-label" data-zh="可能不会，已有住房" data-en="Probably no, already have home" class="i18n">可能不会，已有住房</div>
+        <div class="bar-track"><div class="bar-fill" style="width:62%;background:var(--red)">62%</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label" data-zh="完全不符资格/不感兴趣" data-en="Not eligible/interested" class="i18n">完全不符资格/不感兴趣</div>
+        <div class="bar-track"><div class="bar-fill" style="width:32%;background:rgba(239,68,68,.5)">32%</div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label" data-zh="看情况，更喜欢其他地区" data-en="Maybe, prefer other areas" class="i18n">看情况，更喜欢其他地区</div>
+        <div class="bar-track"><div class="bar-fill" style="width:6%;background:var(--orange)">6%</div></div>
+      </div>
+
+      <h3 data-zh="💡 关键发现" data-en="💡 Key Finding" class="i18n">💡 关键发现</h3>
+      <div style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);border-radius:8px;padding:16px;margin:12px 0;">
+        <p style="font-size:14px;line-height:1.6;" data-zh="全人口抽样中BTO需求为0%，这是因为绝大多数居民已拥有住房。建议HDB客户使用<strong>目标人群筛选</strong>：仅抽取「25-35岁 + 未婚/已婚无房」人群，预计正面率将达40-60%。这正是数字孪生的价值 — 帮助客户识别真实的目标市场，而非浪费预算在非目标人群。" data-en="BTO demand is 0% in a full-population sample because most residents already own homes. Recommendation: use <strong>target audience filtering</strong> — sample only '25-35, single/married without flat'. Expected positive rate: 40-60%. This is the value of Digital Twin — helping clients identify their real target market." class="i18n">全人口抽样中BTO需求为0%，这是因为绝大多数居民已拥有住房。建议HDB客户使用<strong>目标人群筛选</strong>：仅抽取「25-35岁 + 未婚/已婚无房」人群，预计正面率将达40-60%。这正是数字孪生的价值 — 帮助客户识别真实的目标市场，而非浪费预算在非目标人群。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATA QUALITY -->
+  <div class="section">
+    <div class="section-title" data-zh="数据质量保障（数学一致性）" data-en="Data Quality Guarantee (Mathematical Consistency)" class="i18n">数据质量保障（数学一致性）</div>
+    <div class="card">
+      <table>
+        <tr><th data-zh="维度" data-en="Dimension" class="i18n">维度</th><th>SRMSE</th><th data-zh="质量" data-en="Quality" class="i18n">质量</th><th data-zh="合成值" data-en="Synthetic" class="i18n">合成值</th><th data-zh="Census目标" data-en="Census Target" class="i18n">Census目标</th></tr>
+        <tr><td data-zh="年龄分布" data-en="Age Distribution" class="i18n">年龄分布</td><td class="num">0.0053</td><td><span class="tag pass">EXCELLENT</span></td><td class="num">median 40</td><td class="num">median 41.5</td></tr>
+        <tr><td data-zh="性别" data-en="Gender" class="i18n">性别</td><td class="num">0.0015</td><td><span class="tag pass">EXCELLENT</span></td><td class="num">M 48.9%</td><td class="num">M 48.9%</td></tr>
+        <tr><td data-zh="族裔" data-en="Ethnicity" class="i18n">族裔</td><td class="num">0.0034</td><td><span class="tag pass">EXCELLENT</span></td><td class="num">Chinese 74.1%</td><td class="num">Chinese 74.3%</td></tr>
+        <tr><td data-zh="规划区" data-en="Planning Area" class="i18n">规划区</td><td class="num">0.0075</td><td><span class="tag pass">EXCELLENT</span></td><td class="num">28 areas</td><td class="num">28 areas</td></tr>
+        <tr><td data-zh="教育(25+)" data-en="Education(25+)" class="i18n">教育(25+)</td><td class="num">0.0001</td><td><span class="tag pass">EXCELLENT</span></td><td class="num">Degree+ 33.0%</td><td class="num">Degree+ 33.0%</td></tr>
+        <tr><td data-zh="住房" data-en="Housing" class="i18n">住房</td><td class="num">0.0000</td><td><span class="tag pass">PERFECT</span></td><td class="num">HDB 78.7%</td><td class="num">HDB 78.7%</td></tr>
+        <tr><td data-zh="户型分布" data-en="HH Size Dist" class="i18n">户型分布</td><td class="num">0.0495</td><td><span class="tag pass">EXCELLENT</span></td><td class="num">mean 3.35</td><td class="num">mean 3.16</td></tr>
+        <tr><td data-zh="收入中位数" data-en="Median Income" class="i18n">收入中位数</td><td class="num">3.0%</td><td><span class="tag pass">PASS</span></td><td class="num">$4,669</td><td class="num">$4,534</td></tr>
+        <tr><td data-zh="30-34已婚率" data-en="Married 30-34" class="i18n">30-34已婚率</td><td class="num">0.5%</td><td><span class="tag pass">PASS</span></td><td class="num">60.0%</td><td class="num">60.0%</td></tr>
+      </table>
+
+      <h3 data-zh="数学保障机制" data-en="Mathematical Guarantees" class="i18n">数学保障机制</h3>
+      <table>
+        <tr><th data-zh="层" data-en="Layer" class="i18n">层</th><th data-zh="机制" data-en="Mechanism" class="i18n">机制</th><th data-zh="数学保证" data-en="Mathematical Guarantee" class="i18n">数学保证</th></tr>
+        <tr><td>Layer 1</td><td data-zh="Deming-Stephan IPF (4D)" data-en="Deming-Stephan IPF (4D)" class="i18n">Deming-Stephan IPF (4D)</td><td data-zh="KL散度最小化，边际精确匹配" data-en="KL divergence minimization, exact marginal match" class="i18n">KL散度最小化，边际精确匹配</td></tr>
+        <tr><td>Layer 2</td><td data-zh="后置边际校准器" data-en="Post-hoc Marginal Calibrator" class="i18n">后置边际校准器</td><td data-zh="|P_synth(y) - P_census(y)| < 1/N" data-en="|P_synth(y) - P_census(y)| < 1/N" class="i18n">|P_synth(y) - P_census(y)| < 1/N</td></tr>
+        <tr><td>Layer 3</td><td data-zh="Quality Gate (SRMSE)" data-en="Quality Gate (SRMSE)" class="i18n">Quality Gate (SRMSE)</td><td data-zh="Hard gates SRMSE < 0.10，不达标则拒绝" data-en="Hard gates SRMSE < 0.10, reject if fail" class="i18n">Hard gates SRMSE < 0.10，不达标则拒绝</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- PRICING -->
+  <div class="section">
+    <div class="section-title" data-zh="成本估算" data-en="Cost Estimate" class="i18n">成本估算</div>
+    <div class="result-grid" style="grid-template-columns:1fr 1fr 1fr;">
+      <div class="metric">
+        <div class="value" style="font-size:22px;">$0.0005</div>
+        <div class="label" data-zh="每Agent每问题 (LLM)" data-en="Per Agent Per Question (LLM)" class="i18n">每Agent每问题 (LLM)</div>
+      </div>
+      <div class="metric">
+        <div class="value" style="font-size:22px;">$0.03</div>
+        <div class="label" data-zh="50 Agent 单场景" data-en="50 Agents, 1 Scenario" class="i18n">50 Agent 单场景</div>
+      </div>
+      <div class="metric">
+        <div class="value" style="font-size:22px;">~$5</div>
+        <div class="label" data-zh="20,000 Agent 全量调研" data-en="20,000 Agents Full Survey" class="i18n">20,000 Agent 全量调研</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let lang = 'zh';
+
+function toggleLang() {
+  lang = lang === 'zh' ? 'en' : 'zh';
+  document.querySelectorAll('.i18n').forEach(el => {
+    const text = el.getAttribute(`data-${lang}`);
+    if (text) el.innerHTML = text;
+  });
+  document.getElementById('logoMain').textContent = lang === 'zh' ? '新加坡数字孪生' : 'Singapore Digital Twin';
+  document.getElementById('logoSub').textContent = lang === 'zh' ? '产品演示' : 'Product Demo';
+}
+</script>
+</body>
+</html>

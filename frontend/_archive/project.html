@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>项目管理驾驶舱 | Project Dashboard</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:#0a0e1a; --card:#111827; --border:#1e293b; --text:#e2e8f0;
+  --dim:#94a3b8; --muted:#475569; --accent:#3b82f6; --green:#22c55e;
+  --red:#ef4444; --orange:#f97316; --purple:#a855f7; --cyan:#06b6d4;
+  --yellow:#eab308;
+}
+body { background:var(--bg); color:var(--text); font-family:'Inter',-apple-system,system-ui,sans-serif; font-size:14px; }
+
+/* NAV */
+nav { background:var(--card); border-bottom:1px solid var(--border); padding:14px 28px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+.logo { font-size:20px; font-weight:700; background:linear-gradient(135deg,var(--accent),var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.logo-sub { font-size:12px; font-weight:400; -webkit-text-fill-color:var(--muted); margin-left:8px; }
+.nav-right { display:flex; align-items:center; gap:12px; }
+.lang-switch { display:flex; gap:2px; background:var(--bg); border-radius:6px; padding:2px; }
+.lang-switch button { background:transparent; border:none; color:var(--dim); padding:4px 10px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:600; }
+.lang-switch button.active { background:var(--accent); color:#fff; }
+.nav-link { color:var(--dim); text-decoration:none; font-size:12px; padding:6px 12px; border:1px solid var(--border); border-radius:6px; transition:all .2s; }
+.nav-link:hover { color:var(--accent); border-color:var(--accent); }
+
+/* LAYOUT */
+.container { max-width:1400px; margin:0 auto; padding:20px 24px; }
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:16px; }
+.grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:16px; }
+.grid-5 { display:grid; grid-template-columns:repeat(5,1fr); gap:16px; margin-bottom:16px; }
+.full { margin-bottom:16px; }
+
+/* CARDS */
+.card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; }
+.card h3 { font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:12px; font-weight:600; }
+.big { font-size:32px; font-weight:700; line-height:1; margin-bottom:4px; }
+.sub { font-size:12px; color:var(--dim); }
+
+/* SECTION TITLE */
+.section-title { font-size:16px; font-weight:700; color:var(--text); margin:28px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+
+/* MILESTONE */
+.milestone { display:flex; align-items:flex-start; gap:16px; padding:14px 0; border-bottom:1px solid rgba(30,41,59,.5); }
+.milestone:last-child { border-bottom:none; }
+.ms-icon { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.ms-done { background:rgba(34,197,94,.15); color:var(--green); }
+.ms-active { background:rgba(59,130,246,.15); color:var(--accent); animation:pulse 2s infinite; }
+.ms-todo { background:rgba(71,85,105,.15); color:var(--muted); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+.ms-body { flex:1; }
+.ms-title { font-weight:600; font-size:14px; margin-bottom:2px; }
+.ms-desc { font-size:12px; color:var(--dim); line-height:1.5; }
+.ms-tag { display:inline-block; font-size:10px; padding:2px 8px; border-radius:4px; font-weight:600; margin-left:8px; }
+.tag-done { background:rgba(34,197,94,.15); color:var(--green); }
+.tag-active { background:rgba(59,130,246,.15); color:var(--accent); }
+.tag-todo { background:rgba(71,85,105,.15); color:var(--muted); }
+
+/* MODULE TABLE */
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:left; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:1px; padding:8px 12px; border-bottom:1px solid var(--border); }
+td { padding:10px 12px; border-bottom:1px solid rgba(30,41,59,.4); }
+.loc { color:var(--cyan); font-weight:600; }
+
+/* QUALITY GATE */
+.gate { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid rgba(30,41,59,.4); }
+.gate:last-child { border-bottom:none; }
+.gate-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.gate-pass { background:var(--green); }
+.gate-fail { background:var(--red); }
+.gate-name { flex:1; font-weight:500; }
+.gate-val { color:var(--dim); font-size:12px; min-width:100px; text-align:right; }
+.gate-thresh { color:var(--muted); font-size:11px; min-width:80px; text-align:right; }
+
+/* TECH STACK */
+.tech-item { display:inline-flex; align-items:center; gap:6px; background:rgba(59,130,246,.08); border:1px solid rgba(59,130,246,.2); border-radius:8px; padding:8px 14px; margin:4px; font-size:12px; font-weight:500; }
+
+/* ARCH DIAGRAM */
+.arch-layer { padding:16px; border-radius:10px; margin-bottom:10px; }
+.arch-data { background:rgba(34,197,94,.06); border:1px solid rgba(34,197,94,.2); }
+.arch-engine { background:rgba(59,130,246,.06); border:1px solid rgba(59,130,246,.2); }
+.arch-llm { background:rgba(168,85,247,.06); border:1px solid rgba(168,85,247,.2); }
+.arch-frontend { background:rgba(6,182,212,.06); border:1px solid rgba(6,182,212,.2); }
+.arch-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px; }
+.arch-items { display:flex; flex-wrap:wrap; gap:6px; }
+.arch-chip { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08); border-radius:6px; padding:4px 10px; font-size:11px; color:var(--dim); }
+
+/* PROGRESS BAR */
+.progress-bar { height:8px; background:var(--border); border-radius:4px; overflow:hidden; margin-top:8px; }
+.progress-fill { height:100%; border-radius:4px; transition:width .3s; }
+
+/* COST */
+.cost-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(30,41,59,.4); font-size:13px; }
+.cost-row:last-child { border-bottom:none; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div><a href="index.html" class="logo" style="text-decoration:none" data-i18n="logo_title"></a><span class="logo-sub" data-i18n="logo_sub"></span></div>
+  <div class="nav-right">
+    <a href="index.html" class="nav-link" data-i18n="nav_home"></a>
+    <a href="dashboard.html" class="nav-link" data-i18n="nav_data_dashboard"></a>
+    <a href="survey.html" class="nav-link" data-i18n="nav_survey"></a>
+    <a href="evidence.html" class="nav-link" data-i18n="nav_evidence"></a>
+    <a href="methodology.html" class="nav-link" data-i18n="nav_methodology"></a>
+    <a href="architecture.html" class="nav-link" data-i18n="nav_architecture"></a>
+    <div class="lang-switch">
+      <button class="active" onclick="setLang('zh')">中文</button>
+      <button onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- KPIs -->
+  <div class="grid-5" id="kpis">
+    <div class="card"><div class="big" style="color:var(--green);">85%</div><div class="sub" data-i18n="kpi_progress"></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:85%;background:linear-gradient(90deg,var(--green),var(--accent));"></div></div>
+    </div>
+    <div class="card"><div class="big">15,586</div><div class="sub" data-i18n="kpi_loc"></div></div>
+    <div class="card"><div class="big">42</div><div class="sub" data-i18n="kpi_files"></div></div>
+    <div class="card"><div class="big" style="color:var(--green);">9/10</div><div class="sub" data-i18n="kpi_gates"></div></div>
+    <div class="card"><div class="big" style="color:var(--cyan);">$0.05</div><div class="sub" data-i18n="kpi_cost"></div></div>
+  </div>
+
+  <!-- Milestones -->
+  <div class="section-title" data-i18n="section_milestones"></div>
+  <div class="card full" id="milestones"></div>
+
+  <!-- Architecture + Tech Stack -->
+  <div class="grid-2">
+    <div>
+      <div class="section-title" data-i18n="section_arch"></div>
+      <div class="card" id="arch"></div>
+    </div>
+    <div>
+      <div class="section-title" data-i18n="section_tech"></div>
+      <div class="card" id="techstack"></div>
+    </div>
+  </div>
+
+  <!-- Quality Gate + Modules -->
+  <div class="grid-2">
+    <div>
+      <div class="section-title" data-i18n="section_quality"></div>
+      <div class="card" id="quality-gates"></div>
+    </div>
+    <div>
+      <div class="section-title" data-i18n="section_modules"></div>
+      <div class="card" id="modules"></div>
+    </div>
+  </div>
+
+  <!-- Validation + Cost -->
+  <div class="grid-2">
+    <div>
+      <div class="section-title" data-i18n="section_validation"></div>
+      <div class="card" id="validation"></div>
+    </div>
+    <div>
+      <div class="section-title" data-i18n="section_cost"></div>
+      <div class="card" id="cost"></div>
+    </div>
+  </div>
+
+  <!-- Roadmap -->
+  <div class="section-title" data-i18n="section_roadmap"></div>
+  <div class="card full" id="roadmap"></div>
+
+  <!-- External Data Integration -->
+  <div class="section-title" data-i18n="section_external"></div>
+  <div class="card full" id="external-data"></div>
+
+</div>
+
+<script>
+const I18N = {
+  zh: {
+    logo_title: '新加坡数字孪生', logo_sub: '项目管理驾驶舱',
+    nav_home: '首页', nav_data_dashboard: '数据驾驶舱', nav_survey: '客户调研', nav_evidence: '科学依据', nav_methodology: '方法论', nav_architecture: '系统架构',
+    kpi_progress: '整体进度', kpi_loc: '代码行数', kpi_files: '核心文件', kpi_gates: '质量门通过', kpi_cost: 'LLM总花费',
+    section_milestones: '里程碑进度',
+    section_arch: '系统架构',
+    section_tech: '技术栈',
+    section_quality: '质量门（Quality Gate）',
+    section_modules: '模块清单',
+    section_validation: '统计验证结果',
+    section_cost: '成本追踪',
+    section_roadmap: '后续路线图',
+    // Milestones
+    ms1_title: 'M1: Census数据管线', ms1_desc: '下载GHS 2025公开数据，构建年龄×性别×种族×区域4维边际分布',
+    ms2_title: 'M2: 人口合成引擎 v1', ms2_desc: 'IPF + Controlled Rounding + Bayesian Network，合成20K Agent',
+    ms3_title: 'M3: 数学一致性保障', ms3_desc: 'MarginalCalibrator边际校准 + SRMSE质量门 + 住房/教育/家庭规模三层校准',
+    ms4_title: 'M4: 家庭组建 & 人格', ms4_desc: '10阶段家庭组建（含Strategy E）+ Big Five人格 + Gaussian Copula',
+    ms5_title: 'M5: 数据库 & 前端', ms5_desc: 'Supabase存储20K Agent + 前端数据驾驶舱（中英文，6个图表页面）',
+    ms6_title: 'M6: 客户模拟Demo', ms6_desc: '2客户场景 × 50 Agent × LLM推理，验证端到端流程',
+    ms7_title: 'M7: 时间引擎 & 外部数据', ms7_desc: '三层决策管线（Rule→Prob→LLM）+ 外部数据采集器（RSS/政府API/市场数据）+ Snapshot时间回退',
+    ms8_title: 'M8: 商业化', ms8_desc: 'API网关 + 计费系统 + 客户自助Portal + SLA保障',
+    done: '已完成', active: '进行中', todo: '待启动',
+    // Arch
+    arch_data: '数据层', arch_engine: '引擎层', arch_llm: 'LLM层', arch_frontend: '前端层',
+    // Tech
+    tech_python: 'Python 3.11', tech_numpy: 'NumPy/SciPy', tech_supabase: 'Supabase (PostgreSQL)',
+    tech_llm: 'LLM API', tech_html: 'HTML5 + Chart.js', tech_ipf: 'IPF算法',
+    tech_bn: 'Bayesian Network', tech_copula: 'Gaussian Copula', tech_srmse: 'SRMSE验证',
+    // Quality Gates
+    gate_gender: '性别分布', gate_ethnicity: '种族分布', gate_age: '中位年龄',
+    gate_married: '30-34已婚率', gate_hh_size: '平均家庭规模',
+    gate_hh_dist: '家庭规模分布', gate_k_anon: 'K-匿名性',
+    gate_housing: '住房类型', gate_education: '学历(大学+)', gate_income: '中位收入',
+    // Modules
+    mod_name: '模块', mod_path: '路径', mod_loc: '代码行', mod_status: '状态',
+    // Validation
+    val_dim: '维度', val_quality: '质量', val_srmse: 'SRMSE', val_chi2_p: 'χ² p值',
+    // Cost
+    cost_sim_a: '客户A模拟（保险）', cost_sim_b: '客户B模拟（HDB）',
+    cost_total: '总计', cost_per_agent: '每Agent成本',
+    // Roadmap
+    rd1_title: '已实现', rd1_items: 'LifeRuleEngine 确定性规则（CPF/NS/退休/教育/健康） | ProbabilityEngine 概率模型（就业/婚姻/健康/生育/死亡 Markov+Logistic） | LLMDecisionEngine 人格化决策（LLM API） | TickManager 时间引擎（1 tick=1天，3-7%激活率） | SimulationRunner 三层决策管线（Rule→Prob→LLM）',
+    rd2_title: '当前冲刺', rd2_items: '外部数据采集器（RSS/政府API/市场数据） | 概率引擎连接 SimulationRunner | Snapshot 时间回退机制 | 外部事件→Agent反应管道',
+    rd3_title: '短期（1-2周）', rd3_items: '扩展Agent至200K | 完善K-匿名性 | 更多客户模拟场景',
+    rd4_title: '中期（1-2月）', rd4_items: 'Google API集成（Places/Trends） | 实时数据流（LTA/NEA/SGX） | API网关 | Agent间社交网络',
+    rd5_title: '长期（3-6月）', rd5_items: '多城市扩展 | 客户自助Portal | SLA & 计费 | 合规审计',
+    section_external: '外部数据集成架构（未来开发）',
+    ext_badge: '规划中',
+    ext_desc: '以下为未来连接外部实时数据源的架构规划，实现从静态Census基线到动态实时更新的演进。',
+    ext_gov_title: '新加坡政府公开数据',
+    ext_google_title: 'Google APIs',
+    ext_realtime_title: '实时数据流',
+    ext_arch_title: '集成架构',
+  },
+  en: {
+    logo_title: 'SG Digital Twin', logo_sub: 'Project Dashboard',
+    nav_home: 'Home', nav_data_dashboard: 'Data Dashboard', nav_survey: 'Submit Survey', nav_evidence: 'Evidence', nav_methodology: 'Methodology', nav_architecture: 'Architecture',
+    kpi_progress: 'Overall Progress', kpi_loc: 'Lines of Code', kpi_files: 'Core Files', kpi_gates: 'Quality Gates Passed', kpi_cost: 'Total LLM Cost',
+    section_milestones: 'Milestone Progress',
+    section_arch: 'System Architecture',
+    section_tech: 'Tech Stack',
+    section_quality: 'Quality Gates',
+    section_modules: 'Module Inventory',
+    section_validation: 'Statistical Validation',
+    section_cost: 'Cost Tracking',
+    section_roadmap: 'Roadmap',
+    ms1_title: 'M1: Census Data Pipeline', ms1_desc: 'Download GHS 2025 open data, build 4D marginal distributions (age×gender×ethnicity×area)',
+    ms2_title: 'M2: Population Synthesis v1', ms2_desc: 'IPF + Controlled Rounding + Bayesian Network, synthesize 20K agents',
+    ms3_title: 'M3: Mathematical Consistency', ms3_desc: 'MarginalCalibrator + SRMSE quality gate + housing/education/household calibration',
+    ms4_title: 'M4: Household & Personality', ms4_desc: '10-phase household builder (incl. Strategy E) + Big Five + Gaussian Copula',
+    ms5_title: 'M5: Database & Frontend', ms5_desc: 'Supabase storage for 20K agents + bilingual data dashboard (6 chart pages)',
+    ms6_title: 'M6: Client Simulation Demo', ms6_desc: '2 client scenarios × 50 agents × LLM reasoning, end-to-end validation',
+    ms7_title: 'M7: Time Engine & External Data', ms7_desc: '3-layer decision pipeline (Rule→Prob→LLM) + external data collectors (RSS/Gov API/Market) + snapshot time rollback',
+    ms8_title: 'M8: Commercialization', ms8_desc: 'API gateway + billing + self-service portal + SLA guarantees',
+    done: 'Done', active: 'In Progress', todo: 'Planned',
+    arch_data: 'Data Layer', arch_engine: 'Engine Layer', arch_llm: 'LLM Layer', arch_frontend: 'Frontend Layer',
+    tech_python: 'Python 3.11', tech_numpy: 'NumPy/SciPy', tech_supabase: 'Supabase (PostgreSQL)',
+    tech_llm: 'LLM API', tech_html: 'HTML5 + Chart.js', tech_ipf: 'IPF Algorithm',
+    tech_bn: 'Bayesian Network', tech_copula: 'Gaussian Copula', tech_srmse: 'SRMSE Validation',
+    gate_gender: 'Gender Distribution', gate_ethnicity: 'Ethnicity Distribution', gate_age: 'Median Age',
+    gate_married: 'Married at 30-34', gate_hh_size: 'Mean Household Size',
+    gate_hh_dist: 'Household Size Dist.', gate_k_anon: 'K-Anonymity',
+    gate_housing: 'Housing Type', gate_education: 'Education (Degree+)', gate_income: 'Median Income',
+    mod_name: 'Module', mod_path: 'Path', mod_loc: 'LOC', mod_status: 'Status',
+    val_dim: 'Dimension', val_quality: 'Quality', val_srmse: 'SRMSE', val_chi2_p: 'χ² p-value',
+    cost_sim_a: 'Client A Simulation (Insurance)', cost_sim_b: 'Client B Simulation (HDB)',
+    cost_total: 'Total', cost_per_agent: 'Cost per Agent',
+    rd1_title: 'Implemented', rd1_items: 'LifeRuleEngine deterministic rules (CPF/NS/retirement/education/health) | ProbabilityEngine Markov+Logistic models (job/marriage/health/fertility/death) | LLMDecisionEngine persona-prompted decisions (LLM API) | TickManager time engine (1 tick=1 day, 3-7% activation) | SimulationRunner 3-layer pipeline (Rule→Prob→LLM)',
+    rd2_title: 'Current Sprint', rd2_items: 'External data collectors (RSS/Gov API/market data) | Wire ProbabilityEngine into SimulationRunner | Snapshot-based time rollback | External events → Agent reaction pipeline',
+    rd3_title: 'Short-term (1-2 weeks)', rd3_items: 'Scale to 200K agents | Fix K-anonymity | More client scenarios',
+    rd4_title: 'Mid-term (1-2 months)', rd4_items: 'Google API integration (Places/Trends) | Real-time data streams (LTA/NEA/SGX) | API gateway | Agent social network',
+    rd5_title: 'Long-term (3-6 months)', rd5_items: 'Multi-city expansion | Self-service portal | SLA & billing | Compliance audit',
+    section_external: 'External Data Integration Architecture (Future Development)',
+    ext_badge: 'Planned',
+    ext_desc: 'Architecture for connecting external real-time data sources, evolving from static Census baselines to dynamic real-time updates.',
+    ext_gov_title: 'Singapore Government Open Data',
+    ext_google_title: 'Google APIs',
+    ext_realtime_title: 'Real-time Data Streams',
+    ext_arch_title: 'Integration Architecture',
+  }
+};
+
+let currentLang = 'zh';
+function t(k) { return I18N[currentLang][k] || I18N.en[k] || k; }
+
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.lang-switch button[onclick="setLang('${lang}')"]`).classList.add('active');
+  render();
+}
+
+function render() {
+  // i18n simple
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+
+  // Milestones
+  const milestones = [
+    { key: 'ms1', status: 'done', icon: '1' },
+    { key: 'ms2', status: 'done', icon: '2' },
+    { key: 'ms3', status: 'done', icon: '3' },
+    { key: 'ms4', status: 'done', icon: '4' },
+    { key: 'ms5', status: 'done', icon: '5' },
+    { key: 'ms6', status: 'done', icon: '6' },
+    { key: 'ms7', status: 'active', icon: '7' },
+    { key: 'ms8', status: 'todo', icon: '8' },
+  ];
+  document.getElementById('milestones').innerHTML = milestones.map(m => {
+    const cls = m.status === 'done' ? 'ms-done' : m.status === 'active' ? 'ms-active' : 'ms-todo';
+    const tagCls = m.status === 'done' ? 'tag-done' : m.status === 'active' ? 'tag-active' : 'tag-todo';
+    return `<div class="milestone">
+      <div class="ms-icon ${cls}">${m.icon}</div>
+      <div class="ms-body">
+        <div class="ms-title">${t(m.key+'_title')}<span class="ms-tag ${tagCls}">${t(m.status)}</span></div>
+        <div class="ms-desc">${t(m.key+'_desc')}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Architecture
+  const layers = [
+    { cls: 'arch-data', label: 'arch_data', items: ['GHS 2025 CSV', 'IPF 4D Table', 'agents_20k_v2.csv', 'Supabase PostgreSQL'] },
+    { cls: 'arch-engine', label: 'arch_engine', items: ['IPF + Rounding', 'BayesianNetwork', 'MarginalCalibrator', 'HouseholdBuilder', 'PersonalityInit', 'SynthesisGate'] },
+    { cls: 'arch-llm', label: 'arch_llm', items: ['LLM Chat API', 'Persona Prompt', 'Stratified Sampling', 'Response Aggregator'] },
+    { cls: 'arch-frontend', label: 'arch_frontend', items: ['Data Dashboard (index.html)', 'Project Dashboard (project.html)', 'Chart.js', 'Supabase JS SDK'] },
+  ];
+  document.getElementById('arch').innerHTML = layers.map(l =>
+    `<div class="arch-layer ${l.cls}">
+      <div class="arch-label" style="color:inherit;">${t(l.label)}</div>
+      <div class="arch-items">${l.items.map(i => `<div class="arch-chip">${i}</div>`).join('')}</div>
+    </div>`
+  ).join('');
+
+  // Tech Stack
+  const techs = ['tech_python','tech_numpy','tech_supabase','tech_llm','tech_html','tech_ipf','tech_bn','tech_copula','tech_srmse'];
+  document.getElementById('techstack').innerHTML = techs.map(k => `<span class="tech-item">${t(k)}</span>`).join('');
+
+  // Quality Gates
+  const gates = [
+    { key: 'gate_gender', pass: true, val: 'SRMSE=0.0005', thresh: '<0.10', severity: 'Hard' },
+    { key: 'gate_ethnicity', pass: true, val: 'SRMSE=0.0078', thresh: '<0.10', severity: 'Hard' },
+    { key: 'gate_age', pass: true, val: '40.0', thresh: '41.5 ±10%', severity: 'Hard' },
+    { key: 'gate_married', pass: true, val: '60.0%', thresh: '60% ±10%', severity: 'Hard' },
+    { key: 'gate_hh_size', pass: true, val: '3.35', thresh: '3.16 ±10%', severity: 'Hard' },
+    { key: 'gate_hh_dist', pass: true, val: 'SRMSE=0.0495', thresh: '<0.20', severity: 'Soft' },
+    { key: 'gate_k_anon', pass: false, val: 'min_k=1', thresh: 'k≥5', severity: 'Soft' },
+    { key: 'gate_housing', pass: true, val: 'SRMSE=0.0000', thresh: '<0.20', severity: 'Soft' },
+    { key: 'gate_education', pass: true, val: '33.0%', thresh: '33% ±20%', severity: 'Soft' },
+    { key: 'gate_income', pass: true, val: '$4,669', thresh: '$4,534 ±20%', severity: 'Soft' },
+  ];
+  document.getElementById('quality-gates').innerHTML = '<h3>' + t('section_quality') + '</h3>' +
+    gates.map(g => `<div class="gate">
+      <div class="gate-dot ${g.pass ? 'gate-pass' : 'gate-fail'}"></div>
+      <div class="gate-name">${t(g.key)} <span style="color:var(--muted);font-size:11px;">[${g.severity}]</span></div>
+      <div class="gate-val">${g.val}</div>
+      <div class="gate-thresh">${g.thresh}</div>
+    </div>`).join('');
+
+  // Modules
+  const modules = [
+    { name: 'math_core.py', path: 'engine/synthesis/', loc: 1264, done: true },
+    { name: '03_synthesize_v2.py', path: 'scripts/', loc: 729, done: true },
+    { name: 'household_builder.py', path: 'engine/synthesis/', loc: 718, done: true },
+    { name: 'sg_distributions.py', path: 'engine/synthesis/', loc: 534, done: true },
+    { name: 'ai_governance.py', path: 'engine/compliance/', loc: 531, done: true },
+    { name: 'privacy_engine.py', path: 'engine/compliance/', loc: 515, done: true },
+    { name: 'validation_framework.py', path: 'engine/compliance/', loc: 567, done: true },
+    { name: '10_client_sim.py', path: 'scripts/', loc: 474, done: true },
+    { name: 'synthesis_gate.py', path: 'engine/synthesis/', loc: 401, done: true },
+    { name: 'probability_models.py', path: 'engine/models/', loc: 365, done: true },
+    { name: 'cpf_model.py', path: 'engine/models/', loc: 319, done: false },
+    { name: 'ipf.py', path: 'engine/synthesis/', loc: 288, done: true },
+    { name: 'tick_manager.py', path: 'engine/pipeline/', loc: 480, done: true },
+    { name: 'life_rules.py', path: 'engine/rules/', loc: 263, done: true },
+    { name: 'decision_engine.py', path: 'engine/llm/', loc: 176, done: true },
+    { name: 'snapshot_manager.py', path: 'engine/pipeline/', loc: 195, done: true },
+    { name: 'collectors/base.py', path: 'engine/pipeline/', loc: 115, done: true },
+    { name: 'collectors/rss.py', path: 'engine/pipeline/', loc: 130, done: true },
+    { name: 'collectors/gov_data.py', path: 'engine/pipeline/', loc: 105, done: true },
+    { name: 'collectors/market.py', path: 'engine/pipeline/', loc: 95, done: true },
+    { name: 'agent.py', path: 'engine/core/', loc: 251, done: true },
+  ];
+  document.getElementById('modules').innerHTML = '<h3>' + t('section_modules') + '</h3>' +
+    `<table><tr><th>${t('mod_name')}</th><th>${t('mod_path')}</th><th>${t('mod_loc')}</th><th>${t('mod_status')}</th></tr>` +
+    modules.map(m => `<tr>
+      <td style="font-weight:600;">${m.name}</td>
+      <td style="color:var(--dim);font-size:11px;">${m.path}</td>
+      <td class="loc">${m.loc}</td>
+      <td>${m.done ? `<span style="color:var(--green);">&#10003;</span>` : `<span style="color:var(--muted);">-</span>`}</td>
+    </tr>`).join('') + '</table>';
+
+  // Validation
+  const validations = [
+    { dim: 'Age', quality: 'EXCELLENT', srmse: 0.0053, chi2p: 0.9995 },
+    { dim: 'Gender', quality: 'EXCELLENT', srmse: 0.0015, chi2p: 0.832 },
+    { dim: 'Ethnicity', quality: 'EXCELLENT', srmse: 0.0034, chi2p: 0.8731 },
+    { dim: 'Area (28)', quality: 'EXCELLENT', srmse: 0.0075, chi2p: 1.0 },
+    { dim: 'Education', quality: 'EXCELLENT', srmse: 0.0001, chi2p: 1.0 },
+    { dim: 'IPF 4D (4597)', quality: 'ACCEPTABLE', srmse: 0.1032, chi2p: 1.0 },
+  ];
+  const qcolor = q => q === 'EXCELLENT' ? 'var(--green)' : q === 'ACCEPTABLE' ? 'var(--orange)' : 'var(--red)';
+  document.getElementById('validation').innerHTML = '<h3>' + t('section_validation') + '</h3>' +
+    `<table><tr><th>${t('val_dim')}</th><th>${t('val_quality')}</th><th>${t('val_srmse')}</th><th>${t('val_chi2_p')}</th></tr>` +
+    validations.map(v => `<tr>
+      <td style="font-weight:500;">${v.dim}</td>
+      <td style="color:${qcolor(v.quality)};font-weight:700;">${v.quality}</td>
+      <td>${v.srmse.toFixed(4)}</td>
+      <td>${v.chi2p.toFixed(4)}</td>
+    </tr>`).join('') + '</table>';
+
+  // Cost
+  document.getElementById('cost').innerHTML = '<h3>' + t('section_cost') + '</h3>' +
+    `<div class="cost-row"><span>${t('cost_sim_a')}</span><span style="color:var(--cyan);font-weight:600;">$0.026</span></div>
+     <div class="cost-row"><span>${t('cost_sim_b')}</span><span style="color:var(--cyan);font-weight:600;">$0.028</span></div>
+     <div class="cost-row" style="font-weight:700;"><span>${t('cost_total')}</span><span style="color:var(--green);">$0.054</span></div>
+     <div class="cost-row"><span>${t('cost_per_agent')}</span><span style="color:var(--dim);">$0.00054</span></div>
+     <div style="margin-top:12px;padding:10px;background:rgba(34,197,94,.06);border-radius:8px;border:1px solid rgba(34,197,94,.2);font-size:12px;color:var(--dim);">
+       ${currentLang==='zh' ? '100次LLM API调用，总计53,915 tokens。按200K Agent全量模拟预估成本：~$1.08' : '100 LLM API calls, 53,915 tokens total. Estimated cost for 200K full simulation: ~$1.08'}
+     </div>`;
+
+  // Roadmap
+  const roadmap = [
+    { key: 'rd1', color: 'var(--green)' },
+    { key: 'rd2', color: 'var(--orange)' },
+    { key: 'rd3', color: 'var(--accent)' },
+    { key: 'rd4', color: 'var(--purple)' },
+    { key: 'rd5', color: 'var(--cyan)' },
+  ];
+  document.getElementById('roadmap').innerHTML = roadmap.map(r => {
+    const items = t(r.key+'_items').split('|').map(i => i.trim());
+    return `<div style="margin-bottom:16px;">
+      <div style="font-weight:700;color:${r.color};margin-bottom:8px;">${t(r.key+'_title')}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        ${items.map(i => `<span style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:12px;color:var(--dim);">${i}</span>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  // External Data Integration
+  const govApis = [
+    { name: 'data.gov.sg', desc: { zh: 'SingStat人口/住房/收入实时数据', en: 'SingStat population/housing/income real-time data' }, url: 'https://data.gov.sg', status: 'planned' },
+    { name: 'SingStat Table Builder', desc: { zh: 'Census交叉表查询API', en: 'Census cross-tabulation query API' }, url: 'https://tablebuilder.singstat.gov.sg', status: 'planned' },
+    { name: 'HDB Resale API', desc: { zh: 'HDB转售价格实时数据（每季度）', en: 'HDB resale prices (quarterly)' }, url: 'https://data.gov.sg/dataset/resale-flat-prices', status: 'planned' },
+    { name: 'URA Property API', desc: { zh: '私人房产交易数据', en: 'Private property transactions' }, url: 'https://www.ura.gov.sg/reis/dataDeveloper', status: 'planned' },
+    { name: 'MOM Labour API', desc: { zh: '劳动力市场/收入/就业数据', en: 'Labour market/income/employment data' }, url: 'https://stats.mom.gov.sg', status: 'planned' },
+    { name: 'OneMap API', desc: { zh: '新加坡地理信息/规划区边界', en: 'Singapore geospatial/planning area boundaries' }, url: 'https://www.onemap.gov.sg/apidocs/', status: 'planned' },
+  ];
+  const googleApis = [
+    { name: 'Google Places API', desc: { zh: '商业设施/医院/学校POI密度', en: 'Business/hospital/school POI density' }, use: { zh: '丰富区域属性，影响Agent选择', en: 'Enrich area attributes, affect agent decisions' } },
+    { name: 'Google Maps Distance Matrix', desc: { zh: '通勤时间/距离矩阵', en: 'Commute time/distance matrix' }, use: { zh: '校准Agent通勤模式', en: 'Calibrate agent commute patterns' } },
+    { name: 'Google Trends API', desc: { zh: '搜索趋势/消费者兴趣', en: 'Search trends/consumer interest' }, use: { zh: '实时消费者情绪输入', en: 'Real-time consumer sentiment input' } },
+    { name: 'BigQuery Public Datasets', desc: { zh: 'Census/经济/天气公开数据集', en: 'Census/economic/weather public datasets' }, use: { zh: '交叉验证合成人口', en: 'Cross-validate synthetic population' } },
+  ];
+  const realtimeStreams = [
+    { name: 'LTA DataMall', desc: { zh: '公交/出租车/ERP实时数据', en: 'Bus/taxi/ERP real-time data' }, url: 'https://datamall.lta.gov.sg' },
+    { name: 'NEA Weather API', desc: { zh: '天气/空气质量实时数据', en: 'Weather/air quality real-time' }, url: 'https://data.gov.sg/dataset?groups=environment' },
+    { name: 'SGX Market Data', desc: { zh: '股市/基金实时数据', en: 'Stock/fund real-time data' }, url: 'https://www.sgx.com/research-education/data-services' },
+  ];
+
+  const zh = currentLang === 'zh';
+  let extHtml = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+    <span style="display:inline-block;font-size:10px;padding:3px 10px;border-radius:4px;font-weight:700;background:rgba(168,85,247,.15);color:var(--purple);">${t('ext_badge')}</span>
+    <span style="color:var(--dim);font-size:13px;">${t('ext_desc')}</span>
+  </div>`;
+
+  // Gov APIs
+  extHtml += `<h3 style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--green);margin:16px 0 8px;font-weight:600;">${t('ext_gov_title')}</h3>`;
+  extHtml += '<table><tr><th>API</th><th>' + (zh?'说明':'Description') + '</th><th>URL</th></tr>';
+  govApis.forEach(a => {
+    extHtml += `<tr><td style="font-weight:600;">${a.name}</td><td style="color:var(--dim);font-size:12px;">${zh?a.desc.zh:a.desc.en}</td><td><a href="${a.url}" target="_blank" style="color:var(--cyan);font-size:11px;text-decoration:none;">${a.url.replace('https://','')}</a></td></tr>`;
+  });
+  extHtml += '</table>';
+
+  // Google APIs
+  extHtml += `<h3 style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent);margin:20px 0 8px;font-weight:600;">${t('ext_google_title')}</h3>`;
+  extHtml += '<table><tr><th>API</th><th>' + (zh?'功能':'Function') + '</th><th>' + (zh?'应用场景':'Use Case') + '</th></tr>';
+  googleApis.forEach(a => {
+    extHtml += `<tr><td style="font-weight:600;">${a.name}</td><td style="color:var(--dim);font-size:12px;">${zh?a.desc.zh:a.desc.en}</td><td style="color:var(--dim);font-size:12px;">${zh?a.use.zh:a.use.en}</td></tr>`;
+  });
+  extHtml += '</table>';
+
+  // Realtime
+  extHtml += `<h3 style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--orange);margin:20px 0 8px;font-weight:600;">${t('ext_realtime_title')}</h3>`;
+  extHtml += '<table><tr><th>API</th><th>' + (zh?'说明':'Description') + '</th><th>URL</th></tr>';
+  realtimeStreams.forEach(a => {
+    extHtml += `<tr><td style="font-weight:600;">${a.name}</td><td style="color:var(--dim);font-size:12px;">${zh?a.desc.zh:a.desc.en}</td><td><a href="${a.url}" target="_blank" style="color:var(--cyan);font-size:11px;text-decoration:none;">${a.url.replace('https://','')}</a></td></tr>`;
+  });
+  extHtml += '</table>';
+
+  // Architecture diagram
+  extHtml += `<h3 style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--purple);margin:20px 0 8px;font-weight:600;">${t('ext_arch_title')}</h3>`;
+  extHtml += `<div style="font-family:Menlo,Consolas,monospace;font-size:11px;background:var(--bg);padding:16px;border-radius:8px;border:1px solid var(--border);color:var(--cyan);line-height:1.8;white-space:pre-wrap;">${zh
+? `┌─────────────────────────────────────────────────────────────┐
+│                    外部数据集成层 (Future)                    │
+│                                                             │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
+│  │data.gov  │  │Google    │  │LTA       │  │OneMap    │   │
+│  │.sg API   │  │Places API│  │DataMall  │  │GeoAPI   │   │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘   │
+│       │             │             │             │          │
+│       └──────┬──────┴──────┬──────┴──────┬──────┘          │
+│              ▼             ▼             ▼                  │
+│  ┌─────────────────────────────────────────────────┐       │
+│  │           Data Ingestion Pipeline               │       │
+│  │  • Scheduler (cron daily/weekly/quarterly)      │       │
+│  │  • Schema validation & deduplication            │       │
+│  │  • Delta detection (changed data only)          │       │
+│  └───────────────────┬─────────────────────────────┘       │
+│                      ▼                                      │
+│  ┌─────────────────────────────────────────────────┐       │
+│  │           Calibration Engine                    │       │
+│  │  • MarginalCalibrator re-calibration            │       │
+│  │  • IPF re-fitting with updated marginals        │       │
+│  │  • Quality Gate re-validation                   │       │
+│  └───────────────────┬─────────────────────────────┘       │
+│                      ▼                                      │
+│  ┌─────────────────────────────────────────────────┐       │
+│  │           Supabase (Agents + Households)        │       │
+│  │  • 20K → 200K agents, incrementally updated     │       │
+│  │  • Version control: snapshot per calibration    │       │
+│  └─────────────────────────────────────────────────┘       │
+└─────────────────────────────────────────────────────────────┘`
+: `┌─────────────────────────────────────────────────────────────┐
+│               External Data Integration Layer (Future)       │
+│                                                             │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
+│  │data.gov  │  │Google    │  │LTA       │  │OneMap    │   │
+│  │.sg API   │  │Places API│  │DataMall  │  │GeoAPI   │   │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘   │
+│       │             │             │             │          │
+│       └──────┬──────┴──────┬──────┴──────┬──────┘          │
+│              ▼             ▼             ▼                  │
+│  ┌─────────────────────────────────────────────────┐       │
+│  │           Data Ingestion Pipeline               │       │
+│  │  • Scheduler (cron daily/weekly/quarterly)      │       │
+│  │  • Schema validation & deduplication            │       │
+│  │  • Delta detection (changed data only)          │       │
+│  └───────────────────┬─────────────────────────────┘       │
+│                      ▼                                      │
+│  ┌─────────────────────────────────────────────────┐       │
+│  │           Calibration Engine                    │       │
+│  │  • MarginalCalibrator re-calibration            │       │
+│  │  • IPF re-fitting with updated marginals        │       │
+│  │  • Quality Gate re-validation                   │       │
+│  └───────────────────┬─────────────────────────────┘       │
+│                      ▼                                      │
+│  ┌─────────────────────────────────────────────────┐       │
+│  │           Supabase (Agents + Households)        │       │
+│  │  • 20K → 200K agents, incrementally updated     │       │
+│  │  • Version control: snapshot per calibration    │       │
+│  └─────────────────────────────────────────────────┘       │
+└─────────────────────────────────────────────────────────────┘`}</div>`;
+
+  document.getElementById('external-data').innerHTML = extHtml;
+}
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <!-- 统一组件CSS -->
+    <link rel="stylesheet" href="css/components.css">
+    <!-- 懒加载系统CSS -->
+    <link rel="stylesheet" href="css/lazy-loading.css">
+    
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Singapore Digital Twin | 新加坡数字孪生</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e1a;--card:#111827;--border:#1e293b;--text:#e2e8f0;
+  --dim:#94a3b8;--muted:#475569;--accent:#3b82f6;--green:#22c55e;
+  --red:#ef4444;--orange:#f97316;--purple:#a855f7;--cyan:#06b6d4;
+  --yellow:#eab308;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,system-ui,sans-serif;font-size:14px}
+
+/* ===== NAV (shared across all pages) ===== */
+.site-nav{background:var(--card);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.site-nav .logo{font-size:20px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-links a{color:var(--dim);text-decoration:none;font-size:12px;padding:6px 14px;border-radius:6px;transition:all .2s;font-weight:500}
+.nav-links a:hover{color:var(--accent);background:rgba(59,130,246,.08)}
+.nav-links a.active{color:var(--accent);background:rgba(59,130,246,.12);font-weight:600}
+.nav-links .sep{width:1px;height:16px;background:var(--border);margin:0 4px}
+.lang-switch{display:flex;gap:2px;background:var(--bg);border-radius:6px;padding:2px}
+.lang-switch button{background:transparent;border:none;color:var(--dim);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600}
+.lang-switch button.active{background:var(--accent);color:#fff}
+
+/* ===== HERO ===== */
+.hero{text-align:center;padding:60px 24px 40px;max-width:900px;margin:0 auto}
+.hero h1{font-size:36px;font-weight:800;line-height:1.3;margin-bottom:16px}
+.hero h1 .gradient{background:linear-gradient(135deg,var(--accent),var(--purple),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero .subtitle{font-size:17px;color:var(--dim);line-height:1.6;margin-bottom:32px}
+.hero-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn-primary{background:var(--accent);color:#fff;border:none;padding:12px 28px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all .2s}
+.btn-primary:hover{background:#2563eb;transform:translateY(-1px);box-shadow:0 4px 20px rgba(59,130,246,.3)}
+.btn-secondary{background:transparent;color:var(--accent);border:1px solid var(--accent);padding:12px 28px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all .2s}
+.btn-secondary:hover{background:rgba(59,130,246,.08)}
+
+/* ===== VALUE PROPS ===== */
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+.section{margin:48px 0}
+.section-title{font-size:22px;font-weight:700;text-align:center;margin-bottom:32px}
+.section-title .dim{color:var(--dim);font-weight:400;font-size:15px;display:block;margin-top:6px}
+
+.value-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.value-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px;text-align:center;transition:all .3s}
+.value-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.value-icon{font-size:36px;margin-bottom:14px}
+.value-card h3{font-size:16px;font-weight:700;margin-bottom:8px}
+.value-card p{font-size:13px;color:var(--dim);line-height:1.6}
+.value-compare{display:flex;justify-content:center;gap:24px;margin-top:14px;font-size:12px}
+.value-compare .old{color:var(--red);text-decoration:line-through}
+.value-compare .new{color:var(--green);font-weight:700}
+
+/* ===== FLOW ===== */
+.flow{display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 auto}
+.flow-step{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 16px;text-align:center;width:170px;transition:all .2s}
+.flow-step:hover{border-color:var(--accent)}
+.flow-num{background:var(--accent);color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;margin:0 auto 8px}
+.flow-step .ftitle{font-weight:600;font-size:13px;margin-bottom:4px}
+.flow-step .fdesc{font-size:11px;color:var(--dim)}
+.flow-arrow{font-size:20px;color:var(--accent)}
+
+/* ===== CASE STUDIES ===== */
+.cases{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.case-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;transition:all .2s}
+.case-card:hover{border-color:var(--accent)}
+.case-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.case-header h3{font-size:15px;font-weight:700}
+.case-tag{font-size:11px;padding:3px 10px;border-radius:4px;font-weight:600}
+.case-tag.election{background:rgba(59,130,246,.12);color:var(--accent)}
+.case-tag.economy{background:rgba(168,85,247,.12);color:var(--purple)}
+.case-verified{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--green);background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);border-radius:4px;padding:2px 8px;margin-top:10px;font-weight:600}
+.case-vs{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin:12px 0;padding:10px;background:rgba(255,255,255,.02);border-radius:8px}
+.case-vs .cv-col{text-align:center}
+.case-vs .cv-label{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+.case-vs .cv-val{font-size:20px;font-weight:700;margin-top:2px}
+.case-vs .cv-arrow{font-size:16px;color:var(--dim)}
+.case-question{font-size:13px;color:var(--dim);line-height:1.5;margin-bottom:16px;padding:12px;background:rgba(255,255,255,.02);border-radius:8px;border-left:3px solid var(--accent)}
+.case-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.case-metric{text-align:center;padding:10px;background:rgba(255,255,255,.02);border-radius:8px}
+.case-metric .val{font-size:22px;font-weight:700}
+.case-metric .lab{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.case-bar{display:flex;align-items:center;gap:6px;margin:4px 0;font-size:12px}
+.case-bar .bl{width:120px;color:var(--dim);text-align:right;flex-shrink:0;font-size:11px}
+.case-bar .bt{flex:1;height:18px;background:rgba(255,255,255,.04);border-radius:4px;overflow:hidden}
+.case-bar .bf{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:6px;font-size:10px;font-weight:600;color:#fff;min-width:24px}
+.case-insight{background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.2);border-radius:8px;padding:12px 14px;font-size:12px;line-height:1.6;color:var(--dim);margin-top:12px}
+.case-insight strong{color:var(--orange)}
+
+/* ===== QUALITY ===== */
+.quality-row{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.q-badge{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 20px;text-align:center;min-width:120px}
+.q-badge .qv{font-size:18px;font-weight:700;color:var(--green)}
+.q-badge .ql{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+
+/* ===== FOOTER ===== */
+.footer{text-align:center;padding:40px 24px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);margin-top:60px}
+
+@media(max-width:900px){
+  .value-grid{grid-template-columns:1fr}
+  .cases{grid-template-columns:1fr}
+  .hero h1{font-size:26px}
+  .flow{flex-direction:column;align-items:center}
+  .flow-arrow{transform:rotate(90deg)}
+  .case-bar .bl{width:120px;font-size:11px}
+}
+@media(max-width:600px){
+  .nav-links a{font-size:11px;padding:4px 8px}
+  .case-metrics{grid-template-columns:1fr 1fr}
+  .quality-row{flex-direction:column;align-items:center}
+}
+</style>
+</head>
+<body>
+<!-- 统一导航组件 -->
+<div id="unified-navigation-container"></div>
+<script>
+// 动态加载统一导航组件
+fetch("components/unified-navigation.html")
+    .then(response => response.text())
+    .then(html => {
+        document.getElementById("unified-navigation-container").innerHTML = html;
+        console.log("✅ 统一导航组件加载完成");
+    })
+    .catch(error => console.error("❌ 导航组件加载失败:", error));
+</script>
+
+
+<!-- ===== NAVIGATION ===== -->
+
+
+<!-- ===== HERO ===== -->
+
+
+<script>
+const I18N = {
+  zh: {
+    'hero-gradient':'172,000 个合成市民', 'hero-sub':'在真实世界之前，先测试你的想法',
+    'hero-desc':'基于 GHS 2025 的合成人口，几分钟内完成市场调研。双模式引擎：问卷模式即时调研 + 社会模式7天传播仿真。',
+    'cta-survey':'开始仿真', 'cta-explore':'了解系统',
+    'val-title':'为什么选择数字孪生？', 'val-sub':'相比传统市场调研的三大优势',
+    'v1-title':'分钟级，不是周级', 'v1-desc':'1000智能体调研3分钟完成。双模式：即时问卷 + 7天社会仿真。无需招募、外勤。',
+    'v1-old':'传统调研：2-4周', 'v1-new':'数字孪生：5分钟',
+    'v2-title':'172K 个细分', 'v2-desc':'同时测试所有人口统计维度 —— 按收入、年龄、住房、教育、种族、区域。即时找到真正的目标市场。',
+    'v2-old':'传统调研：3-5个细分', 'v2-new':'数字孪生：无限',
+    'v3-title':'零隐私风险', 'v3-desc':'100%合成数据。从不使用真实个人信息。设计即合规（PDPA）。所有人口组合保证K-匿名性。',
+    'v3-old':'传统调研：知情同意书', 'v3-new':'数字孪生：无PII',
+    'flow-title':'工作原理', 'flow-sub':'从问题到洞察的5步流程',
+    'f1-t':'提交问题', 'f1-d':'定义调研问题、目标人群、选项',
+    'f2-t':'筛选人群', 'f2-d':'按年龄、收入、住房、教育、区域筛选合格Agent',
+    'f3-t':'人格推理', 'f3-d':'每个Agent基于其人格画像通过LLM+Big Five人格进行推理',
+    'f4-t':'交叉分析', 'f4-d':'按收入、年龄、住房类型、种族分层展示结果',
+    'f5-t':'洞察报告', 'f5-d':'核心顾虑、细分建议、可执行的洞察',
+    'case-title':'回测验证：预测 vs 实际', 'case-sub':'两个已发生事件——数字孪生能否预测真实结果？',
+    'ca-title':'2023 总统选举', 'ca-tag':'选举', 'ca-q':'你会投票给谁？尚达曼（前高级部长）、黄国松（前GIC首席投资官）、还是陈清木（前职总英康CEO）？',
+    'ca-m1':'MAE（调整后）', 'ca-m2':'样本', 'ca-m3':'方法',
+    'ca-b1':'尚达曼', 'ca-b2':'黄国松', 'ca-b3':'陈清木',
+    'ca-insight':'<strong>已验证：</strong>VS+第三人称提示词 — MAE 2.7pp。三个候选人均在±4pp以内。尚达曼 67.1% vs 70.4% (-3.3pp)，黄国松 19.7% vs 15.7% (+4.0pp)，陈清木 13.2% vs 13.9% (-0.7pp)。',
+    'cb-title':'2024 GST 涨至 9%', 'cb-tag':'经济', 'cb-q':'GST从8%涨到9%（2024年1月）。这会如何影响你的消费习惯？',
+    'cb-m1':'MAE', 'cb-m2':'样本', 'cb-m3':'方法',
+    'cb-b1':'大幅削减消费', 'cb-b2':'适度减少', 'cb-b3':'影响不大',
+    'cb-insight':'<strong>已验证：</strong>正确预测多数人会削减消费（73% vs 实际~60%，偏差13pp）。收入分层真实——$3K以下85%减少，<strong>$7K+: 75%表示"影响不大"</strong>。待用VS+RP方法重跑提高精度。',
+    'dq-title':'对齐 GHS 2025', 'dq-sub':'9个核心人口维度全部在5%误差内匹配新加坡GHS 2025',
+    'q1':'性别','q2':'种族','q3':'年龄分布','q4':'规划区','q5':'教育','q6':'住房','q7':'收入','q8':'30-34已婚率','q9':'户均人数',
+    'cta-title':'准备好测试你的下一个产品创意了吗？',
+    'cta2-survey':'运行仿真', 'cta2-explore':'浏览172K智能体', 'cta2-method':'系统与方法论',
+    'footer-text':'新加坡数字孪生 — 合成人口平台 — 对齐 GHS 2025 — 符合 PDPA',
+    'footer-tech':'基于 IPF + 贝叶斯网络 + 高斯Copula + LLM人格推理',
+  },
+  en: {}  // English is the default in HTML
+};
+
+let lang = 'zh';
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.lang-switch button[onclick="setLang('${l}')"]`).classList.add('active');
+  applyLang();
+}
+function applyLang() {
+  const dict = I18N[lang] || {};
+  for (const [id, text] of Object.entries(dict)) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = text;
+  }
+}
+// Apply Chinese on load
+applyLang();
+</script>
+
+<!-- 统一页脚组件 -->
+<div id="unified-footer-container"></div>
+<!-- 懒加载系统 -->
+<script src="js/lazy-loading.js"></script>
+<script src="js/init-lazy-loading.js"></script>
+
+<!-- 统一页脚组件 (懒加载) -->
+<div id="unified-footer-container" data-lazy-component="components/unified-footer.html" 
+     data-offline-support="true" data-retryable="true" data-priority="low"></div>
+
+</body>
+</html>
+</content>
+</invoke>

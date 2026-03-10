@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-03-08T17:17:03.683608",
+  "test_url": "http://localhost:8888/dashboard.html",
+  "results": {
+    "integration": {
+      "product-goals-section": true,
+      "validation-container": true,
+      "transparency-container": true,
+      "validation-panel": false,
+      "transparency-panel": false,
+      "css/validation/validation.css": true,
+      "css/transparency/transparency.css": true,
+      "js/product-goals.js": true
+    },
+    "css": {
+      "http://localhost:8888/css/validation/validation.css": true,
+      "http://localhost:8888/css/transparency/transparency.css": true
+    },
+    "components": {
+      "http://localhost:8888/components/validation/validation-panel.html": true,
+      "http://localhost:8888/components/transparency/transparency-panel.html": true
+    },
+    "javascript": {
+      "http://localhost:8888/js/product-goals.js": true
+    },
+    "functionality": {
+      "method-btn": 0,
+      "limitations-btn": 0,
+      "refresh-btn": 0,
+      "source-item": 0,
+      "learn-more": 0,
+      "confidence-interval": null,
+      "sample-size": null,
+      "statistical-power": null
+    }
+  },
+  "summary": {
+    "total_checks": 21,
+    "passed_checks": 11,
+    "failed_checks": 10
+  },
+  "status": "partial"
+}

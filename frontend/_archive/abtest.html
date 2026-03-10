@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A/B Test | 数字孪生</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0e1a;--card:#111827;--border:#1e293b;--text:#e2e8f0;--dim:#94a3b8;--muted:#475569;--accent:#3b82f6;--green:#22c55e;--red:#ef4444;--orange:#f97316;--purple:#a855f7;--cyan:#06b6d4;--yellow:#eab308}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,system-ui,sans-serif;font-size:14px;min-height:100vh}
+
+.site-nav{background:var(--card);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.site-nav .logo{font-size:20px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-links a{color:var(--dim);text-decoration:none;font-size:12px;padding:6px 14px;border-radius:6px;transition:all .2s;font-weight:500}
+.nav-links a:hover{color:var(--accent);background:rgba(59,130,246,.08)}
+.nav-links a.active{color:var(--accent);background:rgba(59,130,246,.12);font-weight:600}
+.nav-links .sep{width:1px;height:16px;background:var(--border);margin:0 4px}
+.lang-switch{display:flex;gap:2px;background:var(--bg);border-radius:6px;padding:2px}
+.lang-switch button{background:transparent;border:none;color:var(--dim);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600}
+.lang-switch button.active{background:var(--accent);color:#fff}
+
+.container{max-width:1000px;margin:0 auto;padding:24px}
+.page-title{font-size:22px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.page-title .badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:6px;background:rgba(168,85,247,.1);color:var(--purple);border:1px solid rgba(168,85,247,.2)}
+.page-subtitle{font-size:13px;color:var(--dim);margin-bottom:24px}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px}
+.card h3{font-size:14px;font-weight:700;margin-bottom:14px;color:var(--accent)}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.form-group input,.form-group textarea,.form-group select{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-size:13px;font-family:inherit;outline:none;transition:border-color .2s}
+.form-group input:focus,.form-group textarea:focus{border-color:var(--accent)}
+.form-group textarea{resize:vertical;min-height:60px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+.scenario-box{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:18px;position:relative}
+.scenario-box .scenario-tag{position:absolute;top:-10px;left:14px;background:var(--card);padding:2px 10px;font-size:11px;font-weight:700;border-radius:4px}
+.scenario-box.a .scenario-tag{color:var(--cyan);border:1px solid rgba(6,182,212,.3)}
+.scenario-box.b .scenario-tag{color:var(--orange);border:1px solid rgba(249,115,22,.3)}
+
+.btn{padding:12px 28px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#2563eb}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-secondary{background:transparent;border:1px solid var(--border);color:var(--dim)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Progress */
+.progress-section{text-align:center;padding:40px 20px}
+.progress-bar{width:100%;height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin:12px 0}
+.progress-bar .fill{height:100%;background:var(--accent);border-radius:3px;transition:width .3s}
+.progress-text{font-size:13px;color:var(--dim)}
+
+/* Results */
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.arm-card{position:relative;overflow:hidden}
+.arm-card.winner{border-color:var(--green)}
+.arm-card .arm-tag{display:inline-block;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:700;margin-bottom:10px}
+.arm-a .arm-tag{background:rgba(6,182,212,.1);color:var(--cyan)}
+.arm-b .arm-tag{background:rgba(249,115,22,.1);color:var(--orange)}
+.arm-card .big{font-size:36px;font-weight:800;line-height:1.1}
+.arm-card .sub{font-size:12px;color:var(--dim);margin-top:4px}
+.arm-card .detail{font-size:12px;color:var(--muted);margin-top:8px}
+.winner-badge{position:absolute;top:12px;right:12px;background:var(--green);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px}
+
+.sig-card{text-align:center;padding:30px}
+.sig-card .verdict{font-size:28px;font-weight:800;margin-bottom:6px}
+.sig-card .verdict.sig{color:var(--green)}
+.sig-card .verdict.not-sig{color:var(--orange)}
+.sig-card .effect{font-size:16px;font-weight:600;margin:10px 0}
+.sig-card .stats{font-size:12px;color:var(--muted);margin-top:8px}
+
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.bar-label{min-width:120px;font-size:12px;color:var(--dim);text-align:right}
+.bar-track{flex:1;height:20px;background:var(--bg);border-radius:4px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:6px;font-size:10px;font-weight:600;color:#fff;min-width:20px}
+.bar-overlay{position:absolute;top:0;height:100%;border-radius:4px;opacity:.3}
+
+.hidden{display:none!important}
+.footer{text-align:center;padding:40px 24px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);margin-top:40px}
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <a class="logo" href="index.html">SG Digital Twin</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Data Explorer</a>
+    <a href="survey.html">Survey</a>
+    <a href="conjoint.html">Conjoint</a>
+    <a href="abtest.html" class="active">A/B Test</a>
+    <a href="backtest.html">Backtest</a>
+    <div class="sep"></div>
+    <a href="evidence.html">Evidence</a>
+    <a href="methodology.html">Methodology</a>
+    <div class="sep"></div>
+    <div class="lang-switch">
+      <button class="active" onclick="setLang('zh')">ZH</button>
+      <button onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+<h1 class="page-title" id="title">A/B 测试 <span class="badge">P2</span></h1>
+<p class="page-subtitle" id="subtitle">同一群体，两种情境，统计显著性检验 — 测量政策/产品变体的真实影响差异</p>
+
+<!-- SETUP -->
+<div id="page-setup">
+  <div class="card">
+    <h3 id="h-question">测试问题</h3>
+    <div class="form-group">
+      <label id="l-q">调研问题（两个情境共用）</label>
+      <textarea id="ab-question" rows="2" placeholder="例如：你会考虑购买这款保险产品吗？">你会如何调整你的消费习惯？</textarea>
+    </div>
+    <div class="form-group">
+      <label id="l-opts">选项（逗号分隔）</label>
+      <input id="ab-options" value="大幅减少非必要消费, 适度减少部分支出, 影响不大基本照常, 完全不受影响, 不确定">
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="scenario-box a">
+      <span class="scenario-tag">Scenario A</span>
+      <div class="form-group" style="margin-top:8px">
+        <label id="l-la">情境A名称</label>
+        <input id="ab-label-a" value="GST 9%（现状）">
+      </div>
+      <div class="form-group">
+        <label id="l-ca">情境A背景描述</label>
+        <textarea id="ab-context-a" rows="3">新加坡GST已从8%上调至9%（2024年1月生效）。政府提供最高$8B的定心与援助配套，包括CDC消费券、现金补贴、U-Save回扣。低收入家庭获得更多支持。</textarea>
+      </div>
+    </div>
+    <div class="scenario-box b">
+      <span class="scenario-tag">Scenario B</span>
+      <div class="form-group" style="margin-top:8px">
+        <label id="l-lb">情境B名称</label>
+        <input id="ab-label-b" value="GST 10%（假设）">
+      </div>
+      <div class="form-group">
+        <label id="l-cb">情境B背景描述</label>
+        <textarea id="ab-context-b" rows="3">假设新加坡GST进一步上调至10%（高出现状1个百分点）。政府提供类似的援助配套但金额不变。日常消费品价格进一步上涨。</textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 id="h-config">测试配置</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label id="l-n">每组样本量</label>
+        <select id="ab-sample">
+          <option value="50">50 (快速测试)</option>
+          <option value="100" selected>100 (标准)</option>
+          <option value="200">200 (高精度)</option>
+          <option value="500">500 (专业)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label id="l-age">年龄范围</label>
+        <div style="display:flex;gap:8px">
+          <input id="ab-age-min" type="number" value="18" style="width:80px" min="0" max="100">
+          <span style="line-height:40px;color:var(--muted)">—</span>
+          <input id="ab-age-max" type="number" value="100" style="width:80px" min="0" max="100">
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-primary" onclick="launchABTest()" id="btn-launch">启动 A/B 测试</button>
+    </div>
+  </div>
+</div>
+
+<!-- RUNNING -->
+<div id="page-running" class="hidden">
+  <div class="card">
+    <div class="progress-section">
+      <div style="font-size:18px;font-weight:700;margin-bottom:12px" id="prog-title">A/B 测试执行中...</div>
+      <div class="progress-bar"><div class="fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="progress-text" id="prog-text">准备中...</div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="page-results" class="hidden">
+  <!-- Significance verdict -->
+  <div class="card sig-card" id="res-sig"></div>
+
+  <!-- Side-by-side arms -->
+  <div class="result-grid" id="res-arms"></div>
+
+  <!-- Distribution comparison -->
+  <div class="card" id="res-bars">
+    <h3 id="h-compare">选项分布对比</h3>
+    <div id="res-bars-content"></div>
+  </div>
+
+  <!-- Actions -->
+  <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+    <button class="btn btn-secondary" onclick="downloadResult()">Download JSON</button>
+    <button class="btn btn-primary" onclick="location.reload()">新测试</button>
+  </div>
+</div>
+
+</div>
+
+<div class="footer">Singapore Digital Twin — A/B Testing — GHS 2025 Calibrated</div>
+
+<script>
+let currentLang = 'zh';
+let currentJobId = null, currentResult = null, pollTimer = null;
+const zh = () => currentLang === 'zh';
+
+function setLang(l) {
+  currentLang = l;
+  document.querySelectorAll('.lang-switch button').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.lang-switch button[onclick="setLang('${l}')"]`).classList.add('active');
+}
+
+async function launchABTest() {
+  const question = document.getElementById('ab-question').value.trim();
+  const options = document.getElementById('ab-options').value.split(/[,，]/).map(s=>s.trim()).filter(s=>s);
+  if (!question || options.length < 2) { alert('需要问题和至少2个选项'); return; }
+
+  const payload = {
+    question,
+    options,
+    label_a: document.getElementById('ab-label-a').value.trim(),
+    label_b: document.getElementById('ab-label-b').value.trim(),
+    context_a: document.getElementById('ab-context-a').value.trim(),
+    context_b: document.getElementById('ab-context-b').value.trim(),
+    sample_size: parseInt(document.getElementById('ab-sample').value),
+    age_min: parseInt(document.getElementById('ab-age-min').value) || null,
+    age_max: parseInt(document.getElementById('ab-age-max').value) || null,
+    has_income: true,
+  };
+
+  document.getElementById('page-setup').classList.add('hidden');
+  document.getElementById('page-running').classList.remove('hidden');
+
+  try {
+    const resp = await fetch('/api/abtest', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    const data = await resp.json();
+    if (data.error) { alert(data.error); return; }
+    currentJobId = data.job_id;
+    pollTimer = setInterval(async () => {
+      try {
+        const jr = await fetch(`/api/job/${currentJobId}`);
+        const job = await jr.json();
+        const pct = job.total > 0 ? Math.round(job.progress / job.total * 100) : 0;
+        document.getElementById('prog-fill').style.width = pct + '%';
+        document.getElementById('prog-text').textContent = `Agent ${job.progress} / ${job.total} (${pct}%)`;
+        if (job.status === 'done') {
+          clearInterval(pollTimer);
+          currentResult = job.result;
+          setTimeout(() => renderResults(job.result), 500);
+        } else if (job.status === 'error') {
+          clearInterval(pollTimer);
+          document.getElementById('prog-text').textContent = 'Error: ' + (job.error || 'Unknown');
+        }
+      } catch(e) {}
+    }, 1500);
+  } catch(e) {
+    alert('连接失败: ' + e.message);
+  }
+}
+
+function renderResults(r) {
+  document.getElementById('page-running').classList.add('hidden');
+  document.getElementById('page-results').classList.remove('hidden');
+
+  const a = r.scenario_a;
+  const b = r.scenario_b;
+  const sig = r.significance_test;
+
+  // Significance card
+  const isWinner = sig.significant;
+  const winner = a.positive_rate > b.positive_rate ? a.label : b.label;
+  document.getElementById('res-sig').innerHTML = `
+    <div class="verdict ${isWinner?'sig':'not-sig'}">${isWinner ? (zh()?'显著差异':'SIGNIFICANT') : (zh()?'无显著差异':'NOT SIGNIFICANT')}</div>
+    <div class="effect">${zh()?'效应量':'Effect'}: ${sig.effect_size_pp > 0 ? '+' : ''}${sig.effect_size_pp}pp ${isWinner ? `(${zh()?'胜出':'Winner'}: ${winner})` : ''}</div>
+    <div class="stats">z = ${sig.z_statistic}, p = ${sig.p_value < 0.001 ? '<0.001' : sig.p_value.toFixed(4)} | ${zh()?'双尾':'two-tailed'} | n = ${a.n} ${zh()?'每组':'per arm'} | ${zh()?'检验':'Test'}: two-proportion z-test</div>
+  `;
+
+  // Arm cards
+  const aWins = a.positive_rate >= b.positive_rate && isWinner;
+  const bWins = b.positive_rate > a.positive_rate && isWinner;
+  document.getElementById('res-arms').innerHTML = `
+    <div class="card arm-card arm-a ${aWins?'winner':''}">
+      ${aWins?'<div class="winner-badge">WINNER</div>':''}
+      <span class="arm-tag">${a.label}</span>
+      <div class="big" style="color:var(--cyan)">${Math.round(a.positive_rate*100)}%</div>
+      <div class="sub">${zh()?'正面率':'Positive rate'}</div>
+      <div class="detail">${zh()?'平均意愿':'Avg willingness'}: ${a.avg_willingness}/10 | n = ${a.n}</div>
+    </div>
+    <div class="card arm-card arm-b ${bWins?'winner':''}">
+      ${bWins?'<div class="winner-badge">WINNER</div>':''}
+      <span class="arm-tag">${b.label}</span>
+      <div class="big" style="color:var(--orange)">${Math.round(b.positive_rate*100)}%</div>
+      <div class="sub">${zh()?'正面率':'Positive rate'}</div>
+      <div class="detail">${zh()?'平均意愿':'Avg willingness'}: ${b.avg_willingness}/10 | n = ${b.n}</div>
+    </div>
+  `;
+
+  // Distribution comparison
+  const opts = r.options || Object.keys(a.choice_distribution);
+  let barsHtml = '';
+  opts.forEach(opt => {
+    const ca = a.choice_distribution[opt] || 0;
+    const cb = b.choice_distribution[opt] || 0;
+    const pa = Math.round(ca / a.n * 100);
+    const pb = Math.round(cb / b.n * 100);
+    const short = opt.length > 30 ? opt.substring(0,28)+'..' : opt;
+    barsHtml += `<div style="margin-bottom:12px">
+      <div style="font-size:12px;color:var(--dim);margin-bottom:4px">${short}</div>
+      <div class="bar-row"><span class="bar-label" style="min-width:40px;color:var(--cyan);font-weight:600">A</span><div class="bar-track"><div class="bar-fill" style="width:${Math.max(pa,3)}%;background:var(--cyan)">${pa}%</div></div></div>
+      <div class="bar-row"><span class="bar-label" style="min-width:40px;color:var(--orange);font-weight:600">B</span><div class="bar-track"><div class="bar-fill" style="width:${Math.max(pb,3)}%;background:var(--orange)">${pb}%</div></div></div>
+    </div>`;
+  });
+  document.getElementById('res-bars-content').innerHTML = barsHtml;
+}
+
+function downloadResult() {
+  if (!currentResult) return;
+  const blob = new Blob([JSON.stringify(currentResult, null, 2)], {type:'application/json'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `abtest_${currentJobId}.json`; a.click();
+}
+</script>
+</body>
+</html>

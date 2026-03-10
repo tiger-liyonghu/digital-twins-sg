@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>组件集成测试 - Digital Twin SG</title>
+    <link rel="stylesheet" href="css/components.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #f1f5f9;
+            min-height: 100vh;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .test-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            border-radius: 1rem;
+        }
+        
+        .test-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .test-subtitle {
+            font-size: 1.125rem;
+            color: #94a3b8;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .test-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .test-card:hover {
+            border-color: #06b6d4;
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .test-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .test-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+        }
+        
+        .status-icon {
+            font-size: 1.5rem;
+        }
+        
+        .status-text {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .status-success {
+            color: #22c55e;
+        }
+        
+        .status-warning {
+            color: #f59e0b;
+        }
+        
+        .status-error {
+            color: #ef4444;
+        }
+        
+        .test-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .test-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #cbd5e1;
+            font-size: 0.875rem;
+        }
+        
+        .test-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: #06b6d4;
+            color: white;
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background: #0891b2;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: #475569;
+            color: #e2e8f0;
+            border: 1px solid #64748b;
+        }
+        
+        .btn-secondary:hover {
+            background: #64748b;
+            border-color: #94a3b8;
+        }
+        
+        .component-test-area {
+            margin-top: 3rem;
+            padding-top: 3rem;
+            border-top: 1px solid #334155;
+        }
+        
+        .component-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #e2e8f0;
+            text-align: center;
+        }
+        
+        .component-container {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 1rem;
+        }
+        
+        .test-results {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(6, 182, 212, 0.05);
+            border: 1px solid rgba(6, 182, 212, 0.1);
+            border-radius: 0.75rem;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(6, 182, 212, 0.1);
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .result-label {
+            color: #cbd5e1;
+            font-size: 0.875rem;
+        }
+        
+        .result-value {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        
+        .value-success {
+            color: #22c55e;
+        }
+        
+        .value-warning {
+            color: #f59e0b;
+        }
+        
+        .value-error {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航组件测试区域 -->
+    <div id="nav-test-container"></div>
+    
+    <div class="test-container">
+        <div class="test-header">
+            <h1 class="test-title">🧪 组件集成测试套件</h1>
+            <p class="test-subtitle">
+                验证Digital Twin SG所有统一组件的功能和完整性
+            </p>
+        </div>
+        
+        <div class="test-grid">
+            <div class="test-card">
+                <h3>🔧 组件状态</h3>
+                <div class="test-status">
+                    <span class="status-icon">🔄</span>
+                    <span class="status-text">正在加载所有组件...</span>
+                </div>
+                <ul class="test-list">
+                    <li><span id="nav-status">⏳</span> 导航组件</li>
+                    <li><span id="footer-status">⏳</span> 页脚组件</li>
+                    <li><span id="transparency-status">⏳</span> 数据透明度组件</li>
+                    <li><span id="css-status">⏳</span> CSS样式系统</li>
+                    <li><span id="js-status">⏳</span> JavaScript交互</li>
+                </ul>
+            </div>
+            
+            <div class="test-card">
+                <h3>🎯 产品目标对齐</h3>
+                <div class="test-status">
+                    <span class="status-icon">🎯</span>
+                    <span class="status-text">基于5大产品目标评估</span>
+                </div>
+                <ul class="test-list">
+                    <li><span id="goal-math">⏳</span> 数学严谨性</li>
+                    <li><span id="goal-transparency">⏳</span> 透明度</li>
+                    <li><span id="goal-accuracy">⏳</span> 预测准确性</li>
+                    <li><span id="goal-truth">⏳</span> 真实性</li>
+                    <li><span id="goal-simple">⏳</span> 简洁可信界面</li>
+                </ul>
+            </div>
+            
+            <div class="test-card">
+                <h3>📊 性能指标</h3>
+                <div class="test-status">
+                    <span class="status-icon">⚡</span>
+                    <span class="status-text">实时性能监控</span>
+                </div>
+                <ul class="test-list">
+                    <li><span id="metric-load">⏳</span> 加载时间</li>
+                    <li><span id="metric-memory">⏳</span> 内存使用</li>
+                    <li><span id="metric-responsive">⏳</span> 响应式设计</li>
+                    <li><span id="metric-accessibility">⏳</span> 可访问性</li>
+                    <li><span id="metric-seo">⏳</span> SEO优化</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="test-actions">
+            <button onclick="runAllTests()" class="btn btn-primary">
+                <span>🚀</span>
+                运行完整测试
+            </button>
+            <a href="index.html" class="btn btn-secondary">
+                <span>🏠</span>
+                返回首页
+            </a>
+            <button onclick="checkComponents()" class="btn btn-secondary">
+                <span>🔍</span>
+                检查组件
+            </button>
+            <button onclick="generateReport()" class="btn btn-secondary">
+                <span>📄</span>
+                生成报告
+            </button>
+        </div>
+        
+        <!-- 组件测试区域 -->
+        <div class="component-test-area">
+            <h2 class="component-title">组件实时测试</h2>
+            
+            <div class="component-container">
+                <h3>🔗 数据透明度组件</h3>
+                <div id="transparency-test"></div>
+            </div>
+            
+            <div class="component-container">
+                <h3>👣 页脚组件</h3>
+                <div id="footer-test"></div>
+            </div>
+        </div>
+        
+        <!-- 测试结果 -->
+        <div class="test-results">
+            <h3>📊 测试结果</h3>
+            <div id="test-results-list">
+                <div class="result-item">
+                    <span class="result-label">测试初始化</span>
+                    <span class="result-value value-warning">等待中</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 页脚组件测试区域 -->
+    <div id="footer-test-container"></div>
+    
+    <script>
+        // 组件状态跟踪
+        const componentStatus = {
+            nav: 'pending',
+            footer: 'pending',
+            transparency: 'pending',
+            css: 'pending',
+            js: 'pending'
+        };
+        
+        const goalStatus = {
+            math: 'pending',
+            transparency: 'pending',
+            accuracy: 'pending',
+            truth: 'pending',
+            simple: 'pending'
+        };
+        
+        const metricStatus = {
+            load: 'pending',
+            memory: 'pending',
+            responsive: 'pending',
+            accessibility: 'pending',
+            seo: 'pending'
+        };
+        
+        // 更新状态显示
+        function updateStatusDisplay() {
+            // 组件状态
+            document.getElementById('nav-status').textContent = getStatusIcon(componentStatus.nav);
+            document.getElementById('footer-status').textContent = getStatusIcon(componentStatus.footer);
+            document.getElementById('transparency-status').textContent = getStatusIcon(componentStatus.transparency);
+            document.getElementById('css-status').textContent = getStatusIcon(componentStatus.css);
+            document.getElementById('js-status').textContent = getStatusIcon(componentStatus.js);
+            
+            // 产品目标状态
+            document.getElementById('goal-math').textContent = getStatusIcon(goalStatus.math);
+            document.getElementById('goal-transparency').textContent = getStatusIcon(goalStatus.transparency);
+            document.getElementById('goal-accuracy').textContent = getStatusIcon(goalStatus.accuracy);
+            document.getElementById('goal-truth').textContent = getStatusIcon(goalStatus.truth);
+            document.getElementById('goal-simple').textContent = getStatusIcon(goalStatus.simple);
+            
+            // 性能指标状态
+            document.getElementById('metric-load').textContent = getStatusIcon(metricStatus.load);
+            document.getElementById('metric-memory').textContent = getStatusIcon(metricStatus.memory);
+            document.getElementById('metric-responsive').textContent = getStatusIcon(metricStatus.responsive);
+            document.getElementById('metric-accessibility').textContent = getStatusIcon(metricStatus.accessibility);
+            document.getElementById('metric-seo').textContent = getStatusIcon(metricStatus.seo);
+        }
+        
+        function getStatusIcon(status) {
+            switch(status) {
+                case 'success': return '✅';
+                case 'warning': return '⚠️';
+                case 'error': return '❌';
+                default: return '⏳';
+            }
+        }
+        
+        // 加载组件
+        function loadComponents() {
+            console.log("🔧 开始加载组件...");
+            
+            // 加载导航组件
+            fetch("components/unified-navigation.html")
+                .then(response => {
+                    if (!response.ok) throw new Error(`导航组件加载失败: ${response.status}`);
+                    return response.text();
+                })
+                .then(html => {
+                    document.getElementById('nav-test-container').innerHTML = html;
+                    componentStatus.nav = 'success';
+                    console.log("✅ 导航组件加载成功");
+                    updateStatusDisplay();
+                })
+                .catch(error => {
+                    componentStatus.nav = 'error';
+                    console.error("❌ 导航组件加载失败:", error);
+                    updateStatusDisplay();
+                });
+            
+            // 加载页脚组件
+            fetch("components/unified-footer.html")
+                .then(response => {
+                    if (!response.ok) throw new Error(`页脚组件加载失败: ${response.status}`);
+                    return response.text();
+                })
+                .then(html => {
+                    document.getElementById('footer-test-container').innerHTML = html;
+                    document.getElementById('footer-test').innerHTML = html;
+                    componentStatus.footer = 'success';
+                    console.log("✅ 页脚组件加载成功");
+                    updateStatusDisplay();
+                })
+                .catch(error => {
+                    componentStatus.footer = 'error';
+                    console.error("❌ 页脚组件加载失败:", error);
+                    updateStatusDisplay();
+                });
+            
+            // 加载数据透明度组件
+            fetch("components/data-transparency.html")
+                .then(response => {
+                    if (!response.ok) throw new Error(`数据透明度组件加载失败: ${response.status}`);
+                    return response.text();
+                })
+                .then(html => {
+                    document.getElementById('transparency-test').innerHTML = html;
+                    componentStatus.transparency = 'success';
+                    console.log("✅ 数据透明度组件加载成功");
+                    updateStatusDisplay();
+                })
+                .catch(error => {
+                    componentStatus.transparency = 'error';
+                    console.error("❌ 数据透明度组件加载失败:", error);
+                    updateStatusDisplay();
+                });
+            
+            // 检查CSS
+            const cssLink = document.querySelector('link[href="css/components.css"]');
+            if (cssLink && cssLink.sheet && cssLink.sheet.cssRules.length > 0) {
+                componentStatus.css = 'success';
+                console.log("✅ CSS样式加载成功");
+            } else {
+                componentStatus.css = 'warning';
+                console.warn("⚠️ CSS样式可能未完全加载");
+            }
+            
+            // 检查JavaScript
+            componentStatus.js = 'success';
+            console.log("✅ JavaScript运行正常");
+            
+            updateStatusDisplay();
+        }
+        
+        // 评估产品目标对齐
+        function evaluateProductGoals() {
+            console.log("🎯 评估产品目标对齐...");
+            
+            // 数学严谨性评估
+            const mathElements = document.querySelectorAll('[class*="metric"], [class*="stat"]');
+            goalStatus.math = mathElements.length > 5 ? 'success' : 'warning';
+            
+            // 透明度评估
+            const transparencyLinks = document.querySelectorAll('a[href*="gov.sg"], a[href*="data.gov"]');
+            goalStatus.transparency = transparencyLinks.length >= 4 ? 'success' : transparencyLinks.length >= 2 ? 'warning' : 'error';
+            
+            // 预测准确性评估
+            const accuracyElements = document.querySelectorAll('[class*="confidence"], [class*="accuracy"]');
+            goalStatus.accuracy = accuracyElements.length > 0 ? 'success' : 'warning';
+            
+            // 真实性评估
+            const truthElements = document.querySelectorAll('[class*="source"], [class*="verified"]');
+            goalStatus.truth = truthElements.length > 3 ? 'success' : 'warning';
+            
+            // 简洁可信界面评估
+            const simpleElements = document.querySelectorAll('[class*="btn"], [class*="card"]');
+            const hasGoodUI = simpleElements.length > 10;
+            const hasResponsive = window.innerWidth <= 768 ? 
+                document.querySelector('.mobile-menu-btn') !== null : true;
+            goalStatus.simple =

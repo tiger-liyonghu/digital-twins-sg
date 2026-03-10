@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import '@xyflow/react/dist/style.css';
+
+:root {
+  --bg: #0a0e1a;
+  --card: #111827;
+  --border: #1e293b;
+  --text: #e2e8f0;
+  --dim: #94a3b8;
+  --muted: #475569;
+  --accent: #3b82f6;
+  --green: #22c55e;
+  --red: #ef4444;
+  --orange: #f97316;
+  --purple: #a855f7;
+  --cyan: #06b6d4;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+}
+
+/* React Flow customization */
+.react-flow__background {
+  background: var(--bg) !important;
+}
+
+.react-flow__minimap {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+}
+
+.react-flow__controls {
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+.react-flow__controls-button {
+  background: var(--card) !important;
+  border-color: var(--border) !important;
+  fill: var(--dim) !important;
+}
+
+.react-flow__controls-button:hover {
+  background: #1a2332 !important;
+}
+
+.react-flow__edge-path {
+  stroke: var(--accent) !important;
+  stroke-width: 2 !important;
+}
+
+.react-flow__handle {
+  width: 10px !important;
+  height: 10px !important;
+  border: 2px solid var(--accent) !important;
+  background: var(--card) !important;
+}
+
+.react-flow__handle:hover {
+  background: var(--accent) !important;
+}

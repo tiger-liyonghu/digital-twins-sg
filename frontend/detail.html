@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- 统一组件CSS -->
+    <link rel="stylesheet" href="css/components.css">
+    
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulation Detail | 模拟详情</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e1a;--card:#111827;--border:#1e293b;--text:#e2e8f0;
+  --dim:#94a3b8;--muted:#475569;--accent:#3b82f6;--green:#22c55e;
+  --red:#ef4444;--purple:#a855f7;--cyan:#06b6d4;--yellow:#eab308;
+  --card-hover:#1a2332;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,system-ui,sans-serif;font-size:14px}
+
+/* NAV */
+.site-nav{background:var(--card);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.nav-left{display:flex;align-items:center;gap:16px}
+.site-nav .logo{font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.back-link{font-size:12px;color:var(--dim);text-decoration:none;padding:4px 12px;border:1px solid var(--border);border-radius:6px}
+.back-link:hover{color:var(--accent);border-color:var(--accent)}
+.lang-switch{display:flex;gap:2px;background:var(--bg);border-radius:6px;padding:2px}
+.lang-switch button{background:transparent;border:none;color:var(--dim);padding:4px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;transition:all .2s}
+.lang-switch button.active{background:var(--accent);color:#fff}
+
+/* LAYOUT */
+.main{max-width:1100px;margin:0 auto;padding:24px}
+.section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.section h2{font-size:15px;font-weight:800;margin-bottom:4px}
+.section .sub{font-size:11px;color:var(--muted);margin-bottom:16px}
+
+/* Meta row */
+.meta-row{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:16px}
+.meta-item{text-align:center}
+.meta-val{font-size:22px;font-weight:800;color:var(--accent)}
+.meta-label{font-size:10px;color:var(--muted);margin-top:2px}
+
+/* Chart */
+.chart-wrap{height:280px;position:relative;margin-bottom:8px}
+.chart-wrap.small{height:220px}
+
+/* Breakdown grid */
+.bd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:768px){.bd-grid{grid-template-columns:1fr}}
+.bd-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px}
+.bd-card h3{font-size:13px;font-weight:700;margin-bottom:12px;text-transform:capitalize}
+
+/* Heatmap table */
+.heatmap{width:100%;border-collapse:collapse;font-size:11px}
+.heatmap th{padding:6px 8px;text-align:left;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);font-size:10px}
+.heatmap td{padding:5px 8px;border-bottom:1px solid rgba(30,41,59,.5);text-align:center;font-weight:600}
+.heatmap td:first-child{text-align:left;color:var(--dim);font-weight:500}
+.heatmap tr:hover{background:rgba(59,130,246,.04)}
+
+/* Response list */
+.resp-list{max-height:500px;overflow-y:auto}
+.resp-item{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start}
+.resp-persona{font-size:11px;color:var(--dim);min-width:180px}
+.resp-choice{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap}
+.resp-reasoning{font-size:11px;color:var(--muted);flex:1;font-style:italic}
+.choice-0{background:rgba(59,130,246,.12);color:var(--accent)}
+.choice-1{background:rgba(168,85,247,.12);color:var(--purple)}
+.choice-2{background:rgba(34,197,94,.12);color:var(--green)}
+.choice-3{background:rgba(249,115,22,.12);color:#f97316}
+.choice-4{background:rgba(6,182,212,.12);color:var(--cyan)}
+
+/* Analysis */
+.md-content h3{font-size:13px;font-weight:700;margin:14px 0 6px;color:var(--accent)}
+.md-content p{font-size:12px;line-height:1.7;margin-bottom:8px}
+.md-content ul{margin:6px 0 10px 18px;font-size:12px;line-height:1.7}
+.md-content li{margin-bottom:4px}
+.md-content strong{color:var(--text)}
+
+.loading{text-align:center;padding:60px;color:var(--muted);font-size:13px}
+.error{text-align:center;padding:60px;color:var(--red);font-size:13px}
+
+/* Consultant FAB */
+.cons-fab{position:fixed;bottom:24px;right:24px;width:52px;height:52px;border-radius:50%;background:var(--yellow);border:none;color:#0a0e1a;font-size:22px;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(234,179,8,.3);z-index:150;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.cons-fab:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(234,179,8,.45)}
+.cons-fab .badge{position:absolute;top:-2px;right:-2px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.cons-drawer{position:fixed;bottom:24px;right:24px;width:420px;max-width:calc(100vw - 48px);height:520px;max-height:calc(100vh - 100px);background:var(--card);border:1px solid rgba(234,179,8,.3);border-radius:16px;z-index:200;display:none;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.5);animation:drawerIn .2s}
+.cons-drawer.open{display:flex}
+@keyframes drawerIn{from{opacity:0;transform:translateY(12px) scale(.95)}to{opacity:1;transform:none}}
+.cons-drawer-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:rgba(234,179,8,.04)}
+.cons-drawer-head .avatar{width:32px;height:32px;border-radius:8px;background:var(--yellow);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#0a0e1a;flex-shrink:0}
+.cons-drawer-head h4{font-size:12px;font-weight:700}
+.cons-drawer-head .sub{font-size:9px;color:var(--muted);margin:0}
+.cons-drawer-head .close{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--dim);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-left:auto}
+.cons-drawer-head .close:hover{background:var(--bg);color:var(--text)}
+.cons-drawer-msgs{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.cons-drawer-msgs .msg{padding:8px 12px;border-radius:10px;font-size:11px;line-height:1.6;max-width:85%;white-space:pre-wrap}
+.cons-drawer-msgs .msg.cons{background:var(--bg);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:3px}
+.cons-drawer-msgs .msg.user{background:var(--yellow);color:#0a0e1a;align-self:flex-end;border-bottom-right-radius:3px}
+.cons-drawer-msgs .typing{display:flex;gap:4px;padding:8px 12px;align-self:flex-start}
+.cons-drawer-msgs .typing span{width:5px;height:5px;border-radius:50%;background:var(--muted);animation:tp .8s ease-in-out infinite}
+.cons-drawer-msgs .typing span:nth-child(2){animation-delay:.15s}
+.cons-drawer-msgs .typing span:nth-child(3){animation-delay:.3s}
+@keyframes tp{0%,100%{opacity:.3}50%{opacity:1}}
+.cons-drawer-bar{padding:8px 12px;border-top:1px solid var(--border);display:flex;gap:6px}
+.cons-drawer-bar textarea{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:11px;resize:none;outline:none;font-family:inherit;max-height:60px}
+.cons-drawer-bar textarea:focus{border-color:var(--yellow)}
+.cons-drawer-bar button{width:30px;height:30px;border-radius:8px;background:var(--yellow);border:none;color:#0a0e1a;font-size:13px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.cons-drawer-bar button:disabled{opacity:.4;cursor:default}
+
+/* Share link */
+.share-bar{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.share-url{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--dim);font-size:11px;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.copy-btn{padding:8px 16px;background:var(--accent);border:none;color:#fff;font-size:11px;font-weight:600;border-radius:6px;cursor:pointer}
+.copy-btn:hover{opacity:.85}
+</style>
+</head>
+<body>
+<!-- 统一导航组件 -->
+<div id="unified-navigation-container"></div>
+<script>
+// 动态加载统一导航组件
+fetch("components/unified-navigation.html")
+    .then(response => response.text())
+    .then(html => {
+        document.getElementById("unified-navigation-container").innerHTML = html;
+        console.log("✅ 统一导航组件加载完成");
+    })
+    .catch(error => console.error("❌ 导航组件加载失败:", error));
+</script>
+
+
+
+
+');
+  msgs.scrollTop = msgs.scrollHeight;
+
+  try {
+    const job = window._jobData?.job;
+    const result = window._jobData?.result;
+    const isZh = currentLang === 'zh';
+
+    const systemPrompt = `You are Marcus Chen, an engagement consultant for the Singapore Digital Twin.
+${isZh ? 'Respond in Chinese (简体中文).' : 'Respond in English.'}
+You have access to the full simulation report data below. Provide data-driven insights.
+
+## REPORT CONTEXT
+Question: "${job?.question || ''}"
+Sample: ${result?.total || 0} agents
+Distribution: ${JSON.stringify(result?.percentages || {})}
+Breakdowns available: ${Object.keys(result?.breakdowns || {}).join(', ')}
+${Object.entries(result?.breakdowns || {}).map(([k, v]) => {
+  const sample = Object.entries(v).slice(0, 5).map(([g, d]) => `${g}: ${JSON.stringify(d.percentages)}`).join('; ');
+  return `${k}: ${sample}`;
+}).join('\n')}
+
+## KNOWN BIASES
+- Popularity bias: LLM over-concentrates on popular choices
+- Moderation bias: agents cluster in moderate responses
+- Sample noise ±${Math.round(100/Math.sqrt(result?.total || 100))}pp
+
+Be concise (2-3 paragraphs). Cite specific numbers. If user asks about action items, prefix with "ACTION:".`;
+
+    const r = await fetch(DEEPSEEK_URL, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${DEEPSEEK_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [{ role: 'system', content: systemPrompt }, ...detailConsHistory],
+        temperature: 0.5, max_tokens: 1000,
+      }),
+    });
+    const data = await r.json();
+    const reply = data.choices?.[0]?.message?.content || '(no response)';
+    document.getElementById('dConsTyping')?.remove();
+    addDetailConsMsg('cons', reply);
+    detailConsHistory.push({ role: 'assistant', content: reply });
+  } catch (err) {
+    document.getElementById('dConsTyping')?.remove();
+    addDetailConsMsg('cons', `Error: ${err.message}`);
+  }
+
+  detailConsBusy = false;
+  document.getElementById('consDrawerSend').disabled = false;
+  document.getElementById('consDrawerInput').focus();
+}
+
+// Show badge after report loads
+setTimeout(() => {
+  if (window._jobData) {
+    document.getElementById('consBadge').classList.remove('hidden');
+  }
+}, 3000);
+
+// Init
+setLang(currentLang);
+init();
+</script>
+
+<!-- 统一页脚组件 -->
+<div id="unified-footer-container"></div>
+<script>
+// 动态加载统一页脚组件
+fetch("components/unified-footer.html")
+    .then(response => response.text())
+    .then(html => {
+        document.getElementById("unified-footer-container").innerHTML = html;
+        console.log("✅ 统一页脚组件加载完成");
+    })
+    .catch(error => console.error("❌ 页脚组件加载失败:", error));
+</script>
+</body>
+</html>

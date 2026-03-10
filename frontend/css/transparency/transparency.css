@@ -1,0 +1,138 @@
+/* transparency.css - 透明度组件样式 */
+.transparency-panel {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.transparency-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #1e293b;
+}
+
+.transparency-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.verified-badge {
+    background: #06b6d4;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.data-sources {
+    margin-bottom: 20px;
+}
+
+.data-sources h4 {
+    font-size: 16px;
+    margin-bottom: 12px;
+    color: #f8fafc;
+}
+
+.source-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.source-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #334155;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.source-item:hover {
+    background: #1e293b;
+}
+
+.source-item:last-child {
+    border-bottom: none;
+}
+
+.source-name {
+    font-weight: 500;
+    color: #f8fafc;
+}
+
+.source-time {
+    font-size: 12px;
+    color: #94a3b8;
+    font-family: 'Monaco', 'Courier New', monospace;
+}
+
+.source-quality {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.quality-high {
+    background: #06b6d4;
+    color: white;
+}
+
+.quality-medium {
+    background: #f97316;
+    color: #000;
+}
+
+.methodology {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+}
+
+.methodology h4 {
+    font-size: 16px;
+    margin-bottom: 12px;
+    color: #f8fafc;
+}
+
+.methodology p {
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+.learn-more {
+    display: inline-block;
+    color: #8b5cf6;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.learn-more:hover {
+    text-decoration: underline;
+}
+
+.transparency-footer {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #334155;
+    font-size: 12px;
+    color: #94a3b8;
+}

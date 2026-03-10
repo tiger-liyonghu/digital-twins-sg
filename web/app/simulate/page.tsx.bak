@@ -1,0 +1,591 @@
+'use client';
+
+import { useState, useRef, useCallback } from 'react';
+import NavBar from '@/components/NavBar';
+import { useLocale } from '@/lib/locale-context';
+import { submitSimulation, getSimulationStatus } from '@/lib/api';
+import type { SimulationResult } from '@/lib/api';
+
+type Step = 'form' | 'running' | 'results';
+
+const ROUND_LABELS = {
+  day1: { en: 'Day 1 — Cold Reaction', zh: '第 1 天 — 冷反应' },
+  day4: { en: 'Day 4 — Peer Influence', zh: '第 4 天 — 同伴影响' },
+  day7: { en: 'Day 7 — Echo Chamber', zh: '第 7 天 — 回音室效应' },
+};
+
+const DEFAULT_OPTIONS = [
+  'Strongly support', 'Somewhat support', 'Neutral', 'Somewhat oppose', 'Strongly oppose',
+];
+const DEFAULT_OPTIONS_ZH = [
+  '强烈支持', '比较支持', '中立', '比较反对', '强烈反对',
+];
+
+export default function SimulatePage() {
+  const { locale } = useLocale();
+  const zh = locale === 'zh';
+
+  const [step, setStep] = useState<Step>('form');
+
+  // Form state
+  const [eventName, setEventName] = useState('');
+  const [question, setQuestion] = useState('');
+  const [options, setOptions] = useState(zh ? [...DEFAULT_OPTIONS_ZH] : [...DEFAULT_OPTIONS]);
+  const [context, setContext] = useState('');
+  const [sampleSize, setSampleSize] = useState(100);
+
+  // Execution
+  const [progress, setProgress] = useState({ current: 0, total: 0, roundsDone: 0, currentRound: '' as string });
+  const [interimResults, setInterimResults] = useState<Record<string, { distribution: Record<string, number> }>>({});
+  const [result, setResult] = useState<SimulationResult | null>(null);
+  const [resultTab, setResultTab] = useState<'evolution' | 'clusters' | 'demo' | 'journeys'>('evolution');
+  const pollRef = useRef<ReturnType<typeof setInterval>>();
+
+  const updateOpt = (i: number, v: string) => { const o = [...options]; o[i] = v; setOptions(o); };
+  const addOpt = () => setOptions([...options, '']);
+  const removeOpt = (i: number) => setOptions(options.filter((_, j) => j !== i));
+
+  const validOptions = options.filter(o => o.trim());
+  const canSubmit = question.trim() && validOptions.length >= 2;
+
+  // Launch simulation
+  const handleLaunch = useCallback(async () => {
+    if (!canSubmit) return;
+    setStep('running');
+    setProgress({ current: 0, total: sampleSize * 3, roundsDone: 0, currentRound: '' });
+    setInterimResults({});
+    setResult(null);
+
+    try {
+      const { job_id } = await submitSimulation({
+        question,
+        options: validOptions,
+        context,
+        event_name: eventName || 'Social Simulation',
+        sample_size: sampleSize,
+      });
+
+      if (pollRef.current) clearInterval(pollRef.current);
+      pollRef.current = setInterval(async () => {
+        try {
+          const status = await getSimulationStatus(job_id);
+          setProgress({
+            current: status.progress,
+            total: status.total,
+            roundsDone: status.rounds_done || 0,
+            currentRound: status.current_round || '',
+          });
+          if (status.interim_results) {
+            setInterimResults(status.interim_results);
+          }
+
+          if (status.status === 'done' && status.result) {
+            clearInterval(pollRef.current);
+            setResult(status.result);
+            setStep('results');
+          } else if (status.status === 'error') {
+            clearInterval(pollRef.current);
+            setStep('form');
+          }
+        } catch { /* keep polling */ }
+      }, 3000);
+    } catch {
+      setStep('form');
+    }
+  }, [canSubmit, question, validOptions, context, eventName, sampleSize]);
+
+  const FC = 'w-full bg-[#111827] border border-[#1e293b] rounded-xl px-4 py-3 text-sm text-[#e2e8f0] outline-none focus:border-blue-500/60';
+
+  return (
+    <div className="min-h-screen bg-[#050810] text-[#e2e8f0]">
+      <NavBar />
+
+      <div className="max-w-3xl mx-auto px-6 py-8">
+
+        {/* ═══ FORM ═══ */}
+        {step === 'form' && (
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-2xl font-bold mb-1">
+                {zh ? '7 天社会模拟' : '7-Day Social Simulation'}
+              </h1>
+              <p className="text-sm text-[#64748b] leading-relaxed">
+                {zh
+                  ? '模拟政策/事件在 7 天内的舆论演变。3 轮 ABM 模型：冷反应 → 同伴影响 → 回音室效应。'
+                  : 'Simulate how public opinion evolves over 7 days. 3-round ABM: cold reaction → peer influence → echo chamber.'}
+              </p>
+            </div>
+
+            {/* Timeline visual */}
+            <div className="flex items-center gap-2 bg-[#0d1117] border border-[#1e293b] rounded-xl p-4">
+              {[
+                { day: '1', label: zh ? '冷反应' : 'Cold', desc: zh ? '原始新闻曝光' : 'Raw news exposure' },
+                { day: '4', label: zh ? '同伴' : 'Peer', desc: zh ? '社交圈讨论' : 'Social circle buzz' },
+                { day: '7', label: zh ? '回音室' : 'Echo', desc: zh ? '极化+最终态度' : 'Polarization + final' },
+              ].map((r, i) => (
+                <div key={r.day} className="flex items-center gap-2 flex-1">
+                  <div className="text-center flex-1">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500/30 to-purple-500/30 border border-blue-500/40 flex items-center justify-center text-sm font-bold mx-auto mb-1">
+                      D{r.day}
+                    </div>
+                    <div className="text-xs font-bold text-[#e2e8f0]">{r.label}</div>
+                    <div className="text-[10px] text-[#64748b]">{r.desc}</div>
+                  </div>
+                  {i < 2 && <div className="w-12 h-px bg-gradient-to-r from-blue-500/40 to-purple-500/40 flex-shrink-0" />}
+                </div>
+              ))}
+            </div>
+
+            {/* Event name */}
+            <div>
+              <label className="text-xs text-[#94a3b8] font-semibold uppercase tracking-wider mb-1.5 block">
+                {zh ? '事件/政策名称' : 'Event / Policy Name'}
+              </label>
+              <input value={eventName} onChange={e => setEventName(e.target.value)}
+                placeholder={zh ? '如：CPF 提取年龄从 55 提至 60' : 'e.g.: CPF Withdrawal Age Raised to 60'}
+                className={FC} />
+            </div>
+
+            {/* Question */}
+            <div>
+              <label className="text-xs text-[#94a3b8] font-semibold uppercase tracking-wider mb-1.5 block">
+                {zh ? '核心问题' : 'Core Question'}
+              </label>
+              <textarea value={question} onChange={e => setQuestion(e.target.value)} rows={3}
+                placeholder={zh
+                  ? '市民对这个政策/事件的立场是什么？'
+                  : 'What is the respondent\'s position on this policy/event?'}
+                className={`${FC} resize-none leading-relaxed placeholder:text-[#334155]`} />
+            </div>
+
+            {/* Options */}
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="text-xs text-[#94a3b8] font-semibold uppercase tracking-wider">{zh ? '立场选项' : 'Position Options'}</label>
+                <button onClick={addOpt} className="text-xs text-blue-400 hover:text-blue-300 font-medium">+ {zh ? '添加' : 'Add'}</button>
+              </div>
+              <div className="space-y-2">
+                {options.map((opt, i) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <span className="text-xs text-[#475569] w-5 text-right font-mono">{i + 1}</span>
+                    <input value={opt} onChange={e => updateOpt(i, e.target.value)} className={`flex-1 ${FC}`} />
+                    {options.length > 2 && (
+                      <button onClick={() => removeOpt(i)} className="text-[#475569] hover:text-red-400 text-sm px-1">&times;</button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Context */}
+            <div>
+              <label className="text-xs text-[#94a3b8] font-semibold uppercase tracking-wider mb-1.5 block">
+                {zh ? '背景信息' : 'Background Context'}
+              </label>
+              <textarea value={context} onChange={e => setContext(e.target.value)} rows={4}
+                placeholder={zh
+                  ? '提供政策事实、经济数据等客观信息。注意：不要引用被验证调查的结论。'
+                  : 'Provide policy facts, economic data, etc. Note: Do NOT include the results being tested.'}
+                className={`${FC} resize-none leading-relaxed placeholder:text-[#334155]`} />
+            </div>
+
+            {/* Sample size */}
+            <div>
+              <label className="text-xs text-[#94a3b8] font-semibold uppercase tracking-wider mb-2 block">
+                {zh ? '样本量' : 'Sample Size'}
+                <span className="text-[#475569] normal-case ml-2">{zh ? '(× 3 轮 = 总 LLM 调用)' : '(× 3 rounds = total LLM calls)'}</span>
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {[50, 100, 200, 500, 1000, 2000].map(n => (
+                  <button key={n} onClick={() => setSampleSize(n)}
+                    className={`p-3 rounded-xl border text-center transition-all ${
+                      sampleSize === n
+                        ? 'border-blue-500 bg-blue-500/10'
+                        : 'border-[#1e293b] bg-[#0d1117] hover:border-blue-500/40'
+                    }`}>
+                    <div className="text-lg font-bold text-[#e2e8f0]">{n}</div>
+                    <div className="text-[10px] text-[#64748b]">{n * 3} {zh ? '次调用' : 'calls'}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Launch */}
+            <button onClick={handleLaunch} disabled={!canSubmit}
+              className="w-full py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-base font-bold rounded-2xl hover:shadow-lg hover:shadow-blue-500/25 transition-all disabled:opacity-30">
+              {zh ? `启动 ${sampleSize} 人 × 3 轮模拟` : `Launch ${sampleSize}-Person × 3-Round Simulation`}
+            </button>
+          </div>
+        )}
+
+        {/* ═══ RUNNING ═══ */}
+        {step === 'running' && (
+          <div className="space-y-6 py-8">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold mb-1">{zh ? '模拟进行中' : 'Simulation Running'}</h1>
+              <p className="text-sm text-[#64748b]">
+                {zh ? `${sampleSize} 人 × 3 轮 = ${sampleSize * 3} 次 LLM 调用` : `${sampleSize} agents × 3 rounds = ${sampleSize * 3} LLM calls`}
+              </p>
+            </div>
+
+            {/* Round indicators */}
+            <div className="flex items-center justify-center gap-4">
+              {(['day1', 'day4', 'day7'] as const).map((r, i) => {
+                const done = progress.roundsDone > i;
+                const active = progress.currentRound === r;
+                return (
+                  <div key={r} className="flex items-center gap-3">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                      done ? 'bg-green-500/20 text-green-400 border border-green-500/40' :
+                      active ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40 animate-pulse' :
+                      'bg-[#1e293b] text-[#475569] border border-[#1e293b]'
+                    }`}>
+                      {done ? '✓' : `D${r === 'day1' ? '1' : r === 'day4' ? '4' : '7'}`}
+                    </div>
+                    {i < 2 && <div className="w-8 h-px bg-[#1e293b]" />}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Progress bar */}
+            <div>
+              <div className="flex justify-between mb-2">
+                <span className="text-sm text-[#94a3b8]">
+                  {progress.currentRound && ROUND_LABELS[progress.currentRound as keyof typeof ROUND_LABELS]
+                    ? (zh
+                        ? ROUND_LABELS[progress.currentRound as keyof typeof ROUND_LABELS].zh
+                        : ROUND_LABELS[progress.currentRound as keyof typeof ROUND_LABELS].en)
+                    : (zh ? '准备中...' : 'Preparing...')}
+                </span>
+                <span className="text-sm text-blue-400 font-mono">
+                  {progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0}%
+                </span>
+              </div>
+              <div className="w-full h-3 bg-[#111827] rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
+                  style={{ width: `${progress.total > 0 ? (progress.current / progress.total) * 100 : 0}%` }} />
+              </div>
+              <div className="text-xs text-[#475569] mt-1 text-right">{progress.current}/{progress.total}</div>
+            </div>
+
+            {/* Interim round results */}
+            {Object.keys(interimResults).length > 0 && (
+              <div className="space-y-3">
+                {Object.entries(interimResults).map(([round, data]) => (
+                  <div key={round} className="bg-[#0d1117] border border-[#1e293b] rounded-xl p-4">
+                    <div className="text-xs text-[#64748b] uppercase tracking-wider font-semibold mb-2">
+                      {ROUND_LABELS[round as keyof typeof ROUND_LABELS]
+                        ? (zh
+                            ? ROUND_LABELS[round as keyof typeof ROUND_LABELS].zh
+                            : ROUND_LABELS[round as keyof typeof ROUND_LABELS].en)
+                        : round}
+                    </div>
+                    <div className="space-y-1">
+                      {Object.entries(data.distribution)
+                        .sort(([, a], [, b]) => b - a)
+                        .map(([opt, cnt]) => {
+                          const total = Object.values(data.distribution).reduce((s, v) => s + v, 0);
+                          const pct = total > 0 ? Math.round((cnt / total) * 100) : 0;
+                          return (
+                            <div key={opt} className="flex items-center gap-2">
+                              <div className="flex-1 h-2 bg-[#111827] rounded-full overflow-hidden">
+                                <div className="h-full bg-blue-500/60 rounded-full" style={{ width: `${pct}%` }} />
+                              </div>
+                              <span className="text-xs font-mono text-[#94a3b8] w-10 text-right">{pct}%</span>
+                              <span className="text-xs text-[#64748b] w-40 truncate">{opt}</span>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══ RESULTS ═══ */}
+        {step === 'results' && result && (
+          <div className="space-y-6">
+            {/* Header */}
+            <div>
+              <h1 className="text-2xl font-bold mb-1">{result.event_name}</h1>
+              <p className="text-sm text-[#64748b]">
+                {result.sample_size} {zh ? '人' : 'agents'} × 3 {zh ? '轮' : 'rounds'} = {result.total_llm_calls} LLM {zh ? '调用' : 'calls'}
+              </p>
+            </div>
+
+            {/* Summary cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <SummaryCard
+                label={zh ? '第 1 天支持率' : 'Day 1 Support'}
+                value={`${result.summary.day1_support_pct}%`}
+                sub={zh ? '冷反应' : 'Cold reaction'}
+              />
+              <SummaryCard
+                label={zh ? '第 7 天支持率' : 'Day 7 Support'}
+                value={`${result.summary.day7_support_pct}%`}
+                sub={`${result.summary.day7_support_pct > result.summary.day1_support_pct ? '+' : ''}${(result.summary.day7_support_pct - result.summary.day1_support_pct).toFixed(1)}pp`}
+                highlight
+              />
+              <SummaryCard
+                label={zh ? '意见变化' : 'Opinion Changed'}
+                value={`${result.summary.opinion_changed_pct}%`}
+                sub={`${result.summary.moved_support}↑ ${result.summary.moved_oppose}↓`}
+              />
+              <SummaryCard
+                label={zh ? '极化指数' : 'Polarization'}
+                value={`${result.summary.polarization_d7.toFixed(2)}`}
+                sub={`${result.summary.polarization_d7 > result.summary.polarization_d1 ? '↑' : '↓'} from ${result.summary.polarization_d1.toFixed(2)}`}
+              />
+            </div>
+
+            {/* Tabs */}
+            <div className="flex border-b border-[#1e293b]">
+              {[
+                { key: 'evolution' as const, label: zh ? '舆论演变' : 'Opinion Evolution' },
+                { key: 'clusters' as const, label: zh ? '群体分化' : 'Cluster Analysis' },
+                { key: 'demo' as const, label: zh ? '人群差异' : 'Demographics' },
+                { key: 'journeys' as const, label: zh ? '个体轨迹' : 'Journeys' },
+              ].map(t => (
+                <button key={t.key} onClick={() => setResultTab(t.key)}
+                  className={`flex-1 py-2.5 text-sm font-semibold ${
+                    resultTab === t.key ? 'text-blue-400 border-b-2 border-blue-400' : 'text-[#475569] hover:text-[#94a3b8]'
+                  }`}>{t.label}</button>
+              ))}
+            </div>
+
+            {/* Evolution tab — 3-round distribution comparison */}
+            {resultTab === 'evolution' && (
+              <div className="space-y-6">
+                {(['day1', 'day4', 'day7'] as const).map(round => {
+                  const dist = result.rounds[round]?.distribution || {};
+                  const total = Object.values(dist).reduce((s, v) => s + v, 0);
+                  const colors = ['bg-blue-500', 'bg-purple-500', 'bg-gray-500', 'bg-orange-500', 'bg-red-500', 'bg-cyan-500'];
+                  return (
+                    <div key={round} className="bg-[#0d1117] border border-[#1e293b] rounded-xl p-5">
+                      <div className="text-sm font-bold text-[#e2e8f0] mb-3">
+                        {zh
+                          ? ROUND_LABELS[round].zh
+                          : ROUND_LABELS[round].en}
+                      </div>
+                      <div className="space-y-2">
+                        {result.options.map((opt, i) => {
+                          const cnt = dist[opt] || 0;
+                          const pct = total > 0 ? Math.round((cnt / total) * 100) : 0;
+                          return (
+                            <div key={opt}>
+                              <div className="flex justify-between mb-0.5">
+                                <span className="text-xs text-[#94a3b8]">{opt}</span>
+                                <span className="text-xs font-mono text-[#94a3b8]">{pct}% ({cnt})</span>
+                              </div>
+                              <div className="h-2.5 bg-[#111827] rounded-full overflow-hidden">
+                                <div className={`h-full ${colors[i % colors.length]} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Echo chamber metric */}
+                <div className="bg-[#111827] border border-[#1e293b] rounded-xl p-4">
+                  <div className="text-xs text-[#64748b] uppercase tracking-wider font-semibold mb-2">{zh ? '回音室强度' : 'Echo Chamber Strength'}</div>
+                  <div className="flex items-center gap-4">
+                    <div>
+                      <span className="text-sm text-[#94a3b8]">Day 1: </span>
+                      <span className="text-sm font-mono text-[#e2e8f0]">{result.summary.echo_chamber_d1.toFixed(3)}</span>
+                    </div>
+                    <span className="text-[#475569]">→</span>
+                    <div>
+                      <span className="text-sm text-[#94a3b8]">Day 7: </span>
+                      <span className="text-sm font-mono text-[#e2e8f0]">{result.summary.echo_chamber_d7.toFixed(3)}</span>
+                    </div>
+                    <span className={`text-xs px-2 py-1 rounded-lg ${
+                      result.summary.echo_chamber_d7 < result.summary.echo_chamber_d1
+                        ? 'bg-red-500/10 text-red-400'
+                        : 'bg-green-500/10 text-green-400'
+                    }`}>
+                      {result.summary.echo_chamber_d7 < result.summary.echo_chamber_d1
+                        ? (zh ? '回音室增强' : 'Stronger echo')
+                        : (zh ? '回音室减弱' : 'Weaker echo')}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-[#475569] mt-2">
+                    {zh ? '群内标准差越小 = 群内意见越统一 = 回音室越强' : 'Lower within-cluster std dev = more homogeneous clusters = stronger echo chambers'}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Clusters tab */}
+            {resultTab === 'clusters' && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-5 gap-2 text-xs text-[#64748b] uppercase tracking-wider font-semibold px-4">
+                  <span className="col-span-2">{zh ? '群体' : 'Cluster'}</span>
+                  <span className="text-center">Day 1</span>
+                  <span className="text-center">Day 7</span>
+                  <span className="text-center">{zh ? '变化' : 'Shift'}</span>
+                </div>
+                {Object.entries(result.cluster_evolution)
+                  .sort(([, a], [, b]) => b.n - a.n)
+                  .map(([cluster, data]) => {
+                    const shift = data.day7_avg - data.day1_avg;
+                    return (
+                      <div key={cluster} className="grid grid-cols-5 gap-2 items-center bg-[#0d1117] border border-[#1e293b] rounded-xl px-4 py-3">
+                        <div className="col-span-2">
+                          <div className="text-sm text-[#e2e8f0] font-medium">{cluster.replace(/_/g, ' ')}</div>
+                          <div className="text-[10px] text-[#475569]">n={data.n}</div>
+                        </div>
+                        <div className="text-center">
+                          <span className={`text-sm font-mono ${data.day1_avg > 0 ? 'text-blue-400' : data.day1_avg < 0 ? 'text-red-400' : 'text-[#94a3b8]'}`}>
+                            {data.day1_avg > 0 ? '+' : ''}{data.day1_avg.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="text-center">
+                          <span className={`text-sm font-mono ${data.day7_avg > 0 ? 'text-blue-400' : data.day7_avg < 0 ? 'text-red-400' : 'text-[#94a3b8]'}`}>
+                            {data.day7_avg > 0 ? '+' : ''}{data.day7_avg.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="text-center">
+                          <span className={`text-xs px-2 py-1 rounded-lg ${
+                            shift > 0.3 ? 'bg-blue-500/10 text-blue-400' :
+                            shift < -0.3 ? 'bg-red-500/10 text-red-400' :
+                            'bg-[#1e293b] text-[#64748b]'
+                          }`}>
+                            {shift > 0.3 ? (zh ? '→支持' : '→support') :
+                             shift < -0.3 ? (zh ? '→反对' : '→oppose') :
+                             (zh ? '稳定' : 'stable')}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+
+            {/* Demographics tab */}
+            {resultTab === 'demo' && (
+              <div className="space-y-4">
+                {Object.entries(result.demographic_shifts).map(([group, data]) => {
+                  const supShift = data.support_d7 - data.support_d1;
+                  const oppShift = data.oppose_d7 - data.oppose_d1;
+                  return (
+                    <div key={group} className="bg-[#0d1117] border border-[#1e293b] rounded-xl p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-sm font-bold text-[#e2e8f0]">{zh ? '年龄' : 'Age'} {group}</span>
+                        <span className="text-xs text-[#475569]">n={data.n}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <div className="text-xs text-[#64748b] mb-1">{zh ? '支持率' : 'Support Rate'}</div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-sm text-[#94a3b8]">{data.support_d1}%</span>
+                            <span className="text-[#475569]">→</span>
+                            <span className="text-sm font-bold text-[#e2e8f0]">{data.support_d7}%</span>
+                            <span className={`text-xs ${supShift > 0 ? 'text-blue-400' : supShift < 0 ? 'text-red-400' : 'text-[#475569]'}`}>
+                              ({supShift > 0 ? '+' : ''}{supShift.toFixed(1)}pp)
+                            </span>
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-[#64748b] mb-1">{zh ? '反对率' : 'Oppose Rate'}</div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-sm text-[#94a3b8]">{data.oppose_d1}%</span>
+                            <span className="text-[#475569]">→</span>
+                            <span className="text-sm font-bold text-[#e2e8f0]">{data.oppose_d7}%</span>
+                            <span className={`text-xs ${oppShift > 0 ? 'text-red-400' : oppShift < 0 ? 'text-blue-400' : 'text-[#475569]'}`}>
+                              ({oppShift > 0 ? '+' : ''}{oppShift.toFixed(1)}pp)
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {Object.keys(result.demographic_shifts).length === 0 && (
+                  <p className="text-sm text-[#475569] text-center py-8">{zh ? '无人口统计数据' : 'No demographic breakdown available'}</p>
+                )}
+              </div>
+            )}
+
+            {/* Journeys tab */}
+            {resultTab === 'journeys' && (
+              <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                {result.opinion_journeys
+                  .filter(j => j.changed)
+                  .slice(0, 20)
+                  .map((j, i) => (
+                    <div key={i} className="bg-[#0d1117] border border-[#1e293b] rounded-xl p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs font-bold text-blue-400">{j.gender === 'M' ? '♂' : '♀'} {j.age}yo</span>
+                        <span className="text-xs text-[#64748b]">{j.ethnicity}</span>
+                        <span className="text-xs text-[#64748b]">{j.housing}</span>
+                        <span className="text-xs text-[#475569] ml-auto">{j.cluster.replace(/_/g, ' ')}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <ScoreBadge score={j.day1_score} />
+                        <span className="text-[#475569]">→</span>
+                        <ScoreBadge score={j.day4_score} />
+                        <span className="text-[#475569]">→</span>
+                        <ScoreBadge score={j.day7_score} />
+                        <span className="ml-2 text-xs text-yellow-400 font-medium">CHANGED</span>
+                      </div>
+                      {j.day1_reasoning && (
+                        <p className="text-xs text-[#64748b] mt-2 pl-3 border-l-2 border-[#1e293b] line-clamp-2">
+                          D1: {j.day1_reasoning}
+                        </p>
+                      )}
+                      {j.day7_reasoning && j.day1_reasoning !== j.day7_reasoning && (
+                        <p className="text-xs text-[#94a3b8] mt-1 pl-3 border-l-2 border-blue-500/30 line-clamp-2">
+                          D7: {j.day7_reasoning}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                {result.opinion_journeys.filter(j => j.changed).length === 0 && (
+                  <p className="text-sm text-[#475569] text-center py-8">{zh ? '没有人改变了意见' : 'No opinion changes detected'}</p>
+                )}
+                {result.opinion_journeys.filter(j => !j.changed).length > 0 && (
+                  <div className="text-center text-xs text-[#475569] pt-4 border-t border-[#1e293b]">
+                    {result.opinion_journeys.filter(j => !j.changed).length} {zh ? '人意见未变' : 'agents unchanged'}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-3 pt-4 border-t border-[#1e293b]">
+              <button onClick={() => { setStep('form'); setResult(null); }}
+                className="flex-1 py-3 bg-[#111827] border border-[#1e293b] text-[#94a3b8] text-sm font-medium rounded-xl hover:text-[#e2e8f0] transition-all">
+                {zh ? '新模拟' : 'New Simulation'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SummaryCard({ label, value, sub, highlight }: { label: string; value: string; sub: string; highlight?: boolean }) {
+  return (
+    <div className={`rounded-xl p-4 border ${highlight ? 'bg-blue-500/10 border-blue-500/30' : 'bg-[#0d1117] border-[#1e293b]'}`}>
+      <div className="text-xs text-[#64748b] mb-1">{label}</div>
+      <div className={`text-xl font-bold font-mono ${highlight ? 'text-blue-400' : 'text-[#e2e8f0]'}`}>{value}</div>
+      <div className="text-xs text-[#475569] mt-0.5">{sub}</div>
+    </div>
+  );
+}
+
+function ScoreBadge({ score }: { score: number }) {
+  const bg = score > 0 ? 'bg-blue-500/20 text-blue-400' : score < 0 ? 'bg-red-500/20 text-red-400' : 'bg-[#1e293b] text-[#94a3b8]';
+  return (
+    <span className={`text-xs font-mono px-2 py-1 rounded-lg ${bg}`}>
+      {score > 0 ? '+' : ''}{score}
+    </span>
+  );
+}

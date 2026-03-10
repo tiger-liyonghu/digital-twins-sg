@@ -1,0 +1,58 @@
+/* main.css - 基础样式 */
+:root {
+  --bg: #0a0e1a;
+  --card: #111827;
+  --border: #1e293b;
+  --text: #e2e8f0;
+  --dim: #94a3b8;
+  --muted: #475569;
+  --accent: #3b82f6;
+  --green: #22c55e;
+  --red: #ef4444;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: var(--dim);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 响应式基础 */
+@media (max-width: 768px) {
+  body { font-size: 13px; }
+}

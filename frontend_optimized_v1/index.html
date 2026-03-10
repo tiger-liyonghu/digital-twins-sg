@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新加坡数字孪生 - 优化版 | Singapore Digital Twin</title>
+    
+    <!-- 核心样式 -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    
+    <!-- 外部库 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    
+    <!-- 预加载 -->
+    <link rel="preload" href="js/main.js" as="script">
+</head>
+<body>
+    <!-- 应用容器 -->
+    <div id="app">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>加载优化版前端...</p>
+        </div>
+    </div>
+    
+    <!-- 主脚本 -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

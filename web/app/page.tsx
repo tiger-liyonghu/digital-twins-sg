@@ -83,7 +83,7 @@ export default function HomePage() {
       {/* Hero */}
       <div className="max-w-4xl mx-auto px-6 pt-16 pb-12 text-center">
         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6">S</div>
-        <h1 className="text-4xl font-extrabold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent leading-tight">
+        <h1 className="text-2xl sm:text-4xl font-extrabold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent leading-tight">
           {zh ? <>新加坡数字孪生<br />172,173 个 AI 市民孪生智能体，5 分钟出结果</> : <>Singapore Digital Twin<br />172,173 AI Citizen Digital Twins, Results in 5 Min</>}
         </h1>
         <p className="text-lg text-[#94a3b8] max-w-2xl mx-auto mb-10">
@@ -92,12 +92,12 @@ export default function HomePage() {
             : 'A city-scale digital twin built on Singapore census data. 172,173 AI citizen digital twins, each with a full demographic profile across 39 dimensions. Validated against 9 historical events, median MAE 7.0pp.'}
         </p>
 
-        <div className="flex gap-4 justify-center mb-16">
-          <Link href="/simulate" className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-base font-bold rounded-2xl hover:shadow-lg hover:shadow-blue-500/25 transition-all">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-16">
+          <Link href="/simulate" className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-base font-bold rounded-2xl hover:shadow-lg hover:shadow-blue-500/25 transition-all text-center">
             {zh ? '社会模拟' : 'Social Simulation'}
             <span className="block text-xs font-normal opacity-80 mt-0.5">{zh ? '7 天 4 轮舆论演进模型' : '7-day 4-round opinion model'}</span>
           </Link>
-          <Link href="/survey" className="px-8 py-4 bg-[#111827] border border-[#1e293b] text-[#e2e8f0] text-base font-bold rounded-2xl hover:border-blue-500/40 transition-all">
+          <Link href="/survey" className="px-6 sm:px-8 py-3 sm:py-4 bg-[#111827] border border-[#1e293b] text-[#e2e8f0] text-base font-bold rounded-2xl hover:border-blue-500/40 transition-all text-center">
             {zh ? '市场调研' : 'Market Survey'}
             <span className="block text-xs font-normal text-[#64748b] mt-0.5">{zh ? '问卷 → 5 分钟出结果' : 'Questionnaire → Results in 5 min'}</span>
           </Link>
@@ -106,9 +106,9 @@ export default function HomePage() {
 
       {/* Strengths */}
       <div className="max-w-4xl mx-auto px-6 pb-16">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           {STRENGTHS.map((s, i) => (
-            <div key={i} className="bg-[#111827] border border-[#1e293b] rounded-2xl p-6">
+            <div key={i} className="bg-[#111827] border border-[#1e293b] rounded-2xl p-4 sm:p-6">
               <div className="text-2xl mb-3">{s.icon}</div>
               <h3 className="text-sm font-bold text-[#e2e8f0] mb-2">{zh ? s.titleZh : s.title}</h3>
               <p className="text-xs text-[#94a3b8] leading-relaxed">{zh ? s.descZh : s.desc}</p>
@@ -141,7 +141,7 @@ export default function HomePage() {
               ? '中位 MAE 7.0pp | 政策态度类 ≤5pp | 行为类/社会道德类偏差较大 — 系统提供方向性信号，不是精确预测'
               : 'Median MAE 7.0pp | Policy attitudes ≤5pp | Behavioral/social-moral topics show higher bias — directional signals, not precise predictions'}
           </p>
-          <div className="flex justify-center gap-6 flex-wrap">
+          <div className="flex justify-center gap-3 sm:gap-6 flex-wrap">
             {BACKTESTS.map((bt) => (
               <div key={bt.name} className="text-center min-w-[70px]">
                 <div className={`text-base font-bold font-mono ${bt.color}`}>{bt.mae}</div>
@@ -160,8 +160,8 @@ export default function HomePage() {
       </div>
 
       {/* Footer */}
-      <div className="border-t border-[#1e293b] py-6 text-center text-[10px] text-[#475569]">
-        <span>Powered by DeepSeek LLM · NVIDIA Nemotron-70B Reward Model · Census 2020 + GHS 2025 Calibrated Population · Supabase Cloud</span>
+      <div className="border-t border-[#1e293b] py-6 text-center text-[10px] text-[#475569] px-4">
+        <span className="break-words">Powered by DeepSeek LLM · NVIDIA Nemotron-70B · Census 2020 + GHS 2025 · Supabase Cloud</span>
         <br />
         <span className="text-[#334155]">172,173 agents · 39 demographic dimensions · VS+RP simulation protocol · 9 validated backtests</span>
       </div>

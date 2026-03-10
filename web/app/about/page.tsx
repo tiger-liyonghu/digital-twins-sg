@@ -98,7 +98,7 @@ export default function AboutPage() {
           <h4 className="text-sm font-bold text-[#e2e8f0] mb-3">
             {zh ? '每个 Agent 的属性（39 字段 + NVIDIA 叙事人格）' : 'Each Agent\'s Attributes (39 Fields + NVIDIA Narrative Persona)'}
           </h4>
-          <div className="grid grid-cols-2 gap-2 mb-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
             {(zh ? [
               { cat: '人口统计', fields: '年龄 · 性别 · 种族 · 规划区 · 居住身份 · 年龄段', n: 6 },
               { cat: '经济', fields: '月收入 · 收入段 · 教育 · 职业 · 行业 · 雇主类型', n: 6 },
@@ -145,7 +145,7 @@ export default function AboutPage() {
           <h4 className="text-sm font-bold text-[#e2e8f0] mb-3">
             {zh ? '验证方法（4 重检验）' : 'Validation (4 Layers of Testing)'}
           </h4>
-          <div className="grid grid-cols-2 gap-2 mb-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
             {(zh ? [
               { test: '卡方检验', desc: '每个人口变量的边际分布 vs 普查目标，p > 0.05 通过' },
               { test: 'KL 散度', desc: '衡量合成分布与真实分布的信息损失，D_KL → 0 为最优' },
@@ -216,7 +216,7 @@ export default function AboutPage() {
           <h4 className="text-sm font-bold text-[#e2e8f0] mb-3">
             {zh ? '意见动力学分析指标' : 'Opinion Dynamics Metrics'}
           </h4>
-          <div className="grid grid-cols-2 gap-2 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
             {(zh ? [
               { k: '极化指数 σ', v: '全体意见得分的标准差。Day 1→Day 7 σ 上升 = 群体极化加剧（Sunstein 2002）' },
               { k: '回音室强度', v: '聚类内标准差均值。σ_within 下降 = 同质化加强，回音室形成' },
@@ -320,7 +320,7 @@ export default function AboutPage() {
           <h4 className="text-sm font-bold text-[#e2e8f0] mb-3">
             {zh ? '核心技术栈' : 'Core Technical Stack'}
           </h4>
-          <div className="grid grid-cols-2 gap-2 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
             {(zh ? [
               { t: '本体知识库', d: '6 张 Supabase 表：行业→话题→事实的三层图谱 + 受众预设 + 探测模板 + 调查模式' },
               { t: 'RAG 管线', d: '每轮对话实时检索相关话题事实，注入 system prompt，消除 LLM 幻觉' },
@@ -440,7 +440,7 @@ export default function AboutPage() {
           title={zh ? '技术栈' : 'Tech Stack'}
           subtitle={zh ? '支撑系统运行的核心技术' : 'Core technologies powering the system'}
         >
-          <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             {(zh ? [
               { k: 'AI 对话', v: 'Sophie（DeepSeek LLM 驱动）' },
               { k: '仿真 LLM', v: 'DeepSeek Chat · temp 0.7 · VS+RP' },

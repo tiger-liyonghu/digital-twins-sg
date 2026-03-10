@@ -104,7 +104,7 @@ export default function ResearchPage() {
         </div>
 
         {/* ─── Key Metrics Banner ─── */}
-        <div className="grid grid-cols-4 gap-3 mb-16">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-16">
           {[
             { value: '85%', label: zh ? '个体还原准确率' : 'Individual accuracy', sub: 'Stanford 2024' },
             { value: '6/7', label: zh ? '摇摆州预测正确' : 'Swing states correct', sub: 'FlockVote 2024' },
@@ -241,7 +241,7 @@ export default function ResearchPage() {
               : 'Direct proof that LLMs can serve as citizen policy preference proxies — academic basis for our product.'}
           />
 
-          <div className="grid grid-cols-2 gap-3 mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
             {[
               {
                 title: zh ? '消费行为仿真' : 'Consumer Behavior',

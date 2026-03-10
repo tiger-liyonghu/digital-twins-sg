@@ -416,7 +416,7 @@ function SurveyContent() {
               <label className="text-xs text-[#94a3b8] font-semibold uppercase tracking-wider mb-3 block">
                 {zh ? '目标人群' : 'Target Audience'}
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-[#64748b] mb-1 block">{zh ? '最小年龄' : 'Age Min'}</label>
                   <input type="number" value={audience.ageMin} onChange={e => updateAud('ageMin', +e.target.value)} className={SFC} />
@@ -477,7 +477,7 @@ function SurveyContent() {
               </button>
 
               {showAdvancedAud && (
-                <div className="mt-3 grid grid-cols-2 gap-3 pt-3 border-t border-[#1e293b]">
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-[#1e293b]">
                   <div>
                     <label className="text-xs text-[#64748b] mb-1 block">{zh ? '职业' : 'Occupation'}</label>
                     <select value={audience.occupation} onChange={e => updateAud('occupation', e.target.value)} className={SFC}>
@@ -560,7 +560,7 @@ function SurveyContent() {
               <div className="text-xs text-[#475569] uppercase tracking-widest font-semibold text-center mb-4">
                 {zh ? '调研灵感 — 点击预填表单' : 'Survey Ideas — Click to Pre-fill'}
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {SURVEY_SCENARIOS.map((s, i) => (
                   <button key={i} onClick={() => applySurveyScenario(s)}
                     className="text-left bg-[#0d1117] border border-[#1e293b] rounded-lg p-2.5 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">

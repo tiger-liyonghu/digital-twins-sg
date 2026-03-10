@@ -254,7 +254,7 @@ export default function DataPage() {
               ? `172,173 个 AI 市民孪生智能体的人口统计分布，与 GHS 2025 / Census 2020 基准对标。每个维度计算 SRMSE、χ² 检验、KL 散度和全变差距离。`
               : `Demographic distributions of 172,173 AI citizen digital twins, benchmarked against GHS 2025 / Census 2020. Each dimension is evaluated with SRMSE, χ² test, KL divergence, and Total Variation distance.`}
           </p>
-          <div className="flex gap-4 mt-4">
+          <div className="flex flex-wrap gap-3 sm:gap-4 mt-4">
             <div className="bg-[#111827] border border-[#1e293b] rounded-xl px-4 py-2">
               <div className="text-xs text-[#64748b]">{zh ? '智能体总数' : 'Total Agents'}</div>
               <div className="text-lg font-bold font-mono text-blue-400">{total.toLocaleString()}</div>
@@ -279,7 +279,7 @@ export default function DataPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-[#1e293b] mb-6">
+        <div className="flex overflow-x-auto border-b border-[#1e293b] mb-6">
           {[
             { key: 'marginal' as const, label: zh ? '边缘分布' : 'Marginal Distributions' },
             { key: 'joint' as const, label: zh ? '联合分布' : 'Joint Distributions' },
@@ -325,7 +325,7 @@ export default function DataPage() {
                   </div>
 
                   {/* Bar comparison */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 overflow-x-auto">
                     {sortedKeys.map(k => {
                       const obsPct = obsTotal > 0 ? (dim.observed[k] || 0) / obsTotal : 0;
                       const expPct = dim.benchmark[k] || 0;
@@ -334,7 +334,7 @@ export default function DataPage() {
                       const displayLabel = dim.labelMap?.[k] || k;
 
                       return (
-                        <div key={k} className="grid grid-cols-[120px_1fr_80px_80px_60px] items-center gap-2">
+                        <div key={k} className="grid grid-cols-[120px_1fr_80px_80px_60px] items-center gap-2 min-w-[600px]">
                           <div className="text-xs text-[#94a3b8] truncate">{displayLabel}</div>
                           <div className="relative h-5">
                             {/* Benchmark bar (outline) */}
@@ -465,7 +465,7 @@ export default function DataPage() {
             </div>
 
             {/* Metric explanations */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 {
                   name: 'SRMSE',
@@ -519,7 +519,7 @@ export default function DataPage() {
               <h3 className="text-sm font-bold mb-3">
                 {zh ? 'SRMSE 评级标准 (Voas & Williamson, 2001)' : 'SRMSE Grading Scale (Voas & Williamson, 2001)'}
               </h3>
-              <div className="flex gap-6">
+              <div className="flex flex-wrap gap-3 sm:gap-6">
                 {[
                   { range: '< 0.05', grade: zh ? '优秀' : 'Excellent', color: 'text-green-400', bg: 'bg-green-500/10' },
                   { range: '0.05 – 0.10', grade: zh ? '良好' : 'Good', color: 'text-green-400', bg: 'bg-green-500/10' },
@@ -547,7 +547,7 @@ export default function DataPage() {
             {/* Synthesis pipeline */}
             <div className="bg-[#111827] border border-[#1e293b] rounded-2xl p-6">
               <h3 className="text-base font-bold mb-4">{zh ? '合成人口生成流水线' : 'Synthesis Pipeline'}</h3>
-              <div className="grid grid-cols-5 gap-3 text-center mb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 text-center mb-6">
                 {[
                   { step: '1', label: zh ? '边缘分布' : 'Marginals', desc: zh ? 'GHS 2025 数据' : 'GHS 2025 data', icon: '📊' },
                   { step: '2', label: zh ? 'CPT 构建' : 'CPT Build', desc: zh ? '条件概率表' : 'Conditional prob tables', icon: '🔢' },

@@ -318,7 +318,7 @@ export default function AdminPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           {[
             { type: 'all', label: zh ? '全部' : 'All', count: results.length },
             { type: 'survey', label: zh ? '调研' : 'Survey', count: results.filter(r => r.type === 'survey').length },

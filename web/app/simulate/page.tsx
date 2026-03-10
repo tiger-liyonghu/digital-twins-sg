@@ -261,7 +261,7 @@ export default function SimulatePage() {
                 {zh ? '样本量' : 'Sample Size'}
                 <span className="text-[#475569] normal-case ml-2">{zh ? '(× 4 轮 = 总 LLM 调用)' : '(× 4 rounds = total LLM calls)'}</span>
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {[50, 100, 200, 500, 1000, 2000].map(n => (
                   <button key={n} onClick={() => setSampleSize(n)}
                     className={`p-3 rounded-xl border text-center transition-all ${
@@ -287,7 +287,7 @@ export default function SimulatePage() {
               <div className="text-xs text-[#475569] uppercase tracking-widest font-semibold text-center mb-4">
                 {zh ? '场景灵感 — 点击预填表单' : 'Scenario Ideas — Click to Pre-fill'}
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {SIMULATION_SCENARIOS.map((s, i) => (
                   <button key={i} onClick={() => applyScenario(s)}
                     className="text-left bg-[#0d1117] border border-[#1e293b] rounded-lg p-2.5 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
@@ -523,7 +523,7 @@ export default function SimulatePage() {
 
             {/* Clusters tab */}
             {resultTab === 'clusters' && (
-              <div className="space-y-3">
+              <div className="space-y-3 overflow-x-auto">
                 <div className="grid grid-cols-5 gap-2 text-xs text-[#64748b] uppercase tracking-wider font-semibold px-4">
                   <span className="col-span-2">{zh ? '群体' : 'Cluster'}</span>
                   <span className="text-center">Day 1</span>

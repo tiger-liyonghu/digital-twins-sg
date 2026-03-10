@@ -16,6 +16,7 @@ import time
 import threading
 import concurrent.futures
 import logging
+import uuid
 import requests
 import numpy as np
 import pandas as pd
@@ -45,6 +46,7 @@ _jobs_lock = threading.Lock()
 from lib.config import (
     SUPABASE_URL, SUPABASE_KEY, DEEPSEEK_API_KEY, DEEPSEEK_URL,
     NVIDIA_API_KEY, NVIDIA_REWARD_URL, NVIDIA_REWARD_MODEL,
+    AGENT_FIELDS,
 )
 
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -80,7 +82,7 @@ def load_all_agents() -> pd.DataFrame:
         resp = requests.get(
             f"{SUPABASE_URL}/rest/v1/agents",
             headers={**headers, "Range": f"{offset}-{offset + page_size - 1}"},
-            params={"select": "*"},
+            params={"select": AGENT_FIELDS},
         )
         if resp.status_code != 200:
             break
@@ -1022,8 +1024,13 @@ class APIHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(FRONTEND_DIR), **kwargs)
 
+    MAX_BODY_SIZE = 1 * 1024 * 1024  # 1 MB
+
     def do_POST(self):
         length = int(self.headers.get("Content-Length", 0))
+        if length > self.MAX_BODY_SIZE:
+            self._json_response(413, {"error": "Request body too large"})
+            return
         body = json.loads(self.rfile.read(length)) if length > 0 else {}
         if self.path == "/api/survey":
             self._handle_survey_submit(body)
@@ -1039,7 +1046,18 @@ class APIHandler(SimpleHTTPRequestHandler):
             self._json_response(404, {"error": "Not found"})
 
     def do_GET(self):
-        if self.path.startswith("/api/job/"):
+        if self.path == "/health":
+            agent_count = len(_agents_cache) if _agents_cache is not None else 0
+            with _jobs_lock:
+                active = sum(1 for j in jobs.values() if j["status"] in ("queued", "sampling", "running"))
+                total_jobs = len(jobs)
+            self._json_response(200, {
+                "status": "ok",
+                "agents_loaded": agent_count,
+                "active_jobs": active,
+                "total_jobs": total_jobs,
+            })
+        elif self.path.startswith("/api/job/"):
             job_id = self.path.split("/api/job/")[1].split("?")[0]
             self._handle_job_status(job_id)
         elif self.path == "/api/results":
@@ -1108,7 +1126,8 @@ class APIHandler(SimpleHTTPRequestHandler):
                 "summary": summary,
             })
         except Exception as e:
-            self._json_response(500, {"error": str(e)})
+            logger.exception("Eligible count error")
+            self._json_response(500, {"error": "Internal server error"})
 
     def _handle_abtest_submit(self, body):
         """Launch an A/B test job."""
@@ -1123,7 +1142,7 @@ class APIHandler(SimpleHTTPRequestHandler):
             return
 
         sample_size = min(int(body.get("sample_size", 100)), 2000)
-        job_id = "ab_" + datetime.now().strftime("%Y%m%d%H%M%S") + f"_{id(body) % 10000:04d}"
+        job_id = f"ab_{uuid.uuid4().hex[:12]}"
         with _jobs_lock:
             jobs[job_id] = {"status": "queued", "progress": 0, "total": sample_size * 2, "result": None, "error": None, "created_at": time.time()}
 
@@ -1157,7 +1176,7 @@ class APIHandler(SimpleHTTPRequestHandler):
             return
 
         sample_size = min(int(body.get("sample_size", 100)), 2000)
-        job_id = "cj_" + datetime.now().strftime("%Y%m%d%H%M%S") + f"_{id(body) % 10000:04d}"
+        job_id = f"cj_{uuid.uuid4().hex[:12]}"
         with _jobs_lock:
             jobs[job_id] = {"status": "queued", "progress": 0, "total": sample_size, "result": None, "error": None, "created_at": time.time()}
 
@@ -1189,7 +1208,7 @@ class APIHandler(SimpleHTTPRequestHandler):
             return
 
         sample_size = min(int(body.get("sample_size", 100)), 2000)
-        job_id = "sim_" + datetime.now().strftime("%Y%m%d%H%M%S") + f"_{id(body) % 10000:04d}"
+        job_id = f"sim_{uuid.uuid4().hex[:12]}"
         with _jobs_lock:
             jobs[job_id] = {
                 "status": "queued", "progress": 0, "total": sample_size * 3,
@@ -1245,7 +1264,7 @@ class APIHandler(SimpleHTTPRequestHandler):
             self._json_response(400, {"error": "Need question + at least 2 options"})
             return
 
-        job_id = datetime.now().strftime("%Y%m%d%H%M%S") + f"_{id(body) % 10000:04d}"
+        job_id = f"sv_{uuid.uuid4().hex[:12]}"
         with _jobs_lock:
             jobs[job_id] = {"status": "queued", "progress": 0, "total": sample_size, "result": None, "error": None, "created_at": time.time()}
 
@@ -1325,26 +1344,48 @@ class APIHandler(SimpleHTTPRequestHandler):
     def _handle_result_detail(self, filename):
         """Return content of a specific result file."""
         try:
-            filepath = OUTPUT_DIR / filename
-            if not filepath.exists() or not filepath.suffix == ".json":
+            filepath = (OUTPUT_DIR / filename).resolve()
+            # Prevent path traversal
+            if not filepath.is_relative_to(OUTPUT_DIR.resolve()):
+                self._json_response(403, {"error": "Forbidden"})
+                return
+            if not filepath.exists() or filepath.suffix != ".json":
                 self._json_response(404, {"error": "File not found"})
                 return
             with open(filepath) as f:
                 data = json.load(f)
             self._json_response(200, data)
-        except Exception as e:
-            self._json_response(500, {"error": str(e)})
+        except Exception:
+            self._json_response(500, {"error": "Internal server error"})
+
+    ALLOWED_ORIGINS = {
+        "https://dt.actuaryhelp.com",
+        "https://digital-twins-sg.vercel.app",
+        "http://localhost:3000",
+        "http://localhost:3456",
+    }
+
+    def _get_cors_origin(self):
+        origin = self.headers.get("Origin", "")
+        if origin in self.ALLOWED_ORIGINS:
+            return origin
+        return ""
 
     def _json_response(self, code, data):
         self.send_response(code)
         self.send_header("Content-Type", "application/json")
-        self.send_header("Access-Control-Allow-Origin", "*")
+        origin = self._get_cors_origin()
+        if origin:
+            self.send_header("Access-Control-Allow-Origin", origin)
+        self.send_header("X-Content-Type-Options", "nosniff")
         self.end_headers()
         self.wfile.write(json.dumps(data, ensure_ascii=False, default=str).encode())
 
     def do_OPTIONS(self):
         self.send_response(200)
-        self.send_header("Access-Control-Allow-Origin", "*")
+        origin = self._get_cors_origin()
+        if origin:
+            self.send_header("Access-Control-Allow-Origin", origin)
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()

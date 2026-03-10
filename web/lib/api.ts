@@ -123,6 +123,10 @@ export async function submitSurvey(params: SurveyParams): Promise<{ job_id: stri
 
 export async function getJobStatus(jobId: string): Promise<JobStatus> {
   const res = await fetch(`${API_BASE}/api/job/${jobId}`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
   return res.json();
 }
 

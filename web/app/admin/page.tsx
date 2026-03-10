@@ -5,8 +5,6 @@ import Link from 'next/link';
 import { useLocale } from '@/lib/locale-context';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3456';
-const ADMIN_USER = process.env.NEXT_PUBLIC_ADMIN_USER || 'admin';
-const ADMIN_PASS = process.env.NEXT_PUBLIC_ADMIN_PASS || 'dt_sg_2026!';
 
 interface ResultFile {
   filename: string;
@@ -40,13 +38,22 @@ export default function AdminPage() {
     }
   }, []);
 
-  const handleLogin = () => {
-    if (user === ADMIN_USER && pass === ADMIN_PASS) {
-      setAuthed(true);
-      setLoginError('');
-      sessionStorage.setItem('admin_auth', '1');
-    } else {
-      setLoginError(zh ? '用户名或密码错误' : 'Invalid username or password');
+  const handleLogin = async () => {
+    try {
+      const res = await fetch('/api/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user, password: pass }),
+      });
+      if (res.ok) {
+        setAuthed(true);
+        setLoginError('');
+        sessionStorage.setItem('admin_auth', '1');
+      } else {
+        setLoginError(zh ? '用户名或密码错误' : 'Invalid username or password');
+      }
+    } catch {
+      setLoginError(zh ? '服务器连接失败' : 'Server connection failed');
     }
   };
 

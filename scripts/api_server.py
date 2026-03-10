@@ -20,6 +20,7 @@ import requests
 import numpy as np
 import pandas as pd
 from http.server import HTTPServer, SimpleHTTPRequestHandler
+from socketserver import ThreadingMixIn
 from pathlib import Path
 from datetime import datetime
 from collections import Counter
@@ -27,6 +28,16 @@ from urllib.parse import urlparse
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
+
+# ============================================================
+# CONCURRENCY CONTROLS
+# ============================================================
+# Global semaphore: max 30 parallel LLM calls across ALL jobs
+# (DeepSeek rate limit ~60 RPM, leave headroom)
+_llm_semaphore = threading.Semaphore(30)
+
+# Thread-safe lock for jobs dict
+_jobs_lock = threading.Lock()
 
 # ============================================================
 # CONFIG — loaded from .env via lib.config
@@ -41,8 +52,10 @@ FRONTEND_DIR = PROJECT_ROOT / "frontend"
 OUTPUT_DIR = PROJECT_ROOT / "data" / "output"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-# In-memory job store
-jobs = {}  # job_id -> { status, progress, total, result, error }
+# In-memory job store (protected by _jobs_lock)
+jobs = {}  # job_id -> { status, progress, total, result, error, created_at }
+MAX_CONCURRENT_JOBS = 5  # max simultaneous running jobs
+MAX_JOBS_HISTORY = 50    # keep last N completed jobs
 
 # Cache agents
 _agents_cache = None
@@ -151,8 +164,13 @@ from lib.llm import ask_agent as _ask_agent_core
 
 
 def ask_agent(persona, question, options, context=""):
-    """Wrapper adding API-server-specific fields (tokens, cost, willingness)."""
-    result = _ask_agent_core(persona, question, options, context)
+    """Wrapper adding API-server-specific fields (tokens, cost, willingness).
+    Uses global semaphore to limit total concurrent LLM calls."""
+    _llm_semaphore.acquire()
+    try:
+        result = _ask_agent_core(persona, question, options, context)
+    finally:
+        _llm_semaphore.release()
     probs = result.get("probabilities", {})
     chosen = result.get("choice", "")
     result.setdefault("tokens_used", 0)
@@ -235,8 +253,9 @@ def run_survey_job(job_id: str, params: dict):
     try:
         jobs[job_id]["status"] = "sampling"
         df = load_all_agents()
+        seed = hash(job_id) % (2**31)
         sample, eligible_count, total_pop = stratified_sample(
-            df, n=params["sample_size"], seed=42,
+            df, n=params["sample_size"], seed=seed,
             age_min=params.get("age_min"), age_max=params.get("age_max"),
             gender=params.get("gender"), housing=params.get("housing"),
             income_min=params.get("income_min"), income_max=params.get("income_max"),
@@ -1093,6 +1112,10 @@ class APIHandler(SimpleHTTPRequestHandler):
 
     def _handle_abtest_submit(self, body):
         """Launch an A/B test job."""
+        if self._check_concurrent_limit():
+            self._json_response(429, {"error": "Server busy. Please try again in a few minutes.", "max_concurrent": MAX_CONCURRENT_JOBS})
+            return
+
         question = body.get("question", "").strip()
         options = body.get("options", [])
         if not question or len(options) < 2:
@@ -1101,7 +1124,8 @@ class APIHandler(SimpleHTTPRequestHandler):
 
         sample_size = min(int(body.get("sample_size", 100)), 2000)
         job_id = "ab_" + datetime.now().strftime("%Y%m%d%H%M%S") + f"_{id(body) % 10000:04d}"
-        jobs[job_id] = {"status": "queued", "progress": 0, "total": sample_size * 2, "result": None, "error": None}
+        with _jobs_lock:
+            jobs[job_id] = {"status": "queued", "progress": 0, "total": sample_size * 2, "result": None, "error": None, "created_at": time.time()}
 
         params = {
             "question": question, "options": options,
@@ -1122,6 +1146,10 @@ class APIHandler(SimpleHTTPRequestHandler):
 
     def _handle_conjoint_submit(self, body):
         """Launch a conjoint analysis job."""
+        if self._check_concurrent_limit():
+            self._json_response(429, {"error": "Server busy. Please try again in a few minutes.", "max_concurrent": MAX_CONCURRENT_JOBS})
+            return
+
         question = body.get("question", "").strip()
         profiles = body.get("profiles", [])
         if not question or len(profiles) < 2:
@@ -1130,7 +1158,8 @@ class APIHandler(SimpleHTTPRequestHandler):
 
         sample_size = min(int(body.get("sample_size", 100)), 2000)
         job_id = "cj_" + datetime.now().strftime("%Y%m%d%H%M%S") + f"_{id(body) % 10000:04d}"
-        jobs[job_id] = {"status": "queued", "progress": 0, "total": sample_size, "result": None, "error": None}
+        with _jobs_lock:
+            jobs[job_id] = {"status": "queued", "progress": 0, "total": sample_size, "result": None, "error": None, "created_at": time.time()}
 
         params = {
             "question": question, "profiles": profiles,
@@ -1149,6 +1178,10 @@ class APIHandler(SimpleHTTPRequestHandler):
 
     def _handle_simulation_submit(self, body):
         """Launch a social simulation job."""
+        if self._check_concurrent_limit():
+            self._json_response(429, {"error": "Server busy. Please try again in a few minutes.", "max_concurrent": MAX_CONCURRENT_JOBS})
+            return
+
         question = body.get("question", "").strip()
         options = body.get("options", [])
         if not question or len(options) < 2:
@@ -1157,11 +1190,13 @@ class APIHandler(SimpleHTTPRequestHandler):
 
         sample_size = min(int(body.get("sample_size", 100)), 2000)
         job_id = "sim_" + datetime.now().strftime("%Y%m%d%H%M%S") + f"_{id(body) % 10000:04d}"
-        jobs[job_id] = {
-            "status": "queued", "progress": 0, "total": sample_size * 3,
-            "result": None, "error": None, "rounds_done": 0,
-            "current_round": None, "interim_results": {},
-        }
+        with _jobs_lock:
+            jobs[job_id] = {
+                "status": "queued", "progress": 0, "total": sample_size * 3,
+                "result": None, "error": None, "rounds_done": 0,
+                "current_round": None, "interim_results": {},
+                "created_at": time.time(),
+            }
 
         params = {
             "question": question, "options": options,
@@ -1179,7 +1214,27 @@ class APIHandler(SimpleHTTPRequestHandler):
         thread.start()
         self._json_response(200, {"job_id": job_id, "status": "queued"})
 
+    def _check_concurrent_limit(self):
+        """Check if too many jobs are running. Returns True if over limit."""
+        with _jobs_lock:
+            running = sum(1 for j in jobs.values() if j["status"] in ("queued", "sampling", "running"))
+            return running >= MAX_CONCURRENT_JOBS
+
+    def _cleanup_old_jobs(self):
+        """Remove old completed jobs to prevent memory leak."""
+        with _jobs_lock:
+            done_jobs = [(k, v) for k, v in jobs.items() if v["status"] in ("done", "error")]
+            done_jobs.sort(key=lambda x: x[1].get("created_at", 0))
+            while len(done_jobs) > MAX_JOBS_HISTORY:
+                old_id, _ = done_jobs.pop(0)
+                del jobs[old_id]
+
     def _handle_survey_submit(self, body):
+        # Check concurrent limit
+        if self._check_concurrent_limit():
+            self._json_response(429, {"error": "Server busy. Please try again in a few minutes.", "max_concurrent": MAX_CONCURRENT_JOBS})
+            return
+
         # Validate
         question = body.get("question", "").strip()
         options = body.get("options", [])
@@ -1191,7 +1246,8 @@ class APIHandler(SimpleHTTPRequestHandler):
             return
 
         job_id = datetime.now().strftime("%Y%m%d%H%M%S") + f"_{id(body) % 10000:04d}"
-        jobs[job_id] = {"status": "queued", "progress": 0, "total": sample_size, "result": None, "error": None}
+        with _jobs_lock:
+            jobs[job_id] = {"status": "queued", "progress": 0, "total": sample_size, "result": None, "error": None, "created_at": time.time()}
 
         params = {
             "client_name": client_name,
@@ -1211,6 +1267,7 @@ class APIHandler(SimpleHTTPRequestHandler):
             "has_income": body.get("has_income"),
         }
 
+        self._cleanup_old_jobs()
         thread = threading.Thread(target=run_survey_job, args=(job_id, params), daemon=True)
         thread.start()
 
@@ -1298,6 +1355,14 @@ class APIHandler(SimpleHTTPRequestHandler):
 
 
 # ============================================================
+# THREADED HTTP SERVER (handles concurrent requests)
+# ============================================================
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    """Handle each request in a new thread."""
+    daemon_threads = True
+
+
+# ============================================================
 # MAIN
 # ============================================================
 if __name__ == "__main__":
@@ -1305,8 +1370,8 @@ if __name__ == "__main__":
     # Pre-load agents in background
     threading.Thread(target=load_all_agents, daemon=True).start()
 
-    server = HTTPServer(("", port), APIHandler)
-    logger.info(f"Server running on port {port}")
+    server = ThreadedHTTPServer(("", port), APIHandler)
+    logger.info(f"Server running on port {port} (threaded)")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

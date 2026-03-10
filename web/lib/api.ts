@@ -114,6 +114,10 @@ export async function submitSurvey(params: SurveyParams): Promise<{ job_id: stri
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),
   });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
   return res.json();
 }
 
@@ -212,6 +216,10 @@ export async function submitSimulation(params: SimulationParams): Promise<{ job_
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),
   });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
   return res.json();
 }
 

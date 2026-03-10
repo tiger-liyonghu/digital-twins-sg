@@ -1345,8 +1345,10 @@ class APIHandler(SimpleHTTPRequestHandler):
         """Return content of a specific result file."""
         try:
             filepath = (OUTPUT_DIR / filename).resolve()
-            # Prevent path traversal
-            if not filepath.is_relative_to(OUTPUT_DIR.resolve()):
+            # Prevent path traversal (compatible with Python 3.8+)
+            try:
+                filepath.relative_to(OUTPUT_DIR.resolve())
+            except ValueError:
                 self._json_response(403, {"error": "Forbidden"})
                 return
             if not filepath.exists() or filepath.suffix != ".json":

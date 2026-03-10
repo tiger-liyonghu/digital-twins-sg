@@ -1046,7 +1046,7 @@ class APIHandler(SimpleHTTPRequestHandler):
             self._json_response(404, {"error": "Not found"})
 
     def do_GET(self):
-        if self.path == "/health":
+        if self.path in ("/health", "/api/health"):
             agent_count = len(_agents_cache) if _agents_cache is not None else 0
             with _jobs_lock:
                 active = sum(1 for j in jobs.values() if j["status"] in ("queued", "sampling", "running"))
